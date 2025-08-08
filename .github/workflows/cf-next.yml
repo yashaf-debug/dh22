@@ -1,0 +1,45 @@
+name: Deploy DH22 (Next.js → Cloudflare Pages, Production)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build for Cloudflare Pages
+        run: npx -y @cloudflare/next-on-pages@1.13.6
+
+      - name: List build output (debug)
+        run: |
+          echo "=== .vercel/output ==="
+          find .vercel/output -maxdepth 3 -type f | sort | head -n 200
+
+      - name: Publish to Cloudflare Pages (Production)
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: dh22
+          directory: .vercel/output
+          branch: main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: '3'
