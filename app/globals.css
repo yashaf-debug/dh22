@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --bg:#fff; --fg:#111; }
+html,body { background:var(--bg); color:var(--fg); }
+a { text-underline-offset:2px; }
+.container { max-width:1200px; }
+.btn { @apply px-4 py-2 border border-black rounded-none text-sm tracking-wide; }
+.btn-primary { @apply bg-black text-white; }
+.card { @apply flex flex-col gap-2; }
+.navlink { @apply uppercase tracking-wide text-sm; }
+.badge { @apply text-xs uppercase tracking-widest; }
