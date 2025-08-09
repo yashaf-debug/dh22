@@ -17,10 +17,14 @@ export async function ensureOrdersTables() {
       delivery_address TEXT,
       amount_total INTEGER NOT NULL,
       currency TEXT NOT NULL DEFAULT 'RUB',
+      payment_method TEXT NOT NULL DEFAULT 'online',
       cdekpay_payment_id TEXT,
       notes TEXT
     )
   `);
+  try {
+    await run("ALTER TABLE orders ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'online'");
+  } catch {}
   await run(`
     CREATE TABLE IF NOT EXISTS order_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

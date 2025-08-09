@@ -8,6 +8,7 @@ export default function CheckoutPage() {
   const [cart, setCart] = useState<any[]>([]);
   const [customer, setCustomer] = useState({ name: "", phone: "", email: "" });
   const [delivery, setDelivery] = useState({ type: "cdek_pvz", address: "" });
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
 
   useEffect(() => {
     const raw = localStorage.getItem("dh22_cart");
@@ -20,8 +21,8 @@ export default function CheckoutPage() {
     if (!cart.length) return alert("Корзина пуста");
     if (!customer.name || !customer.phone || !customer.email)
       return alert("Заполни данные покупателя");
+    setLoading(true);
     try {
-      setLoading(true);
       const r1 = await fetch("/api/checkout/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -30,42 +31,44 @@ export default function CheckoutPage() {
           delivery,
           items: cart,
           amount: { total },
+          payment_method: paymentMethod,
         }),
       });
       const j1 = await r1.json();
       if (!j1.ok) throw new Error(j1.error || "Не удалось создать заказ");
+      const orderNumber = j1.orderNumber;
 
-      const r2 = await fetch("/api/pay/cdek/create", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ orderNumber: j1.orderNumber }),
-      });
-      const j2 = await r2.json();
-      console.log("CDEK PAY create:", j2);
-      if (!j2.ok) {
-        setLoading(false);
-        alert(
-          `CDEK ${j2.status || ""}\n` +
-            (typeof j2.detail === "string"
-              ? j2.detail
-              : JSON.stringify(j2.detail)),
-        );
-        return;
-      }
-      setLoading(false);
-      if (j2.link || j2.url) {
-        // Простой и надёжный сценарий: открываем платёж в этой вкладке
+      if (paymentMethod === "online") {
+        const r2 = await fetch("/api/pay/cdek/create", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ orderNumber }),
+        });
+        let j2;
+        try {
+          j2 = await r2.json();
+        } catch {
+          const t = await r2.text();
+          alert(t);
+          return;
+        }
+        if (!j2.ok) {
+          alert(
+            `CDEK ${j2.status || ""}\n` +
+              (typeof j2.detail === "string"
+                ? j2.detail
+                : JSON.stringify(j2.detail)),
+          );
+          return;
+        }
         window.location.href = j2.link || j2.url;
-        return;
+      } else {
+        window.location.href = `/checkout/success?o=${encodeURIComponent(orderNumber)}`;
       }
-      alert(
-        j2.error ||
-          "Заказ создан, но онлайн-оплата не настроена. Сохраните номер заказа: " +
-            j1.orderNumber,
-      );
     } catch (e: any) {
-      setLoading(false);
       alert(e.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -115,6 +118,30 @@ export default function CheckoutPage() {
               onChange={e => setDelivery({ ...delivery, address: e.target.value })}
             />
           </section>
+
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg">Способ оплаты</h2>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="pm"
+                value="online"
+                checked={paymentMethod === "online"}
+                onChange={() => setPaymentMethod("online")}
+              />
+              <span>Онлайн (CDEK Pay)</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="pm"
+                value="cod"
+                checked={paymentMethod === "cod"}
+                onChange={() => setPaymentMethod("cod")}
+              />
+              <span>При получении</span>
+            </label>
+          </div>
 
           <button className="btn btn-primary w-48" disabled={loading} onClick={submit}>
             {loading ? "Создаём..." : "Перейти к оплате"}

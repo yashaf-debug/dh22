@@ -14,13 +14,27 @@ export async function POST(req) {
     await ensureOrdersTables();
     const body = await req.json();
     const { customer, delivery, items, amount } = body;
+    const payment_method = body.payment_method === "cod" ? "cod" : "online";
+    const initialStatus = payment_method === "cod" ? "awaiting_payment" : "new";
 
     if (!customer?.name || !customer?.phone || !customer?.email) return bad("Некорректные данные покупателя");
     if (!Array.isArray(items) || items.length === 0) return bad("Пустая корзина");
     if (!amount?.total || amount.total <= 0) return bad("Сумма заказа некорректна");
 
     const number = "DH22-" + Date.now().toString(36).toUpperCase();
-    await run(insertOrder, number, customer.name, customer.phone, customer.email, delivery.type, delivery.address || "", amount.total, body.notes || "");
+    await run(
+      insertOrder,
+      number,
+      initialStatus,
+      customer.name,
+      customer.phone,
+      customer.email,
+      delivery.type,
+      delivery.address || "",
+      amount.total,
+      body.notes || "",
+      payment_method
+    );
 
     const order = await first(byNumber, number);
     for (const i of items) {
