@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from "next/server";
 import { cdekSignature } from "@/app/lib/cdek/signature";
-import { first, all } from "@/app/lib/db";
+import { first, all, run } from "@/app/lib/db";
 
 const toKop = (v: number | string) => Math.round(Number(v));
 const normPhone = (raw?: string) => {
