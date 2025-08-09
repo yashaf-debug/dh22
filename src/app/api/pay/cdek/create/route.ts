@@ -1,11 +1,10 @@
 export const runtime = 'edge';
 
-import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextRequest, NextResponse } from "next/server";
 import { cdekSignature } from "@/app/lib/cdek/signature";
+import { first, all } from "@/app/lib/db";
 
-// утилиты форматирования
-const toKopecks = (rub: number) => Math.round(Number(rub) * 100);
+const toKop = (v: number | string) => Math.round(Number(v));
 const normPhone = (raw?: string) => {
   if (!raw) return "";
   const d = String(raw).replace(/\D/g, "");
@@ -16,65 +15,99 @@ const normPhone = (raw?: string) => {
 };
 
 export async function POST(req: NextRequest) {
-  const { env } = getRequestContext();
-  const base = env.CDEK_PAY_BASE || "https://secure.cdekfin.ru";
-  const login = env.CDEK_PAY_LOGIN || "";
-  const secret = env.CDEK_PAY_SECRET || "";
-  const publicUrl = (env.PUBLIC_BASE_URL || env.NEXT_PUBLIC_BASE_URL || "").startsWith("http")
-    ? (env.PUBLIC_BASE_URL || env.NEXT_PUBLIC_BASE_URL)!
-    : `https://${env.PUBLIC_BASE_URL || env.NEXT_PUBLIC_BASE_URL || "dh22.ru"}`;
-
+  const base = process.env.CDEK_PAY_BASE || "https://secure.cdekfin.ru";
+  const login = process.env.CDEK_PAY_LOGIN || "";
+  const secret = process.env.CDEK_PAY_SECRET || "";
+  const pub =
+    process.env.PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "https://dh22.ru";
   if (!login || !secret) {
-    return NextResponse.json({ ok:false, error:"CDEK Pay creds missing" }, { status: 200 });
+    return NextResponse.json(
+      { ok: false, error: "CDEK credentials missing" },
+      { status: 200 }
+    );
   }
 
-  const { orderId, items, customer } = await req.json() as {
-    orderId: string,
-    items: Array<{ id: string; name: string; priceRub: number; qty: number }>,
-    customer?: { phone?: string; email?: string }
-  };
+  const { orderNumber } = (await req.json()) as { orderNumber: string };
+  // 1) читаем заказ и позиции из D1
+  const order = await first(
+    "SELECT * FROM orders WHERE number=?",
+    orderNumber
+  );
+  if (!order)
+    return NextResponse.json(
+      { ok: false, error: "Order not found" },
+      { status: 200 }
+    );
+  const items = await all(
+    "SELECT slug,name,price,qty,image FROM order_items WHERE order_id=?",
+    order.id
+  );
 
-  const receipt_details = (items || []).map(i => {
-    const price = toKopecks(i.priceRub);
-    return {
-      id: String(i.id),
-      name: i.name,
-      price,                         // в копейках
-      quantity: i.qty,
-      sum: price * i.qty,            // в копейках
-      payment_object: 1,
-      measure: 0
-    };
-  });
-  const pay_amount = receipt_details.reduce((s, i) => s + i.sum, 0);
+  // 2) строим receipt_details (цены и суммы — В КОПЕЙКАХ)
+  const receipt_details = (items as any[]).map((i: any) => ({
+    id: String(i.slug),
+    name: i.name,
+    price: toKop(i.price), // уже в копейках в нашей схеме
+    quantity: i.qty,
+    sum: toKop(i.price) * i.qty,
+    payment_object: 1,
+    measure: 0,
+  }));
+  const pay_amount = receipt_details.reduce(
+    (s: any, i: any) => s + i.sum,
+    0
+  );
 
+  // 3) строго по контракту CDEK
   const payment_order = {
-    pay_for: `DH22 #${orderId}`,
-    currency: "RUR",
-    pay_amount,
-    user_phone: normPhone(customer?.phone),
-    user_email: customer?.email || "",
-    return_url_success: `${publicUrl}/checkout/success?order=${encodeURIComponent(orderId)}`,
-    return_url_fail: `${publicUrl}/checkout/fail?order=${encodeURIComponent(orderId)}`,
-    receipt_details
+    pay_for: `DH22 #${order.number}`,
+    currency: "RUR", // именно RUR
+    pay_amount, // копейки, целое
+    user_phone: normPhone((order as any).customer_phone),
+    user_email: (order as any).customer_email || "",
+    return_url_success: `${pub}/checkout/success?o=${encodeURIComponent(
+      order.number
+    )}`,
+    return_url_fail: `${pub}/checkout/fail?o=${encodeURIComponent(
+      order.number
+    )}`,
+    receipt_details,
   };
 
   const signature = await cdekSignature(payment_order, secret);
   const payload = { login, signature, payment_order };
 
+  // 4) отправляем и возвращаем ПОЛНЫЙ detail при ошибке
   const res = await fetch(`${base}/merchant_api/payment_orders`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
-
   const text = await res.text();
   if (!res.ok) {
-    return NextResponse.json({ ok:false, error:`CDEK ${res.status}`, detail:text }, { status: 200 });
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(text);
+    } catch {}
+    return NextResponse.json(
+      {
+        ok: false,
+        status: res.status,
+        error: "CDEK " + res.status,
+        detail: parsed || text,
+        sent: payload,
+      },
+      { status: 200 }
+    );
   }
-
   let data: any = {};
-  try { data = JSON.parse(text); } catch { data = { link: "", raw: text }; }
-
-  return NextResponse.json({ ok:true, ...data }, { status: 200 });
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+  return NextResponse.json({ ok: true, ...data }, { status: 200 });
 }
+
