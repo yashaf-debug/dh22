@@ -37,15 +37,24 @@ export default function CheckoutPage() {
       const r2 = await fetch("/api/pay/cdek/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ orderId: j1.orderNumber, items: cart, customer }),
+        body: JSON.stringify({ orderNumber: j1.orderNumber }),
       });
       const j2 = await r2.json();
       console.log("CDEK PAY create:", j2);
+      if (!j2.ok) {
+        setLoading(false);
+        alert(
+          `CDEK ${j2.status || ""}\n` +
+            (typeof j2.detail === "string"
+              ? j2.detail
+              : JSON.stringify(j2.detail)),
+        );
+        return;
+      }
       setLoading(false);
-
-      if (j2.ok && j2.url) {
+      if (j2.link || j2.url) {
         // Простой и надёжный сценарий: открываем платёж в этой вкладке
-        window.location.href = j2.url;
+        window.location.href = j2.link || j2.url;
         return;
       }
       alert(
