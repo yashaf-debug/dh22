@@ -1,8 +1,8 @@
 export const runtime = 'edge';
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { run, first } from "@/src/app/lib/db";
-import { insertOrder, insertItem, byNumber } from "@/src/app/lib/sql";
-import { ensureOrdersTables } from "@/src/app/lib/init";
+import { run, first } from "@/app/lib/db";
+import { insertOrder, insertItem, byNumber } from "@/app/lib/sql";
+import { ensureOrdersTables } from "@/app/lib/init";
 
 function bad(msg, code=400){ return new Response(JSON.stringify({ok:false,error:msg}), {status:code, headers:{'content-type':'application/json'}}); }
 
