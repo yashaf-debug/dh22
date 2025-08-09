@@ -15,6 +15,7 @@ async function getOrders(token) {
   if (!r.ok) return [];
   return r.json();
 }
+
 export default async function Admin({ searchParams }) {
   const token = searchParams?.t || "";
   const data = await getOrders(token);
@@ -23,7 +24,7 @@ export default async function Admin({ searchParams }) {
       <h1 className="text-2xl mb-4">Заказы</h1>
       {!token && <div className="text-red-600">Добавь ?t=ТВОЙ_ТОКЕН в URL</div>}
       <div className="space-y-2">
-        {data.map(o => (
+        {data.map((o) => (
           <div key={o.number} className="border p-3 flex justify-between">
             <div>
               <div className="font-medium">{o.number}</div>
