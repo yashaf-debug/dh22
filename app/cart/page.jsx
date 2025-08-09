@@ -5,23 +5,41 @@ import { rub } from "../lib/money";
 export default function CartPage() {
   const [cart, setCart] = useState([]);
 
-  useEffect(()=>{
-    const raw = localStorage.getItem('dh22_cart');
-    setCart(raw ? JSON.parse(raw) : []);
-  },[]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('dh22_cart');
+      setCart(raw ? JSON.parse(raw) : []);
+    } catch (err) {
+      console.error('Failed to load cart, resetting', err);
+      setCart([]);
+      try {
+        localStorage.removeItem('dh22_cart');
+      } catch (err2) {
+        console.error('Failed to clear corrupt cart', err2);
+      }
+    }
+  }, []);
 
   const total = cart.reduce((s,i)=> s + i.price * i.qty, 0);
 
   function remove(idx){
     const next = cart.slice();
-    next.splice(idx,1);
+    next.splice(idx, 1);
     setCart(next);
-    localStorage.setItem('dh22_cart', JSON.stringify(next));
+    try {
+      localStorage.setItem('dh22_cart', JSON.stringify(next));
+    } catch (err) {
+      console.error('Failed to update cart in storage', err);
+    }
   }
 
   function clear() {
     setCart([]);
-    localStorage.removeItem('dh22_cart');
+    try {
+      localStorage.removeItem('dh22_cart');
+    } catch (err) {
+      console.error('Failed to clear cart from storage', err);
+    }
   }
 
   return (

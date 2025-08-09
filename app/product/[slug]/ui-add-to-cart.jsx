@@ -7,12 +7,28 @@ export default function AddToCart({ product }) {
   const [qty, setQty] = useState(1);
 
   function add() {
-    const raw = localStorage.getItem('dh22_cart');
-    const cart = raw ? JSON.parse(raw) : [];
+    let cart = [];
+    try {
+      const raw = localStorage.getItem('dh22_cart');
+      cart = raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      console.error('Failed to read cart, resetting', err);
+      try {
+        localStorage.removeItem('dh22_cart');
+      } catch (err2) {
+        console.error('Failed to clear corrupt cart', err2);
+      }
+    }
+
     const existing = cart.find(i => i.slug === product.slug && i.size === size && i.color === color);
     if (existing) existing.qty += qty;
     else cart.push({ slug: product.slug, name: product.name, price: product.price, image: product.images[0], size, color, qty });
-    localStorage.setItem('dh22_cart', JSON.stringify(cart));
+
+    try {
+      localStorage.setItem('dh22_cart', JSON.stringify(cart));
+    } catch (err) {
+      console.error('Failed to update cart in storage', err);
+    }
     alert('Товар добавлен в корзину');
   }
 
