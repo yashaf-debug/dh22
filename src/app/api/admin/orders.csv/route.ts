@@ -8,13 +8,14 @@ export async function GET(req: NextRequest) {
   if (token !== (process.env.ADMIN_TOKEN || "")) {
     return new Response("forbidden", { status: 403 });
   }
-  const rows = await all("SELECT number, status, customer_name, customer_phone, customer_email, amount_total, created_at FROM orders ORDER BY id DESC LIMIT 1000");
+  const rows = await all("SELECT number, status, payment_method, customer_name, customer_phone, customer_email, amount_total, created_at FROM orders ORDER BY id DESC LIMIT 1000");
 
-  const head = ["number","status","customer_name","customer_phone","customer_email","amount_total_rub","created_at"];
+  const head = ["number","status","payment_method","customer_name","customer_phone","customer_email","amount_total_rub","created_at"];
   const lines = [head.join(",")].concat(
     rows.map((r:any)=>[
       r.number,
       r.status,
+      r.payment_method,
       `"${(r.customer_name||"").replace(/"/g,'""')}"`,
       `"${(r.customer_phone||"").replace(/"/g,'""')}"`,
       `"${(r.customer_email||"").replace(/"/g,'""')}"`,

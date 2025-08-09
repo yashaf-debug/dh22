@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function SuccessPage({ searchParams }) {
   const number = searchParams?.o || searchParams?.order || "";
-  const [state, setState] = useState({ status: "loading", paid: false });
+  const [state, setState] = useState({ status: "loading", paid: false, method: "online" });
 
   useEffect(() => {
     // очистить корзину один раз
@@ -17,8 +17,9 @@ export default function SuccessPage({ searchParams }) {
         if (r.ok) {
           const j = await r.json();
           const paid = j?.order?.status === "paid";
-          setState({ status: j?.order?.status || "new", paid });
-          if (!paid) t = setTimeout(tick, 2000);
+          const method = j?.order?.payment_method || "online";
+          setState({ status: j?.order?.status || "new", paid, method });
+          if (!paid && method === "online") t = setTimeout(tick, 2000);
         } else {
           t = setTimeout(tick, 3000);
         }
@@ -39,10 +40,10 @@ export default function SuccessPage({ searchParams }) {
       <div className="mt-4">
         {state.paid ? (
           <div className="text-green-600">Оплата зафиксирована. Мы начали сборку заказа.</div>
+        ) : state.method === "cod" ? (
+          <div>Вы выбрали <b>оплату при получении</b>. Мы начали сборку заказа.</div>
         ) : (
-          <div>
-            Ожидаем подтверждение оплаты… Статус: <b>{state.status}</b>
-          </div>
+          <div>Ожидаем подтверждение оплаты… Статус: <b>{state.status}</b></div>
         )}
       </div>
     </div>

@@ -6,7 +6,7 @@ CREATE TABLE orders (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   number        TEXT UNIQUE NOT NULL,
   created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-  status        TEXT NOT NULL DEFAULT 'new', -- new | payment_pending | paid | failed | cancelled
+  status        TEXT NOT NULL DEFAULT 'new', -- new | awaiting_payment | payment_pending | paid | failed | cancelled
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   customer_email TEXT NOT NULL,
@@ -14,6 +14,7 @@ CREATE TABLE orders (
   delivery_address TEXT,                 -- строка адреса (при курьере/самовывозе)
   amount_total  INTEGER NOT NULL,        -- копейки
   currency      TEXT NOT NULL DEFAULT 'RUB',
+  payment_method TEXT NOT NULL DEFAULT 'online',
   cdekpay_payment_id TEXT,               -- ID/UUID платежа в CDEK Pay (если есть)
   notes         TEXT
 );

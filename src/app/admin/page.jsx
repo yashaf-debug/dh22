@@ -36,7 +36,7 @@ export default async function Admin({ searchParams }) {
               </div>
             </div>
             <div className="text-sm">
-              {o.status} • {(o.amount_total / 100).toFixed(2)} ₽
+              {o.status} • {o.payment_method} • {(o.amount_total / 100).toFixed(2)} ₽
             </div>
           </div>
         ))}
