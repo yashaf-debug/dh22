@@ -1,7 +1,5 @@
 "use client";
-import Script from "next/script";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { rub } from "../lib/money";
 
 export default function CheckoutPage() {
@@ -17,32 +15,12 @@ export default function CheckoutPage() {
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
 
-  async function pay(orderId: string, items: any[], customer: any) {
-    setLoading(true);
-    const res = await fetch("/api/pay/cdek/create", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ orderId, items, customer }),
-    });
-    setLoading(false);
-    if (!res.ok) {
-      const t = await res.text();
-      alert(`CDEK PAY ERROR: ${t}`);
-      return;
-    }
-    const data = await res.json();
-    if (typeof window !== "undefined" && (window as any).PaymentWidget) {
-      (window as any).PaymentWidget.open(data.link);
-    } else {
-      window.open(data.link, "_blank", "noopener,noreferrer");
-    }
-  }
-
   async function submit() {
     if (!cart.length) return alert("Корзина пуста");
     if (!customer.name || !customer.phone || !customer.email)
       return alert("Заполни данные покупателя");
     try {
+      setLoading(true);
       const r1 = await fetch("/api/checkout/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -56,16 +34,33 @@ export default function CheckoutPage() {
       const j1 = await r1.json();
       if (!j1.ok) throw new Error(j1.error || "Не удалось создать заказ");
 
-      await pay(j1.orderNumber, cart, customer);
+      const r2 = await fetch("/api/pay/cdek/create", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ orderId: j1.orderNumber, items: cart, customer }),
+      });
+      const j2 = await r2.json();
+      console.log("CDEK PAY create:", j2);
+      setLoading(false);
+
+      if (j2.ok && j2.url) {
+        // Простой и надёжный сценарий: открываем платёж в этой вкладке
+        window.location.href = j2.url;
+        return;
+      }
+      alert(
+        j2.error ||
+          "Заказ создан, но онлайн-оплата не настроена. Сохраните номер заказа: " +
+            j1.orderNumber,
+      );
     } catch (e: any) {
+      setLoading(false);
       alert(e.message);
     }
   }
 
   return (
     <>
-      <Script src="https://paywidget.cdekfin.ru/payment-widget.js" strategy="afterInteractive" />
-      {/* вызов pay(...) привяжи к кнопке оформления заказа */}
       <div className="container mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 flex flex-col gap-4">
           <h1 className="text-2xl">Оформление заказа</h1>
