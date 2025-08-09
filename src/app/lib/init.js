@@ -14,6 +14,7 @@ export async function ensureOrdersTables() {
       customer_phone TEXT NOT NULL,
       customer_email TEXT NOT NULL,
       delivery_method TEXT NOT NULL,
+      delivery_type TEXT NOT NULL,
       delivery_city TEXT,
       delivery_address TEXT,
       delivery_pvz_code TEXT,
@@ -28,6 +29,7 @@ export async function ensureOrdersTables() {
     )
   `);
   try { await run("ALTER TABLE orders ADD COLUMN delivery_method TEXT NOT NULL DEFAULT 'cdek_pvz'"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_type TEXT NOT NULL DEFAULT 'cdek_pvz'"); } catch {}
   try { await run("ALTER TABLE orders ADD COLUMN delivery_city TEXT"); } catch {}
   try { await run("ALTER TABLE orders ADD COLUMN delivery_address TEXT"); } catch {}
   try { await run("ALTER TABLE orders ADD COLUMN delivery_pvz_code TEXT"); } catch {}

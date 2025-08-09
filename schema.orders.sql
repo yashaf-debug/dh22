@@ -11,6 +11,7 @@ CREATE TABLE orders (
   customer_phone TEXT NOT NULL,
   customer_email TEXT NOT NULL,
   delivery_method TEXT NOT NULL,           -- same_day_msk | cdek_courier | cdek_pvz
+  delivery_type TEXT NOT NULL,
   delivery_city TEXT,
   delivery_address TEXT,
   delivery_pvz_code TEXT,
