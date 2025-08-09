@@ -29,7 +29,8 @@ export default function CityAutocomplete(props: {
 
   useEffect(() => {
     if (timer.current) window.clearTimeout(timer.current);
-    if (!term || term.trim().length < 2) {
+    const trimmed = term.trim();
+    if (!trimmed || trimmed.length < 3) {
       setItems([]); setOpen(false);
       props.onInput?.(term);
       return;
@@ -37,11 +38,11 @@ export default function CityAutocomplete(props: {
     timer.current = window.setTimeout(async () => {
       props.onInput?.(term);
       setLoading(true);
+      setOpen(true);
       try {
-        const r = await fetch(`/api/shipping/cdek/cities?q=${encodeURIComponent(term)}&limit=12`, { cache: "no-store" });
+        const r = await fetch(`/api/shipping/cdek/cities?q=${encodeURIComponent(trimmed)}&limit=12`, { cache: "no-store" });
         const j = await r.json();
         setItems(Array.isArray(j) ? j : []);
-        setOpen(true);
       } catch {
         setItems([]); setOpen(false);
       } finally {

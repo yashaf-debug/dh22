@@ -36,7 +36,7 @@ export default function CdekWidgetButton(props: {
     const mountWidget = () => {
       try {
         const node = document.getElementById("cdek_widget_container");
-        if (!node) return;
+        if (!node) return false;
         // если виджет доступен — рисуем карту
         if (window.ISDEKWidjet) {
           const w = new window.ISDEKWidjet({
@@ -56,6 +56,7 @@ export default function CdekWidgetButton(props: {
               setOpen(false);
             }
           });
+          setFallbackList(null);
           return true;
         }
       } catch {}
@@ -76,7 +77,7 @@ export default function CdekWidgetButton(props: {
       })
       .catch(()=> setFallbackList([]))
       .finally(()=> setLoading(false));
-  }, [open, props.city]);
+  }, [open, props.city, scriptLoaded]);
 
   const pickFallback = (pvz: Pvz) => {
     props.onSelect(pvz);
