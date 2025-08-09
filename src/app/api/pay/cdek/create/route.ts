@@ -108,6 +108,26 @@ export async function POST(req: NextRequest) {
   } catch {
     data = { raw: text };
   }
+  const link = data.link || data.url || "";
+  const oid = String(data.order_id ?? "");
+  const akey = String(data.access_key ?? "");
+
+  const baseUrl =
+    process.env.PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    new URL(req.url).origin;
+  await fetch(
+    `${baseUrl}/api/orders/${encodeURIComponent(order.number)}`,
+    {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        pay_link: link,
+        cdek_order_id: oid,
+        cdek_access_key: akey,
+      }),
+    }
+  );
   return NextResponse.json({ ok: true, ...data }, { status: 200 });
 }
 
