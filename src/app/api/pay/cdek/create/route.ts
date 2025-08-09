@@ -108,6 +108,24 @@ export async function POST(req: NextRequest) {
   } catch {
     data = { raw: text };
   }
+  const link = data.link || data.url || "";
+  const oid = String(data.order_id ?? "");
+  const akey = String(data.access_key ?? "");
+
+  await fetch(
+    `${process.env.PUBLIC_BASE_URL}/api/orders/${encodeURIComponent(
+      order.number
+    )}`,
+    {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        pay_link: link,
+        cdek_order_id: oid,
+        cdek_access_key: akey,
+      }),
+    }
+  );
   return NextResponse.json({ ok: true, ...data }, { status: 200 });
 }
 
