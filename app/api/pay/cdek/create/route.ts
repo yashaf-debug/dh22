@@ -1,5 +1,6 @@
 export const runtime = 'edge';
 
+import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextRequest, NextResponse } from "next/server";
 import { cdekSignature } from "@/app/lib/cdek/signature";
 
@@ -15,12 +16,13 @@ const normPhone = (raw?: string) => {
 };
 
 export async function POST(req: NextRequest) {
-  const base = process.env.CDEK_PAY_BASE || "https://secure.cdekfin.ru";
-  const login = process.env.CDEK_PAY_LOGIN || "";
-  const secret = process.env.CDEK_PAY_SECRET || "";
-  const publicUrl = (process.env.PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "").startsWith("http")
-    ? (process.env.PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL)!
-    : `https://${process.env.PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "dh22.ru"}`;
+  const { env } = getRequestContext();
+  const base = env.CDEK_PAY_BASE || "https://secure.cdekfin.ru";
+  const login = env.CDEK_PAY_LOGIN || "";
+  const secret = env.CDEK_PAY_SECRET || "";
+  const publicUrl = (env.PUBLIC_BASE_URL || env.NEXT_PUBLIC_BASE_URL || "").startsWith("http")
+    ? (env.PUBLIC_BASE_URL || env.NEXT_PUBLIC_BASE_URL)!
+    : `https://${env.PUBLIC_BASE_URL || env.NEXT_PUBLIC_BASE_URL || "dh22.ru"}`;
 
   if (!login || !secret) {
     return NextResponse.json({ ok:false, error:"CDEK Pay creds missing" }, { status: 200 });
