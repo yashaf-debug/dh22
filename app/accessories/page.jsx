@@ -1,5 +1,5 @@
 import Link from "next/link";
-import products from "../../data/products.json";
+import products from "@data/products.json";
 import { rub } from "../lib/money";
 
 export default function Accessories() {

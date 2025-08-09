@@ -1,4 +1,4 @@
-import products from "../../../data/products.json";
+import products from "@data/products.json";
 import { rub } from "../../lib/money";
 import AddToCart from "./ui-add-to-cart";
 
