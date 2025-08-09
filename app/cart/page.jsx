@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { rub } from "../lib/money";
 
 export default function CartPage() {
@@ -64,6 +65,7 @@ export default function CartPage() {
           </div>
           <div className="flex flex-col gap-3">
             <div className="text-lg">Итого: {rub(total)}</div>
+            <Link className="btn btn-primary" href="/checkout">Оформить заказ</Link>
             <button className="btn" onClick={clear}>Очистить корзину</button>
             <p className="text-xs opacity-70">Оплата и доставка — на следующих шагах.</p>
           </div>
