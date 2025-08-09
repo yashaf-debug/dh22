@@ -25,21 +25,24 @@ export default async function Admin({ searchParams }) {
       <h1 className="text-2xl mb-4">Заказы</h1>
       {!token && <div className="text-red-600">Добавь ?t=ТВОЙ_ТОКЕН в URL</div>}
       <div className="space-y-2">
-        {data.map((o) => (
-          <div key={o.number} className="border p-3 flex justify-between">
-            <div>
-              <div className="font-medium">
-                <Link href={`/admin/${o.number}?t=${encodeURIComponent(token)}`}>{o.number}</Link>
+          {data.map((o) => (
+            <div key={o.number} className="border p-3 flex justify-between">
+              <div>
+                <div className="font-medium">
+                  <Link href={`/admin/${o.number}?t=${encodeURIComponent(token)}`}>{o.number}</Link>
+                </div>
+                <div className="text-sm opacity-80">
+                  {o.customer_name} • {o.customer_phone}
+                </div>
+                <div className="text-xs opacity-70">
+                  {o.delivery_method} • {(o.delivery_price/100).toFixed(2)} ₽ • {o.delivery_city}{o.delivery_pvz_name ? ` / ${o.delivery_pvz_name}` : ""} • {o.delivery_eta}
+                </div>
               </div>
-              <div className="text-sm opacity-80">
-                {o.customer_name} • {o.customer_phone}
+              <div className="text-sm">
+                {o.status} • {o.payment_method} • {(o.amount_total / 100).toFixed(2)} ₽
               </div>
             </div>
-            <div className="text-sm">
-              {o.status} • {o.payment_method} • {(o.amount_total / 100).toFixed(2)} ₽
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

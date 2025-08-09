@@ -1,6 +1,6 @@
 export const insertOrder = `
-INSERT INTO orders (number, status, customer_name, customer_phone, customer_email, delivery_type, delivery_address, amount_total, currency, notes, payment_method)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'RUB', ?, ?)
+INSERT INTO orders (number, status, customer_name, customer_phone, customer_email, delivery_method, delivery_city, delivery_address, delivery_pvz_code, delivery_pvz_name, delivery_price, delivery_eta, amount_total, currency, notes, payment_method)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RUB', ?, ?)
 `;
 
 export const insertItem = `

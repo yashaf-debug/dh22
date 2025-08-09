@@ -23,7 +23,16 @@ export default async function AdminOrder({ params, searchParams }) {
       {data?.ok && (
         <>
           <h1 className="text-2xl mb-2">Заказ {number}</h1>
-          <div className="opacity-70 mb-4">{data.order.status} • {(data.order.amount_total/100).toFixed(2)} ₽</div>
+          <div className="opacity-70 mb-1">{data.order.status} • {(data.order.amount_total/100).toFixed(2)} ₽</div>
+          <div className="text-sm opacity-80 mb-4">
+            {data.order.delivery_method} • {(data.order.delivery_price/100).toFixed(2)} ₽ • {data.order.delivery_city}{data.order.delivery_pvz_name ? ` / ${data.order.delivery_pvz_name}` : ""} • {data.order.delivery_eta}
+          </div>
+          {data.order.delivery_address && (
+            <div className="mb-2">Адрес: {data.order.delivery_address}</div>
+          )}
+          {data.order.delivery_pvz_name && (
+            <div className="mb-2">ПВЗ: {data.order.delivery_pvz_name} ({data.order.delivery_pvz_code})</div>
+          )}
           <div className="grid gap-2">
             {data.items.map((i)=>(
               <div key={i.slug} className="border p-2 flex justify-between">
