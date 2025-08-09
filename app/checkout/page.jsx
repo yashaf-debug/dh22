@@ -38,6 +38,7 @@ export default function Checkout() {
         body: JSON.stringify({ orderNumber: j1.orderNumber })
       });
       const j2 = await r2.json();
+      console.log("CDEK PAY create:", j2);
 
       if (j2.ok && j2.url) {
         window.location.href = j2.url;
