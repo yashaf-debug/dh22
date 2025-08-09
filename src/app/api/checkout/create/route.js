@@ -17,17 +17,23 @@ export async function POST(req) {
   try {
     await ensureOrdersTables();
     const body = await req.json();
-    const { customer, delivery, items } = body;
+    const { customer, items } = body;
+    const delivery = body.delivery || {};
     const payment_method = body.payment_method === "cod" ? "cod" : "online";
     const initialStatus = payment_method === "cod" ? "awaiting_payment" : "new";
 
     if (!customer?.name || !customer?.phone || !customer?.email) return bad("Некорректные данные покупателя");
     if (!Array.isArray(items) || items.length === 0) return bad("Пустая корзина");
     const allowed = ["same_day_msk","cdek_courier","cdek_pvz"];
-    if (!delivery || !allowed.includes(delivery.method)) return bad("Некорректная доставка");
+    const method = allowed.includes(delivery.method) ? delivery.method : "cdek_pvz";
 
-    const items_total = items.reduce((s, i) => s + Number(i.price) * Number(i.qty), 0);
     const delivery_price = Math.max(0, Math.round(delivery.price_kop || 0));
+    const delivery_city = (delivery.city || "").trim();
+    const delivery_address = (delivery.address || "").trim();
+    const delivery_pvz_code = delivery.pvz_code || "";
+    const delivery_pvz_name = delivery.pvz_name || "";
+    const delivery_eta = delivery.eta || "";
+    const items_total = items.reduce((s, i) => s + Number(i.price) * Number(i.qty), 0);
     const amount_total = items_total + delivery_price;
     if (amount_total <= 0) return bad("Сумма заказа некорректна");
 
@@ -39,13 +45,14 @@ export async function POST(req) {
       customer.name,
       customer.phone,
       customer.email,
-      delivery.method,
-      delivery.city || "",
-      delivery.address || "",
-      delivery.pvz_code || "",
-      delivery.pvz_name || "",
+      method,
+      method,
+      delivery_city,
+      delivery_address,
+      delivery_pvz_code,
+      delivery_pvz_name,
       delivery_price,
-      delivery.eta || "",
+      delivery_eta,
       amount_total,
       body.notes || "",
       payment_method
@@ -64,7 +71,7 @@ export async function POST(req) {
         `Сумма: <b>${totalRub} ₽</b>\n` +
         `Покупатель: ${customer.name} / ${customer.phone}\n` +
         (customer.email ? `Email: ${customer.email}\n` : ``) +
-        `Доставка: ${delivery.method} / ${delivery.city}${delivery.pvz_name ? ' / '+delivery.pvz_name : ''}\n` +
+        `Доставка: ${method} / ${delivery_city}${delivery_pvz_name ? ' / '+delivery_pvz_name : ''}\n` +
         `\n${lines}`
       );
     } catch {}
