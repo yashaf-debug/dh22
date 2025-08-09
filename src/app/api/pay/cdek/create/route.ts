@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from "next/server";
 import { cdekSignature } from "@/app/lib/cdek/signature";
-import { first, all } from "@/app/lib/db";
+import { first, all, run } from "@/app/lib/db";
 
 const toKop = (v: number | string) => Math.round(Number(v));
 const normPhone = (raw?: string) => {
@@ -112,19 +112,12 @@ export async function POST(req: NextRequest) {
   const oid = String(data.order_id ?? "");
   const akey = String(data.access_key ?? "");
 
-  await fetch(
-    `${process.env.PUBLIC_BASE_URL}/api/orders/${encodeURIComponent(
-      order.number
-    )}`,
-    {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        pay_link: link,
-        cdek_order_id: oid,
-        cdek_access_key: akey,
-      }),
-    }
+  await run(
+    "UPDATE orders SET pay_link=?, cdek_order_id=?, cdek_access_key=? WHERE id=?",
+    link,
+    oid,
+    akey,
+    order.id
   );
   return NextResponse.json({ ok: true, ...data }, { status: 200 });
 }
