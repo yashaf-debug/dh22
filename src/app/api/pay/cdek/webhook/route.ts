@@ -1,6 +1,7 @@
 export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 import { first, run } from "@/app/lib/db";
+import { tgSend } from "@/app/lib/notifier/telegram";
 
 function h(hd: Headers) {
   const o: Record<string, string> = {};
@@ -71,6 +72,17 @@ export async function POST(req: NextRequest) {
       "UPDATE orders SET status=?, status_updated_at=?, paid_at=CASE WHEN ?='paid' THEN ? ELSE paid_at END WHERE id=?",
       newStatus, now, newStatus, now, order.id
     );
+    if (newStatus === "paid") {
+      try {
+        const ord = await first("SELECT number, amount_total FROM orders WHERE id=?", order.id);
+        const totalRub = ord ? (ord.amount_total / 100).toFixed(2) : "";
+        await tgSend(
+          `<b>✅ Оплата зафиксирована</b>\n` +
+          `№ <code>${ord?.number || "?"}</code>\n` +
+          (totalRub ? `Сумма: <b>${totalRub} ₽</b>` : ``)
+        );
+      } catch {}
+    }
   }
 
   return NextResponse.json({ ok: true, matched: true, set: newStatus || "noop" });

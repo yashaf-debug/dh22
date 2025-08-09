@@ -3,6 +3,7 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 import { run, first } from "@/app/lib/db";
 import { insertOrder, insertItem, byNumber } from "@/app/lib/sql";
 import { ensureOrdersTables } from "@/app/lib/init";
+import { tgSend } from "@/app/lib/notifier/telegram";
 
 function bad(msg, code=400){ return new Response(JSON.stringify({ok:false,error:msg}), {status:code, headers:{'content-type':'application/json'}}); }
 
@@ -25,6 +26,19 @@ export async function POST(req) {
     for (const i of items) {
       await run(insertItem, order.id, i.slug, i.name, i.price, i.qty, i.image);
     }
+    try {
+      const totalRub = (amount.total / 100).toFixed(2);
+      const lines = items.map(i => `• ${i.name} × ${i.qty}`).join("\n");
+      await tgSend(
+        `<b>🆕 Новый заказ</b>\n` +
+        `№ <code>${number}</code>\n` +
+        `Сумма: <b>${totalRub} ₽</b>\n` +
+        `Покупатель: ${customer.name} / ${customer.phone}\n` +
+        (customer.email ? `Email: ${customer.email}\n` : ``) +
+        `Доставка: ${delivery.type}\n` +
+        `\n${lines}`
+      );
+    } catch {}
 
     return new Response(JSON.stringify({ ok:true, orderNumber:number, orderId:order.id }), { headers:{'content-type':'application/json'}});
   } catch (e) {

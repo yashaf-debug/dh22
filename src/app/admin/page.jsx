@@ -1,5 +1,6 @@
 export const runtime = "edge";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 async function getOrders(token) {
   if (token !== process.env.ADMIN_TOKEN) return [];
@@ -27,7 +28,9 @@ export default async function Admin({ searchParams }) {
         {data.map((o) => (
           <div key={o.number} className="border p-3 flex justify-between">
             <div>
-              <div className="font-medium">{o.number}</div>
+              <div className="font-medium">
+                <Link href={`/admin/${o.number}?t=${encodeURIComponent(token)}`}>{o.number}</Link>
+              </div>
               <div className="text-sm opacity-80">
                 {o.customer_name} • {o.customer_phone}
               </div>
