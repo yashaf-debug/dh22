@@ -1,6 +1,8 @@
 "use client";
 export const runtime = 'edge';
 import { useState, useEffect } from "react";
+import CityAutocomplete from "@/app/components/CityAutocomplete";
+import CdekWidgetButton from "@/app/components/CdekWidgetButton";
 import { rub } from "../lib/money";
 
 type PVZ = { code: string; name: string; address: string };
@@ -9,11 +11,11 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState<any[]>([]);
   const [customer, setCustomer] = useState({ name: "", phone: "", email: "" });
-  const [city, setCity] = useState("");
+  const [city, setCity] = useState("Москва");
+  const [cityCode, setCityCode] = useState<number | null>(null);
   const [deliveryMethod, setDeliveryMethod] = useState<"same_day_msk" | "cdek_courier" | "cdek_pvz">("cdek_pvz");
   const [delivery, setDelivery] = useState<{ price_kop: number; eta: string; pvz: PVZ | null }>({ price_kop: 0, eta: "", pvz: null });
   const [loadingShip, setLoadingShip] = useState(false);
-  const [pvzList, setPvzList] = useState<PVZ[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function CheckoutPage() {
   const weight = cart.reduce((s, i) => s + (i.weight_g || 500) * i.qty, 0);
 
   useEffect(() => {
-    async function quote() {
+    async function recalc() {
       if (!city) {
         setDelivery((d) => ({ ...d, price_kop: 0, eta: "" }));
         return;
@@ -52,23 +54,12 @@ export default function CheckoutPage() {
       setDeliveryMethod("cdek_pvz");
       return;
     }
-    quote();
+    recalc();
   }, [city, deliveryMethod, weight]);
 
-  async function loadPvz() {
-    if (!city) {
-      alert("Укажи город");
-      return;
-    }
-    setLoadingShip(true);
-    try {
-      const r = await fetch(`/api/shipping/cdek/pvz?city=${encodeURIComponent(city)}`);
-      const list = await r.json();
-      setPvzList(list);
-    } finally {
-      setLoadingShip(false);
-    }
-  }
+  const onPvzPick = (pvz: any) => {
+    setDelivery((d) => ({ ...d, pvz }));
+  };
 
   const deliveryTotal = delivery.price_kop || 0;
   const orderTotal = itemsTotal + deliveryTotal;
@@ -166,11 +157,14 @@ export default function CheckoutPage() {
 
           <section className="flex flex-col gap-2">
             <h2 className="text-lg">Доставка</h2>
-            <input
-              className="border px-3 py-2"
-              placeholder="Город"
+            <CityAutocomplete
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onSelect={(n, code) => {
+                setCity(n);
+                setCityCode(code);
+              }}
+              onInput={(v) => setCity(v)}
+              placeholder="Начните вводить город"
             />
             <div className="flex flex-col gap-1">
               <label className="flex items-center gap-2">
@@ -205,37 +199,16 @@ export default function CheckoutPage() {
               </label>
             </div>
             {deliveryMethod === "cdek_pvz" && (
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  className="btn btn-secondary w-48"
-                  onClick={loadPvz}
-                  disabled={loadingShip}
-                >
-                  Выбрать ПВЗ
-                </button>
-                {pvzList.length > 0 && (
-                  <select
-                    className="border px-3 py-2"
-                    value={delivery.pvz?.code || ""}
-                    onChange={(e) => {
-                      const p = pvzList.find((x) => x.code === e.target.value);
-                      setDelivery((d) => ({ ...d, pvz: p || null }));
-                    }}
-                  >
-                    <option value="">— выбери —</option>
-                    {pvzList.map((p) => (
-                      <option key={p.code} value={p.code}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
+              <div className="flex items-center gap-3">
+                <CdekWidgetButton city={city} onSelect={onPvzPick} buttonText="Выбрать ПВЗ" />
+                <div className="text-sm opacity-80">
+                  {delivery.pvz ? `${delivery.pvz.name}` : "ПВЗ не выбран"}
+                </div>
               </div>
             )}
-            {delivery.eta && (
-              <div className="text-sm opacity-70">Срок: {delivery.eta}</div>
-            )}
+            <div className="text-sm opacity-80">
+              Стоимость доставки: {(delivery.price_kop / 100).toFixed(2)} ₽ {delivery.eta && `• ${delivery.eta}`}
+            </div>
             {loadingShip && (
               <div className="text-sm opacity-70">Считаем доставку...</div>
             )}
