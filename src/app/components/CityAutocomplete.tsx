@@ -13,6 +13,7 @@ export default function CityAutocomplete(props: {
   const [term, setTerm] = useState(props.value || "");
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<City[]>([]);
+  const [loading, setLoading] = useState(false);
   const timer = useRef<number | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
@@ -28,18 +29,25 @@ export default function CityAutocomplete(props: {
 
   useEffect(() => {
     if (timer.current) window.clearTimeout(timer.current);
-    if (!term || term.length < 2) {
+    if (!term || term.trim().length < 2) {
       setItems([]); setOpen(false);
       props.onInput?.(term);
       return;
     }
     timer.current = window.setTimeout(async () => {
       props.onInput?.(term);
-      const r = await fetch(`/api/shipping/cdek/cities?q=${encodeURIComponent(term)}&limit=10`, { cache: "no-store" });
-      const j = await r.json();
-      setItems(Array.isArray(j) ? j : []);
-      setOpen(true);
-    }, 250) as any;
+      setLoading(true);
+      try {
+        const r = await fetch(`/api/shipping/cdek/cities?q=${encodeURIComponent(term)}&limit=12`, { cache: "no-store" });
+        const j = await r.json();
+        setItems(Array.isArray(j) ? j : []);
+        setOpen(true);
+      } catch {
+        setItems([]); setOpen(false);
+      } finally {
+        setLoading(false);
+      }
+    }, 180) as any;
   }, [term]);
 
   const pick = (c: City) => {
@@ -53,14 +61,18 @@ export default function CityAutocomplete(props: {
       <input
         value={term}
         onChange={(e)=> setTerm(e.target.value)}
-        onFocus={()=> items.length && setOpen(true)}
+        onFocus={()=> (items.length || loading) && setOpen(true)}
         className="w-full border px-3 py-2"
         placeholder={props.placeholder || "Город"}
         autoComplete="off"
       />
-      {open && items.length > 0 && (
+      {open && (
         <div className="absolute z-50 mt-1 w-full max-h-64 overflow-auto border bg-white shadow">
-          {items.map(c=>(
+          {loading && <div className="px-3 py-2 text-sm text-gray-500">Поиск…</div>}
+          {!loading && items.length === 0 && (
+            <div className="px-3 py-2 text-sm text-gray-500">Ничего не найдено</div>
+          )}
+          {!loading && items.map(c=>(
             <div
               key={c.code}
               className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
@@ -69,11 +81,6 @@ export default function CityAutocomplete(props: {
               {c.full}
             </div>
           ))}
-        </div>
-      )}
-      {open && items.length === 0 && (
-        <div className="absolute z-50 mt-1 w-full border bg-white shadow px-3 py-2 text-sm text-gray-500">
-          Ничего не найдено
         </div>
       )}
     </div>
