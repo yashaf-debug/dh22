@@ -13,8 +13,13 @@ export async function ensureOrdersTables() {
       customer_name TEXT NOT NULL,
       customer_phone TEXT NOT NULL,
       customer_email TEXT NOT NULL,
-      delivery_type TEXT NOT NULL,
+      delivery_method TEXT NOT NULL,
+      delivery_city TEXT,
       delivery_address TEXT,
+      delivery_pvz_code TEXT,
+      delivery_pvz_name TEXT,
+      delivery_price INTEGER NOT NULL DEFAULT 0,
+      delivery_eta TEXT,
       amount_total INTEGER NOT NULL,
       currency TEXT NOT NULL DEFAULT 'RUB',
       payment_method TEXT NOT NULL DEFAULT 'online',
@@ -22,9 +27,14 @@ export async function ensureOrdersTables() {
       notes TEXT
     )
   `);
-  try {
-    await run("ALTER TABLE orders ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'online'");
-  } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_method TEXT NOT NULL DEFAULT 'cdek_pvz'"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_city TEXT"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_address TEXT"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_pvz_code TEXT"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_pvz_name TEXT"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_price INTEGER NOT NULL DEFAULT 0"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN delivery_eta TEXT"); } catch {}
+  try { await run("ALTER TABLE orders ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'online'"); } catch {}
   await run(`
     CREATE TABLE IF NOT EXISTS order_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

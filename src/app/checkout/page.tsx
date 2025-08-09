@@ -3,11 +3,17 @@ export const runtime = 'edge';
 import { useState, useEffect } from "react";
 import { rub } from "../lib/money";
 
+type PVZ = { code: string; name: string; address: string };
+
 export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState<any[]>([]);
   const [customer, setCustomer] = useState({ name: "", phone: "", email: "" });
-  const [delivery, setDelivery] = useState({ type: "cdek_pvz", address: "" });
+  const [city, setCity] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"same_day_msk" | "cdek_courier" | "cdek_pvz">("cdek_pvz");
+  const [delivery, setDelivery] = useState<{ price_kop: number; eta: string; pvz: PVZ | null }>({ price_kop: 0, eta: "", pvz: null });
+  const [loadingShip, setLoadingShip] = useState(false);
+  const [pvzList, setPvzList] = useState<PVZ[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
 
   useEffect(() => {
@@ -15,24 +21,84 @@ export default function CheckoutPage() {
     setCart(raw ? JSON.parse(raw) : []);
   }, []);
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const itemsTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const weight = cart.reduce((s, i) => s + (i.weight_g || 500) * i.qty, 0);
+
+  useEffect(() => {
+    async function quote() {
+      if (!city) {
+        setDelivery((d) => ({ ...d, price_kop: 0, eta: "" }));
+        return;
+      }
+      setLoadingShip(true);
+      try {
+        const r = await fetch("/api/shipping/cdek/quote", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ method: deliveryMethod, city, weight_g: weight }),
+        });
+        const j = await r.json();
+        if (j.ok) {
+          setDelivery((d) => ({ ...d, price_kop: j.price_kop, eta: j.eta }));
+        } else {
+          setDelivery((d) => ({ ...d, price_kop: 0, eta: "" }));
+        }
+      } finally {
+        setLoadingShip(false);
+      }
+    }
+    if (deliveryMethod === "same_day_msk" && !city.toLowerCase().includes("моск")) {
+      alert("Срочная доставка доступна только по Москве");
+      setDeliveryMethod("cdek_pvz");
+      return;
+    }
+    quote();
+  }, [city, deliveryMethod, weight]);
+
+  async function loadPvz() {
+    if (!city) {
+      alert("Укажи город");
+      return;
+    }
+    setLoadingShip(true);
+    try {
+      const r = await fetch(`/api/shipping/cdek/pvz?city=${encodeURIComponent(city)}`);
+      const list = await r.json();
+      setPvzList(list);
+    } finally {
+      setLoadingShip(false);
+    }
+  }
+
+  const deliveryTotal = delivery.price_kop || 0;
+  const orderTotal = itemsTotal + deliveryTotal;
 
   async function submit() {
     if (!cart.length) return alert("Корзина пуста");
     if (!customer.name || !customer.phone || !customer.email)
       return alert("Заполни данные покупателя");
+    if (!city) return alert("Укажи город доставки");
     setLoading(true);
     try {
+      const payload = {
+        customer,
+        delivery: {
+          method: deliveryMethod,
+          city,
+          address: deliveryMethod === "cdek_pvz" ? delivery.pvz?.address || "" : "",
+          pvz_code: delivery.pvz?.code || null,
+          pvz_name: delivery.pvz?.name || null,
+          price_kop: delivery.price_kop || 0,
+          eta: delivery.eta || "",
+        },
+        items: cart,
+        amount: { total: orderTotal },
+        payment_method: paymentMethod,
+      };
       const r1 = await fetch("/api/checkout/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          customer,
-          delivery,
-          items: cart,
-          amount: { total },
-          payment_method: paymentMethod,
-        }),
+        body: JSON.stringify(payload),
       });
       const j1 = await r1.json();
       if (!j1.ok) throw new Error(j1.error || "Не удалось создать заказ");
@@ -55,9 +121,7 @@ export default function CheckoutPage() {
         if (!j2.ok) {
           alert(
             `CDEK ${j2.status || ""}\n` +
-              (typeof j2.detail === "string"
-                ? j2.detail
-                : JSON.stringify(j2.detail)),
+              (typeof j2.detail === "string" ? j2.detail : JSON.stringify(j2.detail))
           );
           return;
         }
@@ -84,39 +148,97 @@ export default function CheckoutPage() {
               className="border px-3 py-2"
               placeholder="Имя и фамилия"
               value={customer.name}
-              onChange={e => setCustomer({ ...customer, name: e.target.value })}
+              onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
             />
             <input
               className="border px-3 py-2"
               placeholder="+7..."
               value={customer.phone}
-              onChange={e => setCustomer({ ...customer, phone: e.target.value })}
+              onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
             />
             <input
               className="border px-3 py-2"
               placeholder="email"
               value={customer.email}
-              onChange={e => setCustomer({ ...customer, email: e.target.value })}
+              onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
             />
           </section>
 
           <section className="flex flex-col gap-2">
             <h2 className="text-lg">Доставка</h2>
-            <select
-              className="border px-3 py-2"
-              value={delivery.type}
-              onChange={e => setDelivery({ ...delivery, type: e.target.value })}
-            >
-              <option value="cdek_pvz">СДЭК — пункт выдачи</option>
-              <option value="cdek_courier">СДЭК — курьер</option>
-              <option value="self">Самовывоз</option>
-            </select>
             <input
               className="border px-3 py-2"
-              placeholder="Адрес (если нужно)"
-              value={delivery.address}
-              onChange={e => setDelivery({ ...delivery, address: e.target.value })}
+              placeholder="Город"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
             />
+            <div className="flex flex-col gap-1">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="dm"
+                  value="same_day_msk"
+                  checked={deliveryMethod === "same_day_msk"}
+                  onChange={() => setDeliveryMethod("same_day_msk")}
+                />
+                <span>Срочно по Москве (сегодня)</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="dm"
+                  value="cdek_courier"
+                  checked={deliveryMethod === "cdek_courier"}
+                  onChange={() => setDeliveryMethod("cdek_courier")}
+                />
+                <span>СДЭК — курьер</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="dm"
+                  value="cdek_pvz"
+                  checked={deliveryMethod === "cdek_pvz"}
+                  onChange={() => setDeliveryMethod("cdek_pvz")}
+                />
+                <span>СДЭК — пункт выдачи</span>
+              </label>
+            </div>
+            {deliveryMethod === "cdek_pvz" && (
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  className="btn btn-secondary w-48"
+                  onClick={loadPvz}
+                  disabled={loadingShip}
+                >
+                  Выбрать ПВЗ
+                </button>
+                {pvzList.length > 0 && (
+                  <select
+                    className="border px-3 py-2"
+                    value={delivery.pvz?.code || ""}
+                    onChange={(e) => {
+                      const p = pvzList.find((x) => x.code === e.target.value);
+                      setDelivery((d) => ({ ...d, pvz: p || null }));
+                    }}
+                  >
+                    <option value="">— выбери —</option>
+                    {pvzList.map((p) => (
+                      <option key={p.code} value={p.code}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+            {delivery.eta && (
+              <div className="text-sm opacity-70">Срок: {delivery.eta}</div>
+            )}
+            {loadingShip && (
+              <div className="text-sm opacity-70">Считаем доставку...</div>
+            )}
           </section>
 
           <div className="flex flex-col gap-2">
@@ -143,7 +265,7 @@ export default function CheckoutPage() {
             </label>
           </div>
 
-          <button className="btn btn-primary w-48" disabled={loading} onClick={submit}>
+  <button className="btn btn-primary w-48" disabled={loading} onClick={submit}>
             {loading ? "Создаём..." : "Перейти к оплате"}
           </button>
         </div>
@@ -152,7 +274,11 @@ export default function CheckoutPage() {
           <h2 className="text-lg">Ваш заказ</h2>
           {cart.map((i, idx) => (
             <div key={idx} className="flex items-center gap-3 border-b pb-3">
-              <img src={i.image} className="w-16 h-20 object-cover border" alt={i.name} />
+              <img
+                src={i.image}
+                className="w-16 h-20 object-cover border"
+                alt={i.name}
+              />
               <div className="flex-1">
                 <div className="text-sm">{i.name}</div>
                 <div className="text-xs opacity-70">× {i.qty}</div>
@@ -160,7 +286,8 @@ export default function CheckoutPage() {
               <div className="text-sm">{rub(i.price * i.qty)}</div>
             </div>
           ))}
-          <div className="text-lg mt-2">Итого: {rub(total)}</div>
+          <div className="text-sm">Доставка: {rub(deliveryTotal)}</div>
+          <div className="text-lg mt-2">Итого: {rub(orderTotal)}</div>
         </aside>
       </div>
     </>

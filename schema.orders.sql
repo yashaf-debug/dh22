@@ -10,8 +10,13 @@ CREATE TABLE orders (
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   customer_email TEXT NOT NULL,
-  delivery_type TEXT NOT NULL,           -- cdek_pvz | cdek_courier | self
-  delivery_address TEXT,                 -- строка адреса (при курьере/самовывозе)
+  delivery_method TEXT NOT NULL,           -- same_day_msk | cdek_courier | cdek_pvz
+  delivery_city TEXT,
+  delivery_address TEXT,
+  delivery_pvz_code TEXT,
+  delivery_pvz_name TEXT,
+  delivery_price INTEGER NOT NULL DEFAULT 0,
+  delivery_eta TEXT,
   amount_total  INTEGER NOT NULL,        -- копейки
   currency      TEXT NOT NULL DEFAULT 'RUB',
   payment_method TEXT NOT NULL DEFAULT 'online',

@@ -57,8 +57,19 @@ export async function POST(req: NextRequest) {
         measure: 0
       };
     });
+    if ((order as any).delivery_price) {
+      receipt_details.push({
+        id: "delivery",
+        name: safeName("Доставка"),
+        price: toKop((order as any).delivery_price),
+        quantity: 1,
+        sum: toKop((order as any).delivery_price),
+        payment_object: 4,
+        measure: 0
+      });
+    }
 
-    const pay_amount = receipt_details.reduce((s: number, i: any) => s + i.sum, 0);
+    const pay_amount = Number((order as any).amount_total);
 
     // 3) Тело по контракту CDEK
     const payment_order = {
