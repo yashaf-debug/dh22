@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { first, run } from "@/src/app/lib/db";
-import { byNumber, markStatus } from "@/src/app/lib/sql";
+import { first, run } from "@/app/lib/db";
+import { byNumber, markStatus } from "@/app/lib/sql";
 
 async function hmacOk(secret, raw, got) {
   if (!secret) return true; // если секрет не задан — принимаем (настрой позже)
