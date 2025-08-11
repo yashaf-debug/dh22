@@ -40,18 +40,25 @@ export async function GET(req: NextRequest) {
 
   // 1) Сначала ищем в своём кэше (быстро и предсказуемо)
   // Поддерживаем и prefix ("мо%"), и contains по второму слову ("% мо%")
-  const cached = await all(
-    `SELECT code, city, region, country_code
+  let cached: any[] = [];
+  let cacheAvailable = true;
+  try {
+    cached = await all(
+      `SELECT code, city, region, country_code
        FROM cities
       WHERE search LIKE ? OR search LIKE ?
       ORDER BY city
       LIMIT ?`,
-    `${q}%`,
-    `% ${q}%`,
-    limit
-  );
+      `${q}%`,
+      `% ${q}%`,
+      limit
+    );
+  } catch (err) {
+    console.error("cities cache query failed", err);
+    cacheAvailable = false;
+  }
 
-  if (cached.length >= limit) {
+  if (cacheAvailable && cached.length >= limit) {
     return NextResponse.json(
       cached.map((c:any)=>({
         code: c.code,
@@ -88,16 +95,27 @@ export async function GET(req: NextRequest) {
     const region = String(c.region || "");
     const cc = String(c.country_code || "RU");
     const search = norm([city, region].filter(Boolean).join(", "));
-    await run(
-      `INSERT INTO cities (code, city, region, country_code, search)
+    if (cacheAvailable) {
+      try {
+        await run(
+          `INSERT INTO cities (code, city, region, country_code, search)
        VALUES (?,?,?,?,?)
        ON CONFLICT(code) DO UPDATE SET
          city=excluded.city,
          region=excluded.region,
          country_code=excluded.country_code,
          search=excluded.search`,
-      code, city, region, cc, search
-    );
+          code,
+          city,
+          region,
+          cc,
+          search
+        );
+      } catch (err) {
+        console.error("cities cache upsert failed", err);
+        cacheAvailable = false;
+      }
+    }
     merged.push({ code, city, region, country_code: cc });
   }
 
