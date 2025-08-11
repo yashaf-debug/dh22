@@ -1,26 +1,24 @@
 "use client";
-export const runtime = 'edge';
-
 import { useEffect, useState } from "react";
 
 export default function SuccessPage({ searchParams }) {
   const number = searchParams?.o || searchParams?.order || "";
-  const [state, setState] = useState({ status: "loading", paid: false, method: "online" });
-  const [tg, setTg] = useState({ url: "", ready: false });
+  const [state, setState] = useState({ status:"loading", paid:false });
+  const [order, setOrder] = useState<any>(null);
+  const [payBusy, setPayBusy] = useState(false);
 
-  useEffect(() => {
-    // очистить корзину один раз
+  useEffect(()=>{
     localStorage.removeItem("dh22_cart");
     let t;
     const tick = async () => {
       try {
-        const r = await fetch(`/api/orders/${encodeURIComponent(number)}`, { cache: "no-store" });
+        const r = await fetch(`/api/orders/${encodeURIComponent(number)}`, { cache:"no-store" });
         if (r.ok) {
           const j = await r.json();
           const paid = j?.order?.status === "paid";
-          const method = j?.order?.payment_method || "online";
-          setState({ status: j?.order?.status || "new", paid, method });
-          if (!paid && method === "online") t = setTimeout(tick, 2000);
+          setOrder(j?.order || null);
+          setState({ status: j?.order?.status || "new", paid });
+          if (!paid) t = setTimeout(tick, 2000);
         } else {
           t = setTimeout(tick, 3000);
         }
@@ -29,42 +27,57 @@ export default function SuccessPage({ searchParams }) {
       }
     };
     tick();
-    return () => clearTimeout(t);
+    return ()=> clearTimeout(t);
   }, [number]);
 
-  useEffect(() => {
-    (async () => {
-      if (!number) return;
-      try {
-        const r = await fetch(`/api/tg/deeplink?o=${encodeURIComponent(number)}`, { cache: "no-store" });
-        const j = await r.json();
-        if (j?.ok && j.url) setTg({ url: j.url, ready: true });
-      } catch {}
-    })();
-  }, [number]);
+  async function payOnlineNow() {
+    try {
+      setPayBusy(true);
+      const p = await fetch("/api/pay/cdek/create", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ orderNumber: number })
+      });
+      const j = await p.json();
+      if (j?.ok && (j.link || j.url)) {
+        window.location.href = j.link || j.url;
+      } else {
+        alert("Не удалось создать платёж: " + (j?.error || "ошибка"));
+      }
+    } catch (e) {
+      alert("Сеть недоступна");
+    } finally {
+      setPayBusy(false);
+    }
+  }
+
+  const showPayButton =
+    order &&
+    (order.payment_method === "cod" || order.payment_method === "upon_receipt") &&
+    !state.paid;
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <h1 className="text-2xl mb-2">Спасибо за заказ!</h1>
-      <div className="opacity-80">
-        Номер заказа: <b>{number}</b>
+    <div className="container mx-auto px-4 py-16 space-y-4">
+      <h1 className="text-2xl">Спасибо за заказ!</h1>
+      <div className="opacity-80">Номер заказа: <b>{number}</b></div>
+
+      <div className="mt-2">
+        {state.paid
+          ? <div className="text-green-600">Оплата зафиксирована. Мы начали сборку заказа.</div>
+          : <div>Ожидаем подтверждение оплаты… Статус: <b>{state.status}</b></div>}
       </div>
-      <div className="mt-4">
-        {state.paid ? (
-          <div className="text-green-600">Оплата зафиксирована. Мы начали сборку заказа.</div>
-        ) : state.method === "cod" ? (
-          <div>Вы выбрали <b>оплату при получении</b>. Мы начали сборку заказа.</div>
-        ) : (
-          <div>Ожидаем подтверждение оплаты… Статус: <b>{state.status}</b></div>
-        )}
-      </div>
-      {tg.ready && (
+
+      {showPayButton && (
         <div className="mt-6">
-          <a href={tg.url} target="_blank" className="inline-block px-4 py-2 border">
-            Получать апдейты в Telegram
-          </a>
+          <button
+            onClick={payOnlineNow}
+            disabled={payBusy}
+            className="inline-block px-4 py-2 bg-black text-white"
+          >
+            {payBusy ? "Открываем оплату…" : "Оплатить онлайн"}
+          </button>
           <div className="text-sm opacity-70 mt-1">
-            Нажмите, откройте бота и подтвердите подписку — мы пришлём уведомления по этому заказу.
+            Вы выбрали оплату при получении. Можно оплатить онлайн — это ускорит обработку заказа.
           </div>
         </div>
       )}
