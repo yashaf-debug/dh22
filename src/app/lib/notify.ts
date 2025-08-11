@@ -142,6 +142,11 @@ export async function notifyOrderCreated(order: any, items: any[]) {
     `Клиент: ${order.customer_name || "—"} • ${order.customer_phone || "—"} • ${order.customer_email || "—"}`
   ].join("\n");
   await notifyTelegram(text);
+  await notifyClientTelegram(order, [
+    `🧾 Заказ <b>${order.number}</b> создан`,
+    `Сумма: ${rub(order.amount_total)}`,
+    `Доставка: ${order.delivery_method || "—"} ${order.delivery_pvz_name ? "• " + order.delivery_pvz_name : ""} ${order.delivery_address ? "• " + order.delivery_address : ""}`
+  ]);
 }
 
 export async function notifyOrderPaid(order: any, items: any[]) {
@@ -162,5 +167,22 @@ export async function notifyOrderPaid(order: any, items: any[]) {
     `Клиент: ${order.customer_name || "—"} • ${order.customer_phone || "—"}`
   ].join("\n");
   await notifyTelegram(text);
+  await notifyClientTelegram(order, [
+    `✅ Оплата получена по заказу <b>${order.number}</b>`,
+    `Мы начали сборку и скоро передадим в доставку.`
+  ]);
+}
+
+export async function notifyClientTelegram(order: any, textLines: string[]) {
+  const chat = (order?.customer_tg_chat_id || "").trim();
+  if (!chat) return;
+  const BOT = process.env.TELEGRAM_BOT_TOKEN || "";
+  if (!BOT) return;
+  const text = textLines.join("\n");
+  await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ chat_id: chat, text, parse_mode: "HTML", disable_web_page_preview: true })
+  });
 }
 

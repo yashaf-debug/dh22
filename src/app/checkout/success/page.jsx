@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 export default function SuccessPage({ searchParams }) {
   const number = searchParams?.o || searchParams?.order || "";
   const [state, setState] = useState({ status: "loading", paid: false, method: "online" });
+  const [tg, setTg] = useState({ url: "", ready: false });
 
   useEffect(() => {
     // очистить корзину один раз
@@ -31,6 +32,17 @@ export default function SuccessPage({ searchParams }) {
     return () => clearTimeout(t);
   }, [number]);
 
+  useEffect(() => {
+    (async () => {
+      if (!number) return;
+      try {
+        const r = await fetch(`/api/tg/deeplink?o=${encodeURIComponent(number)}`, { cache: "no-store" });
+        const j = await r.json();
+        if (j?.ok && j.url) setTg({ url: j.url, ready: true });
+      } catch {}
+    })();
+  }, [number]);
+
   return (
     <div className="container mx-auto px-4 py-16">
       <h1 className="text-2xl mb-2">Спасибо за заказ!</h1>
@@ -46,6 +58,16 @@ export default function SuccessPage({ searchParams }) {
           <div>Ожидаем подтверждение оплаты… Статус: <b>{state.status}</b></div>
         )}
       </div>
+      {tg.ready && (
+        <div className="mt-6">
+          <a href={tg.url} target="_blank" className="inline-block px-4 py-2 border">
+            Получать апдейты в Telegram
+          </a>
+          <div className="text-sm opacity-70 mt-1">
+            Нажмите, откройте бота и подтвердите подписку — мы пришлём уведомления по этому заказу.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
