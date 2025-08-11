@@ -4,7 +4,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { first, run } from "@/app/lib/db";
 
-/** Берём/обновляем OAuth2 токен CDEK и кэшируем в D1 (таблица kv). */
+function norm(s: string) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/ё/g, "е")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** OAuth2 токен СДЭК с кэшем в D1 (таблица kv) */
 async function getCdekToken(env: any) {
   const base = env.CDEK_API_BASE || "https://api.cdek.ru/v2";
   const now = Math.floor(Date.now() / 1000);
@@ -29,7 +37,6 @@ async function getCdekToken(env: any) {
   return token;
 }
 
-/** Приводим ответ СДЭК к компактному формату для фронта. */
 function mapPoint(p: any) {
   const loc = p?.location || {};
   return {
@@ -47,11 +54,14 @@ export async function GET(req: NextRequest) {
   const { env } = getRequestContext();
   const base = env.CDEK_API_BASE || "https://api.cdek.ru/v2";
   const url = new URL(req.url);
-  const city = (url.searchParams.get("city") || "").trim();      // «Москва»
-  const cityCode = url.searchParams.get("city_code");             // например, 44
-  const type = url.searchParams.get("type") || "PVZ";             // PVZ|POSTAMAT (если понадобится)
 
-  if (!city && !cityCode) return NextResponse.json([], { status: 200 });
+  const city = (url.searchParams.get("city") || "").trim();
+  const cityCode = url.searchParams.get("city_code");
+  const type = url.searchParams.get("type") || "PVZ"; // PVZ|POSTAMAT
+  const q = (url.searchParams.get("q") || "").trim();
+  const limit = Math.min(500, Math.max(1, Number(url.searchParams.get("limit") || 200)));
+
+  if (!city && !cityCode) return NextResponse.json([]);
 
   const token = await getCdekToken(env);
 
@@ -59,17 +69,23 @@ export async function GET(req: NextRequest) {
   if (cityCode) qs.push(`city_code=${encodeURIComponent(cityCode)}`);
   else qs.push(`city=${encodeURIComponent(city)}`);
 
-  // Документация СДЭК v2: /deliverypoints
   const r = await fetch(`${base}/deliverypoints?${qs.join("&")}`, {
     headers: { authorization: `Bearer ${token}` }
   });
+
   if (!r.ok) {
     const txt = await r.text();
     return NextResponse.json({ ok: false, status: r.status, error: txt }, { status: 200 });
   }
+
   const j = await r.json().catch(() => []);
-  const out = Array.isArray(j) ? j.map(mapPoint).filter(p => p.lat && p.lon) : [];
+  let out = Array.isArray(j) ? j.map(mapPoint).filter(p => p.lat && p.lon) : [];
 
-  return NextResponse.json(out, { status: 200 });
+  // фильтр по адресу/имени (на сервере)
+  if (q) {
+    const nq = norm(q);
+    out = out.filter(p => norm(`${p.name} ${p.address}`).includes(nq));
+  }
+
+  return NextResponse.json(out.slice(0, limit), { status: 200 });
 }
-
