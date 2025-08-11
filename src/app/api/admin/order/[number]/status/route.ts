@@ -1,8 +1,8 @@
 export const runtime = "edge";
 
 import { NextRequest, NextResponse } from "next/server";
-import { first, run } from "@/app/lib/db";
-import { notifyEmail } from "@/app/lib/notify";
+import { first, run, all } from "@/app/lib/db";
+import { notifyOrderPaid, notifyOrderCanceled, notifyOrderShipped } from "@/app/lib/notify";
 
 const ALLOWED = new Set([
   "new","awaiting_payment","paid","packed","shipped","delivered","canceled","refunded"
@@ -18,57 +18,58 @@ export async function PATCH(req: NextRequest, { params }: { params: { number: st
   let body: any = {};
   try { body = await req.json(); } catch {}
   const to = String(body?.status || "").trim();
+  const tracking = (body?.tracking ?? "").toString().trim(); // опционально
 
   if (!ALLOWED.has(to)) {
     return NextResponse.json({ ok:false, error:"bad_status" }, { status: 400 });
   }
 
-  const o: any = await first("SELECT id, status, number, customer_email, payment_method, paid_at FROM orders WHERE number = ?", params.number);
+  const o: any = await first("SELECT * FROM orders WHERE number = ?", params.number);
   if (!o) return NextResponse.json({ ok:false, error:"not_found" }, { status: 404 });
 
   const from = String(o.status || "");
-  if (from === to) return NextResponse.json({ ok:true, status: to });
+  if (from === to && !tracking) return NextResponse.json({ ok:true, status: to });
 
   const now = new Date().toISOString();
 
-  // Опциональная логика: при переводе в paid — фиксируем paid_at, если пусто
-  await run(
-    `UPDATE orders
-       SET status = ?,
-           status_updated_at = ?,
-           paid_at = CASE WHEN ?='paid' AND (paid_at IS NULL OR paid_at='') THEN ? ELSE paid_at END
-     WHERE id = ?`,
-    to, now, to, now, o.id
-  );
+  // обновляем статус + при shipped — сохраняем tracking, если пришёл
+  if (to === "shipped" && tracking) {
+    await run(
+      `UPDATE orders
+         SET status=?, status_updated_at=?, cdek_tracking_number=?
+       WHERE id=?`,
+      to, now, tracking, o.id
+    );
+  } else {
+    await run(
+      `UPDATE orders
+         SET status=?, status_updated_at=?
+       WHERE id=?`,
+      to, now, o.id
+    );
+  }
 
   await run(
     `INSERT INTO order_history (order_id, from_status, to_status, actor)
-     VALUES (?,?,?,?)`,
-    o.id, from, to, "admin"
+     VALUES (?,?,?,'admin')`,
+    o.id, from, to
   );
 
-  try {
-    if (o.customer_email) {
-      const site = process.env.SITE_TITLE || "DH22";
-      let subject = "";
-      let html = "";
-      if (to === "shipped") {
-        subject = `${site}: заказ ${o.number} отправлен`;
-        html = `<p>Ваш заказ ${o.number} отправлен.</p>`;
-      } else if (to === "delivered") {
-        subject = `${site}: заказ ${o.number} доставлен`;
-        html = `<p>Ваш заказ ${o.number} доставлен. Спасибо за покупку!</p>`;
-      } else if (to === "canceled") {
-        subject = `${site}: заказ ${o.number} отменён`;
-        const refund = (o.payment_method !== "cod" && o.paid_at) ? " Мы оформим возврат оплаты отдельно." : "";
-        html = `<p>Ваш заказ ${o.number} отменён.${refund}</p>`;
-      }
-      if (subject && html) {
-        await notifyEmail(o.customer_email, subject, html);
-      }
-    }
-  } catch {}
+  // перечитываем свежие данные
+  const fresh: any = await first("SELECT * FROM orders WHERE id=?", o.id);
+  const items = await all("SELECT name, qty, price FROM order_items WHERE order_id=?", o.id);
 
-  return NextResponse.json({ ok:true, status: to });
+  // Уведомления по требованиям:
+  if (to === "paid") {
+    // это может быть ручная оплата при COD — шлём как при оплате
+    await notifyOrderPaid(fresh, items);
+  }
+  if (to === "shipped") {
+    await notifyOrderShipped(fresh);
+  }
+  if (to === "canceled") {
+    await notifyOrderCanceled(fresh);
+  }
+
+  return NextResponse.json({ ok:true, status: to, tracking_saved: Boolean(tracking) });
 }
-
