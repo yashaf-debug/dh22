@@ -149,28 +149,62 @@ export async function notifyOrderCreated(order: any, items: any[]) {
   ]);
 }
 
+/** Ссылка на трекинг СДЭК для заказа, если есть хоть какое-то значение */
+export function cdekTrackLink(order: any): string | null {
+  const t = String(order?.cdek_tracking_number || order?.cdek_order_id || "").trim();
+  if (!t) return null;
+  return `${publicBaseUrl()}/t/cdek?track=${encodeURIComponent(t)}`;
+}
+
+/** Заказ принят (email клиенту — мы уже шлём из notifyOrderCreated) */
+/* ничего менять не нужно, только убедись в формулировках письма:
+   title: "Спасибо! Ваш заказ создан" — это и есть "заказ принят" */
+
+/** Оплата получена — корректируем поведение: email НЕ отправляем */
 export async function notifyOrderPaid(order: any, items: any[]) {
-  const site = process.env.SITE_TITLE || "DH22";
-  const subject = `${site}: оплата за заказ ${order.number} получена`;
-  const html = orderEmailHtml({
-    title: "Оплата получена — собираем ваш заказ",
-    preheader: "Мы подтвердили оплату. Скоро передадим в доставку.",
-    order, items
-  });
-  if (order?.customer_email) {
-    await notifyEmail(order.customer_email, subject, html);
-  }
-  const text = [
+  // письмо клиенту УБИРАЕМ по требованию
+  const textAdmin = [
     `✅ Оплата зафиксирована ${order.number}`,
     `Сумма: ${rub(order.amount_total)}`,
     `Доставка: ${order.delivery_method || "—"} ${order.delivery_pvz_name ? "• " + order.delivery_pvz_name : ""} ${order.delivery_address ? "• " + order.delivery_address : ""}`,
     `Клиент: ${order.customer_name || "—"} • ${order.customer_phone || "—"}`
   ].join("\n");
-  await notifyTelegram(text);
+  await notifyTelegram(textAdmin);
+
+  // клиентский TG — если подписан
   await notifyClientTelegram(order, [
     `✅ Оплата получена по заказу <b>${order.number}</b>`,
     `Мы начали сборку и скоро передадим в доставку.`
   ]);
+}
+
+/** Отмена (email клиенту + TG клиенту) */
+export async function notifyOrderCanceled(order: any) {
+  const site = process.env.SITE_TITLE || "DH22";
+  const subject = `${site}: заказ ${order.number} отменён`;
+  const html = orderEmailHtml({
+    title: "Заказ отменён",
+    preheader: "Если оплата была внесена, мы оформим возврат согласно условиям.",
+    order,
+    items: [{ name: "Состав заказа", qty: 1, price: order?.amount_total || 0 }] // кратко
+  });
+  if (order?.customer_email) {
+    await notifyEmail(order.customer_email, subject, html);
+  }
+  await notifyClientTelegram(order, [
+    `⛔ Заказ <b>${order.number}</b> отменён.`,
+    `Если оплата была внесена — возврат будет оформлен по правилам магазина.`
+  ]);
+}
+
+/** Отгрузка (TG клиенту, ссылка на трекинг, если есть) */
+export async function notifyOrderShipped(order: any) {
+  const link = cdekTrackLink(order);
+  const lines = [
+    `📦 Заказ <b>${order.number}</b> передан в доставку.`,
+    link ? `Отслеживание: ${link}` : `Трек-номер появится позже.`
+  ];
+  await notifyClientTelegram(order, lines);
 }
 
 export async function notifyClientTelegram(order: any, textLines: string[]) {
@@ -185,4 +219,3 @@ export async function notifyClientTelegram(order: any, textLines: string[]) {
     body: JSON.stringify({ chat_id: chat, text, parse_mode: "HTML", disable_web_page_preview: true })
   });
 }
-

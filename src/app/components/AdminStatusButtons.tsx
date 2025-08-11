@@ -16,12 +16,17 @@ export default function AdminStatusButtons({ number, token, current }: { number:
   const router = useRouter();
 
   async function setStatus(s: string) {
+    let body: any = { status: s };
+    if (s === "shipped") {
+      const tr = window.prompt("Введите трек-номер СДЭК (опционально)");
+      if (tr && tr.trim()) body.tracking = tr.trim();
+    }
     setBusy(s);
     try {
       const r = await fetch(`/api/admin/order/${encodeURIComponent(number)}/status?token=${encodeURIComponent(token)}`, {
         method: "PATCH",
         headers: { "content-type":"application/json" },
-        body: JSON.stringify({ status: s })
+        body: JSON.stringify(body)
       });
       const j = await r.json();
       if (!j.ok) { alert(j.error || "Ошибка смены статуса"); }
@@ -49,4 +54,3 @@ export default function AdminStatusButtons({ number, token, current }: { number:
     </div>
   );
 }
-
