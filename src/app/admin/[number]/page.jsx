@@ -63,6 +63,25 @@ export default async function AdminOrder({ params, searchParams }) {
               <div>ПВЗ: {data.order.delivery_pvz_name || "—"}</div>
               <div>Стоимость: <Rub v={data.order.delivery_price || 0} /></div>
               <div>ETA: {data.order.delivery_eta || "—"}</div>
+
+              {/* Новое: трекинг СДЭК */}
+              {(() => {
+                const track = (data.order.cdek_tracking_number || data.order.cdek_order_id || "").trim();
+                if (!track) {
+                  return (
+                    <div className="mt-2 text-sm opacity-70">
+                      Трекинг: — <span className="opacity-60">(введите трек при установке статуса «Отгружен»)</span>
+                    </div>
+                  );
+                }
+                const rel = `/t/cdek?track=${encodeURIComponent(track)}`;
+                return (
+                  <div className="mt-2 text-sm">
+                    Трекинг: <span className="opacity-80">{track}</span>{" "}
+                    <a href={rel} target="_blank" className="text-blue-600 underline">Отследить в СДЭК</a>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
