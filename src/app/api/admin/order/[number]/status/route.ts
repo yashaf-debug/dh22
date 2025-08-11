@@ -2,6 +2,7 @@ export const runtime = "edge";
 
 import { NextRequest, NextResponse } from "next/server";
 import { first, run } from "@/app/lib/db";
+import { notifyEmail } from "@/app/lib/notify";
 
 const ALLOWED = new Set([
   "new","awaiting_payment","paid","packed","shipped","delivered","canceled","refunded"
@@ -22,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { number: st
     return NextResponse.json({ ok:false, error:"bad_status" }, { status: 400 });
   }
 
-  const o: any = await first("SELECT id, status, payment_method, paid_at FROM orders WHERE number = ?", params.number);
+  const o: any = await first("SELECT id, status, number, customer_email, payment_method, paid_at FROM orders WHERE number = ?", params.number);
   if (!o) return NextResponse.json({ ok:false, error:"not_found" }, { status: 404 });
 
   const from = String(o.status || "");
@@ -45,6 +46,28 @@ export async function PATCH(req: NextRequest, { params }: { params: { number: st
      VALUES (?,?,?,?)`,
     o.id, from, to, "admin"
   );
+
+  try {
+    if (o.customer_email) {
+      const site = process.env.SITE_TITLE || "DH22";
+      let subject = "";
+      let html = "";
+      if (to === "shipped") {
+        subject = `${site}: заказ ${o.number} отправлен`;
+        html = `<p>Ваш заказ ${o.number} отправлен.</p>`;
+      } else if (to === "delivered") {
+        subject = `${site}: заказ ${o.number} доставлен`;
+        html = `<p>Ваш заказ ${o.number} доставлен. Спасибо за покупку!</p>`;
+      } else if (to === "canceled") {
+        subject = `${site}: заказ ${o.number} отменён`;
+        const refund = (o.payment_method !== "cod" && o.paid_at) ? " Мы оформим возврат оплаты отдельно." : "";
+        html = `<p>Ваш заказ ${o.number} отменён.${refund}</p>`;
+      }
+      if (subject && html) {
+        await notifyEmail(o.customer_email, subject, html);
+      }
+    }
+  } catch {}
 
   return NextResponse.json({ ok:true, status: to });
 }
