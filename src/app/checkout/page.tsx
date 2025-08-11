@@ -2,7 +2,7 @@
 export const runtime = 'edge';
 import { useState, useEffect } from "react";
 import CityAutocomplete from "@/app/components/CityAutocomplete";
-import CdekWidgetButton from "@/app/components/CdekWidgetButton";
+import CdekMapPicker from "@/app/components/CdekMapPicker";
 import { rub } from "../lib/money";
 
 type PVZ = { code: string; name: string; address: string };
@@ -56,10 +56,6 @@ export default function CheckoutPage() {
     }
     recalc();
   }, [city, deliveryMethod, weight]);
-
-  const onPvzPick = (pvz: any) => {
-    setDelivery((d) => ({ ...d, pvz }));
-  };
 
   const deliveryTotal = delivery.price_kop || 0;
   const orderTotal = itemsTotal + deliveryTotal;
@@ -200,7 +196,13 @@ export default function CheckoutPage() {
             </div>
             {deliveryMethod === "cdek_pvz" && (
               <div className="flex items-center gap-3">
-                <CdekWidgetButton city={city} onSelect={onPvzPick} buttonText="Выбрать ПВЗ" />
+                <CdekMapPicker
+                  city={city}
+                  cityCode={cityCode || undefined}
+                  yandexApiKey={process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || ""}
+                  onSelect={(pvz) => setDelivery(d => ({ ...d, pvz }))}
+                  buttonText="Выбрать ПВЗ на карте"
+                />
                 <div className="text-sm opacity-80">
                   {delivery.pvz ? `${delivery.pvz.name}` : "ПВЗ не выбран"}
                 </div>
