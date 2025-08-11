@@ -15,10 +15,12 @@ export default function CityAutocomplete(props: {
   const [items, setItems] = useState<City[]>([]);
   const [loading, setLoading] = useState(false);
   const timer = useRef<number | null>(null);
+  const suppressOpen = useRef(false);           // <-- подавление "повторного" открытия
   const boxRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => setTerm(props.value || ""), [props.value]);
 
+  // клик вне — закрыть
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (boxRef.current && !boxRef.current.contains(e.target as any)) setOpen(false);
@@ -27,22 +29,24 @@ export default function CityAutocomplete(props: {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // загрузка подсказок с дебаунсом
   useEffect(() => {
     if (timer.current) window.clearTimeout(timer.current);
-    const trimmed = term.trim();
-    if (!trimmed || trimmed.length < 3) {
+    if (!term || term.trim().length < 2) {
       setItems([]); setOpen(false);
       props.onInput?.(term);
       return;
     }
     timer.current = window.setTimeout(async () => {
+      // если только что выбрали — не делаем повторный запрос, не открываем заново
+      if (suppressOpen.current) return;
       props.onInput?.(term);
       setLoading(true);
-      setOpen(true);
       try {
-        const r = await fetch(`/api/shipping/cdek/cities?q=${encodeURIComponent(trimmed)}&limit=12`, { cache: "no-store" });
+        const r = await fetch(`/api/shipping/cdek/cities?q=${encodeURIComponent(term)}&limit=12`, { cache: "no-store" });
         const j = await r.json();
         setItems(Array.isArray(j) ? j : []);
+        setOpen(true);
       } catch {
         setItems([]); setOpen(false);
       } finally {
@@ -52,9 +56,27 @@ export default function CityAutocomplete(props: {
   }, [term]);
 
   const pick = (c: City) => {
+    // стопаем возможный "хвост" сетТаймаута, закрываем список и подавляем повторное открытие
+    if (timer.current) window.clearTimeout(timer.current);
+    suppressOpen.current = true;
+    setTimeout(() => { suppressOpen.current = false; }, 250);
+
     setTerm(c.full);
+    setItems([]);
     setOpen(false);
     props.onSelect(c.full, c.code);
+  };
+
+  const onFocus = () => {
+    if (!suppressOpen.current && (items.length || loading)) setOpen(true);
+  };
+
+  const onKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (e.key === "Enter" && items.length) {
+      e.preventDefault();
+      pick(items[0]);
+    }
+    if (e.key === "Escape") setOpen(false);
   };
 
   return (
@@ -62,7 +84,8 @@ export default function CityAutocomplete(props: {
       <input
         value={term}
         onChange={(e)=> setTerm(e.target.value)}
-        onFocus={()=> (items.length || loading) && setOpen(true)}
+        onFocus={onFocus}
+        onKeyDown={onKeyDown}
         className="w-full border px-3 py-2"
         placeholder={props.placeholder || "Город"}
         autoComplete="off"
@@ -87,4 +110,3 @@ export default function CityAutocomplete(props: {
     </div>
   );
 }
-

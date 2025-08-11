@@ -19,3 +19,12 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category, subcategory);
+
+CREATE TABLE IF NOT EXISTS cities (
+  code INTEGER PRIMARY KEY,              -- city_code из СДЭК
+  city TEXT NOT NULL,
+  region TEXT,
+  country_code TEXT DEFAULT 'RU',
+  search TEXT NOT NULL                   -- нормализованное "город, регион"
+);
+CREATE INDEX IF NOT EXISTS idx_cities_search ON cities(search);
