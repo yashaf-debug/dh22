@@ -1,9 +1,9 @@
 export const runtime = 'edge';
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { run, first } from "@/app/lib/db";
+import { run, first, all } from "@/app/lib/db";
 import { insertOrder, insertItem, byNumber } from "@/app/lib/sql";
 import { ensureOrdersTables } from "@/app/lib/init";
-import { tgSend } from "@/app/lib/notifier/telegram";
+import { notifyOrderCreated } from "@/app/lib/notify";
 
 function bad(msg, code=400){
   return new Response(
@@ -62,18 +62,11 @@ export async function POST(req) {
     for (const i of items) {
       await run(insertItem, order.id, i.slug, i.name, i.price, i.qty, i.image);
     }
+
     try {
-      const totalRub = (amount_total / 100).toFixed(2);
-      const lines = items.map(i => `• ${i.name} × ${i.qty}`).join("\n");
-      await tgSend(
-        `<b>🆕 Новый заказ</b>\n` +
-        `№ <code>${number}</code>\n` +
-        `Сумма: <b>${totalRub} ₽</b>\n` +
-        `Покупатель: ${customer.name} / ${customer.phone}\n` +
-        (customer.email ? `Email: ${customer.email}\n` : ``) +
-        `Доставка: ${method} / ${delivery_city}${delivery_pvz_name ? ' / '+delivery_pvz_name : ''}\n` +
-        `\n${lines}`
-      );
+      const createdOrder = await first(byNumber, number);
+      const createdItems = await all("SELECT name, qty, price FROM order_items WHERE order_id=?", createdOrder.id);
+      await notifyOrderCreated(createdOrder, createdItems);
     } catch {}
 
     return new Response(JSON.stringify({ ok:true, orderNumber:number, orderId:order.id }), { headers:{'content-type':'application/json'}});

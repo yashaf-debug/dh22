@@ -1,89 +1,68 @@
 export const runtime = "edge";
-import { NextRequest, NextResponse } from "next/server";
-import { first, run } from "@/app/lib/db";
-import { tgSend } from "@/app/lib/notifier/telegram";
 
-function h(hd: Headers) {
-  const o: Record<string, string> = {};
-  hd.forEach((v, k) => (o[k.toLowerCase()] = v));
-  return o;
+import { NextRequest, NextResponse } from "next/server";
+import { first, all, run } from "@/app/lib/db";
+import { notifyOrderPaid } from "@/app/lib/notify";
+
+/** Простой логгер вебхуков (если у тебя уже есть — можешь сохранить свой) */
+async function logWebhook(path: string, headersObj: any, body: any) {
+  try {
+    await run(
+      "INSERT INTO webhook_logs (path, headers, body) VALUES (?,?,?)",
+      path,
+      JSON.stringify(headersObj),
+      typeof body === "string" ? body : JSON.stringify(body)
+    );
+  } catch {}
 }
 
 export async function POST(req: NextRequest) {
-  const raw = await req.text();
-  const headers = h(req.headers);
+  const raw = await req.text(); // сохраняем «как есть» на всякий случай
+  let body: any = null;
+  try { body = JSON.parse(raw); } catch { body = raw; }
 
-  // 1) лог для отладки
+  // лог
+  const headersObj: any = {};
+  req.headers.forEach((v, k) => (headersObj[k] = v));
+  await logWebhook("/api/pay/cdek/webhook", headersObj, body);
+
+  // ожидаем payload вида { payment: { order_id, access_key, pay_amount, ... }, signature: ... }
+  const payment = (body && body.payment) ? body.payment : null;
+  const cdek_order_id = payment?.order_id ? String(payment.order_id) : null;
+
+  if (!cdek_order_id) {
+    return NextResponse.json({ ok:false, error:"no_order_id" }, { status: 200 });
+  }
+
+  // наш заказ ищем по сохранённому ранее cdek_order_id (мы его кладём при создании payment link)
+  const order: any = await first("SELECT * FROM orders WHERE cdek_order_id=?", cdek_order_id);
+  if (!order) {
+    return NextResponse.json({ ok:false, error:"order_not_found" }, { status: 200 });
+  }
+
+  // если уже оплачен — просто подтверждаем
+  if (order.status === "paid") {
+    return NextResponse.json({ ok:true, status:"already_paid" }, { status: 200 });
+  }
+
+  // помечаем оплаченным
+  const now = new Date().toISOString();
   await run(
-    "INSERT INTO webhook_logs (path, headers, body) VALUES (?,?,?)",
-    "/api/pay/cdek/webhook",
-    JSON.stringify(headers),
-    raw
+    `UPDATE orders
+       SET status='paid', paid_at=?, status_updated_at=?
+     WHERE id=?`,
+    now, now, order.id
+  );
+  await run(
+    `INSERT INTO order_history (order_id, from_status, to_status, actor)
+     VALUES (?,?,?,'webhook')`,
+    order.id, order.status, "paid"
   );
 
-  // 2) парсим тело
-  let data: any = {};
-  try { data = JSON.parse(raw); } catch {}
+  // пришлём уведомления
+  const items = await all("SELECT name, qty, price FROM order_items WHERE order_id=?", order.id);
+  const fresh = await first("SELECT * FROM orders WHERE id=?", order.id);
+  await notifyOrderPaid(fresh, items);
 
-  // то, что реально присылает CDEK Pay в вашем аккаунте
-  const cdekOrderId = data?.payment?.order_id ?? data?.order_id ?? null;
-  const accessKey   = data?.payment?.access_key ?? data?.access_key ?? null;
-
-  // если вдруг где-то появляется явный статус — тоже обрабатываем
-  const status = String(
-    data?.status ??
-    data?.payment_status ??
-    data?.payment?.status ??
-    ""
-  ).toLowerCase();
-
-  // 3) находим заказ
-  let order: any = null;
-  if (cdekOrderId) {
-    order = await first("SELECT id FROM orders WHERE cdek_order_id=?", String(cdekOrderId));
-  }
-  if (!order && accessKey) {
-    order = await first("SELECT id FROM orders WHERE cdek_access_key=?", String(accessKey));
-  }
-  // fallback: иногда access_key содержится в pay_link
-  if (!order && accessKey) {
-    order = await first("SELECT id FROM orders WHERE pay_link LIKE ?", `%${accessKey}%`);
-  }
-
-  if (!order) {
-    // не нашли — подтверждаем приём, чтобы CDEK не ретраил
-    return NextResponse.json({ ok: true, matched: false });
-  }
-
-  // 4) определяем новый статус
-  let newStatus: string | null = null;
-  if (["success", "succeeded", "paid"].includes(status)) newStatus = "paid";
-  if (["failed", "cancelled", "canceled"].includes(status)) newStatus = "failed";
-
-  // Fallback: у вас вебхук приходит без status — считаем его успешной оплатой,
-  // если есть объект payment и сумма > 0
-  if (!newStatus && data?.payment && Number(data?.payment?.pay_amount) > 0) {
-    newStatus = "paid";
-  }
-
-  if (newStatus) {
-    const now = new Date().toISOString();
-    await run(
-      "UPDATE orders SET status=?, status_updated_at=?, paid_at=CASE WHEN ?='paid' THEN ? ELSE paid_at END WHERE id=?",
-      newStatus, now, newStatus, now, order.id
-    );
-    if (newStatus === "paid") {
-      try {
-        const ord = await first("SELECT number, amount_total FROM orders WHERE id=?", order.id);
-        const totalRub = ord ? (ord.amount_total / 100).toFixed(2) : "";
-        await tgSend(
-          `<b>✅ Оплата зафиксирована</b>\n` +
-          `№ <code>${ord?.number || "?"}</code>\n` +
-          (totalRub ? `Сумма: <b>${totalRub} ₽</b>` : ``)
-        );
-      } catch {}
-    }
-  }
-
-  return NextResponse.json({ ok: true, matched: true, set: newStatus || "noop" });
+  return NextResponse.json({ ok:true, status:"paid" }, { status: 200 });
 }
