@@ -1,6 +1,5 @@
 "use client";
 export const runtime = 'edge'
-
 import { useEffect, useState } from "react";
 
 export default function SuccessPage({ searchParams }) {
@@ -10,8 +9,11 @@ export default function SuccessPage({ searchParams }) {
   const [order, setOrder] = useState(null);
   const [payBusy, setPayBusy] = useState(false);
 
+  // telegram deeplink state
+  const [tgUrl, setTgUrl] = useState("");
+  const [tgReady, setTgReady] = useState(false);
+
   useEffect(() => {
-    // если нет номера — не дергаем API
     if (!number) return;
 
     localStorage.removeItem("dh22_cart");
@@ -26,7 +28,6 @@ export default function SuccessPage({ searchParams }) {
           setState({ status: j?.order?.status || "new", paid });
           if (!paid) t = setTimeout(tick, 2000);
         } else {
-          // если бэкенд 404/500, подождём и попробуем ещё раз
           t = setTimeout(tick, 3000);
         }
       } catch {
@@ -36,6 +37,30 @@ export default function SuccessPage({ searchParams }) {
     tick();
     return () => clearTimeout(t);
   }, [number]);
+
+  // подготавливаем deeplink, если клиент ещё не подписан
+  useEffect(() => {
+    if (!number) return;
+    if (order && order.customer_tg_chat_id) {
+      setTgReady(false);
+      setTgUrl("");
+      return;
+    }
+    (async () => {
+      try {
+        const r = await fetch(`/api/tg/deeplink?o=${encodeURIComponent(number)}`, { cache: "no-store" });
+        const j = await r.json();
+        if (j?.ok && j.url) {
+          setTgUrl(j.url);
+          setTgReady(true);
+        } else {
+          setTgReady(false);
+        }
+      } catch {
+        setTgReady(false);
+      }
+    })();
+  }, [number, order?.customer_tg_chat_id]); // если пользователь подписался после клика, состояние обновится
 
   async function payOnlineNow() {
     try {
@@ -62,6 +87,8 @@ export default function SuccessPage({ searchParams }) {
     order &&
     (order.payment_method === "cod" || order.payment_method === "upon_receipt") &&
     !state.paid;
+
+  const showTgButton = Boolean(tgReady && tgUrl && order && !order.customer_tg_chat_id);
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-4">
@@ -102,6 +129,22 @@ export default function SuccessPage({ searchParams }) {
               </div>
             </div>
           )}
+
+          {/* Кнопка подписки в Telegram */}
+          {showTgButton ? (
+            <div className="mt-6">
+              <a href={tgUrl} target="_blank" className="inline-block px-4 py-2 border">
+                Получать апдейты в Telegram
+              </a>
+              <div className="text-sm opacity-70 mt-1">
+                Нажмите, откройте бота и подтвердите подписку — мы пришлём уведомления по этому заказу.
+              </div>
+            </div>
+          ) : order && order.customer_tg_chat_id ? (
+            <div className="mt-6 text-green-600">
+              Вы подписаны на уведомления в Telegram.
+            </div>
+          ) : null}
         </>
       )}
     </div>
