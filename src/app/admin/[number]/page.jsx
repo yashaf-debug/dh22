@@ -1,48 +1,101 @@
 export const runtime = "edge";
-import Link from "next/link";
 
-async function loadData(number, token) {
-  const base = process.env.PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "";
-  const r = await fetch(`${base}/api/admin/order/${encodeURIComponent(number)}?token=${encodeURIComponent(token)}`, { cache:"no-store" });
+import Link from "next/link";
+import { headers } from "next/headers";
+import AdminStatusButtons from "@/app/components/AdminStatusButtons";
+
+async function loadOrder(number, token) {
+  const h = headers();
+  const base =
+    process.env.PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    `${h.get("x-forwarded-proto") || "https"}://${h.get("host")}`;
+  const url = new URL(`${base}/api/admin/order/${encodeURIComponent(number)}`);
+  url.searchParams.set("token", token);
+  const r = await fetch(url.toString(), { cache:"no-store" });
   if (!r.ok) return null;
   return r.json();
 }
 
+function Rub({ v }) { return <span>{(Number(v||0)/100).toFixed(2)} ₽</span>; }
+
 export default async function AdminOrder({ params, searchParams }) {
   const token = searchParams?.t || "";
   const number = params.number;
-  const data = token ? await loadData(number, token) : null;
+  const data = token ? await loadOrder(number, token) : null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-4">
-        <Link href={`/admin?t=${encodeURIComponent(token)}`} className="text-blue-600">← назад к списку</Link>
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      <div>
+        <Link href={`/admin?t=${encodeURIComponent(token)}`} className="text-blue-600">← назад</Link>
       </div>
+
       {!token && <div className="text-red-600">Добавь ?t=ТОКЕН в URL</div>}
       {!data?.ok && token && <div className="text-red-600">Не найдено</div>}
+
       {data?.ok && (
         <>
-          <h1 className="text-2xl mb-2">Заказ {number}</h1>
-          <div className="opacity-70 mb-1">{data.order.status} • {(data.order.amount_total/100).toFixed(2)} ₽</div>
-          <div className="text-sm opacity-80 mb-4">
-            {data.order.delivery_method} • {(data.order.delivery_price/100).toFixed(2)} ₽ • {data.order.delivery_city}{data.order.delivery_pvz_name ? ` / ${data.order.delivery_pvz_name}` : ""} • {data.order.delivery_eta}
-          </div>
-          {data.order.delivery_address && (
-            <div className="mb-2">Адрес: {data.order.delivery_address}</div>
-          )}
-          {data.order.delivery_pvz_name && (
-            <div className="mb-2">ПВЗ: {data.order.delivery_pvz_name} ({data.order.delivery_pvz_code})</div>
-          )}
-          <div className="grid gap-2">
-            {data.items.map((i)=>(
-              <div key={i.slug} className="border p-2 flex justify-between">
-                <div>{i.name}</div>
-                <div className="opacity-70">{i.qty} × {(i.price/100).toFixed(2)} ₽</div>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl">Заказ #{number}</h1>
+              <div className="opacity-70">
+                {data.order.status} • <Rub v={data.order.amount_total} />
+                {data.order.payment_method ? ` • ${data.order.payment_method}` : ""}
               </div>
-            ))}
+              <div className="text-sm opacity-70">{data.order.created_at}</div>
+            </div>
+            <AdminStatusButtons number={number} token={token} current={data.order.status} />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="border p-4">
+              <div className="font-medium mb-2">Покупатель</div>
+              <div>{data.order.customer_name}</div>
+              <div className="opacity-70">{data.order.customer_phone}</div>
+              <div className="opacity-70">{data.order.customer_email}</div>
+            </div>
+
+            <div className="border p-4">
+              <div className="font-medium mb-2">Доставка</div>
+              <div>Тип: {data.order.delivery_method || "—"}</div>
+              <div>Город: {data.order.delivery_city || "—"}</div>
+              <div>Адрес: {data.order.delivery_address || "—"}</div>
+              <div>ПВЗ: {data.order.delivery_pvz_name || "—"}</div>
+              <div>Стоимость: <Rub v={data.order.delivery_price || 0} /></div>
+              <div>ETA: {data.order.delivery_eta || "—"}</div>
+            </div>
+          </div>
+
+          <div className="border p-4">
+            <div className="font-medium mb-3">Товары</div>
+            <div className="space-y-2">
+              {data.items.map((i)=>(
+                <div key={i.slug} className="flex justify-between">
+                  <div>{i.name} <span className="opacity-70">× {i.qty}</span></div>
+                  <div className="opacity-80"><Rub v={i.price} /></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border p-4">
+            <div className="font-medium mb-3">История статусов</div>
+            {data.history.length === 0
+              ? <div className="opacity-70">Пусто</div>
+              : (
+                <div className="space-y-1 text-sm">
+                  {data.history.map((h,idx)=>(
+                    <div key={idx} className="flex justify-between">
+                      <div>{h.from_status || "—"} → <b>{h.to_status}</b></div>
+                      <div className="opacity-70">{h.actor} • {h.created_at}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </>
       )}
     </div>
   );
 }
+
