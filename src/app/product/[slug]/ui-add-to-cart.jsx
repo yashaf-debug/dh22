@@ -54,7 +54,9 @@ export default function AddToCart({ product }) {
         <span className="text-sm w-20">Кол-во</span>
         <input type="number" min={1} className="border px-2 py-1 w-24" value={qty} onChange={e => setQty(parseInt(e.target.value, 10) || 1)} />
       </div>
-      <button className="btn btn-primary" onClick={add}>Добавить в корзину</button>
+      <button className="btn btn-primary" onClick={add} disabled={product.quantity <= 0}>
+        Добавить в корзину
+      </button>
     </div>
   );
 }
