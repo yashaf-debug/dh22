@@ -37,6 +37,18 @@ export async function POST(req) {
     const amount_total = items_total + delivery_price;
     if (amount_total <= 0) return bad("Сумма заказа некорректна");
 
+    const itemsWithIds = [];
+    for (const it of items) {
+      const p = await first("SELECT id, name, quantity FROM products WHERE slug=?", it.slug);
+      if (!p || p.quantity < it.qty) {
+        return new Response(
+          JSON.stringify({ ok: false, error: "no_stock", detail: { product_id: p?.id, available: p?.quantity || 0 } }),
+          { status: 409, headers: { "content-type": "application/json" } }
+        );
+      }
+      itemsWithIds.push({ ...it, product_id: p.id });
+    }
+
     const number = "DH22-" + Date.now().toString(36).toUpperCase();
     await run(
       insertOrder,
@@ -63,13 +75,17 @@ export async function POST(req) {
       await run(insertItem, order.id, i.slug, i.name, i.price, i.qty, i.image);
     }
 
+    for (const it of itemsWithIds) {
+      await run("UPDATE products SET quantity = quantity - ? WHERE id=?", it.qty, it.product_id);
+    }
+
     try {
       const createdOrder = await first(byNumber, number);
       const createdItems = await all("SELECT name, qty, price FROM order_items WHERE order_id=?", createdOrder.id);
       await notifyOrderCreated(createdOrder, createdItems);
     } catch {}
 
-    return new Response(JSON.stringify({ ok:true, orderNumber:number, orderId:order.id }), { headers:{'content-type':'application/json'}});
+    return new Response(JSON.stringify({ ok: true, orderNumber: number, orderId: order.id }), { headers: { "content-type": "application/json" } });
   } catch (e) {
     return bad(`D1_ERROR: ${e.message || "Ошибка создания заказа"}`, 500);
   }
