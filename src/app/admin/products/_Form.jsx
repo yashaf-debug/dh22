@@ -1,5 +1,4 @@
 "use client";
-export const runtime = "edge";
 import { useRef, useState } from "react";
 import { withToken } from "../_lib";
 
