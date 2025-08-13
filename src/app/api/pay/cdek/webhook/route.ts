@@ -1,8 +1,10 @@
 export const runtime = "edge";
 
 import { NextRequest, NextResponse } from "next/server";
+import { getRequestContext } from "@cloudflare/next-on-pages";
 import { first, all, run } from "@/app/lib/db";
 import { notifyOrderPaid } from "@/app/lib/notify";
+import { cdekSignature } from "@/app/lib/cdek/signature";
 
 /** Простой логгер вебхуков (если у тебя уже есть — можешь сохранить свой) */
 async function logWebhook(path: string, headersObj: any, body: any) {
@@ -28,10 +30,21 @@ export async function POST(req: NextRequest) {
 
   // ожидаем payload вида { payment: { order_id, access_key, pay_amount, ... }, signature: ... }
   const payment = (body && body.payment) ? body.payment : null;
+  const signature = typeof body?.signature === "string" ? body.signature : "";
   const cdek_order_id = payment?.order_id ? String(payment.order_id) : null;
 
   if (!cdek_order_id) {
     return NextResponse.json({ ok:false, error:"no_order_id" }, { status: 200 });
+  }
+
+  const { env } = getRequestContext();
+  const secret = env.CDEK_PAY_SECRET || "";
+  if (!secret || !payment || !signature) {
+    return NextResponse.json({ ok:false, error:"bad_signature" }, { status: 200 });
+  }
+  const expected = await cdekSignature(payment, secret);
+  if (expected !== signature) {
+    return NextResponse.json({ ok:false, error:"signature_mismatch" }, { status: 200 });
   }
 
   // наш заказ ищем по сохранённому ранее cdek_order_id (мы его кладём при создании payment link)

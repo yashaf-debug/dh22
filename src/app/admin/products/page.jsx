@@ -2,6 +2,7 @@
 export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { authHeaders } from "../_lib";
 
 export default function AdminProductsList({ searchParams }) {
   const t = searchParams?.t || "";
@@ -9,7 +10,7 @@ export default function AdminProductsList({ searchParams }) {
   const [items, setItems] = useState([]);
 
   async function load() {
-    const r = await fetch(`/api/admin/products?token=${encodeURIComponent(t)}&q=${encodeURIComponent(q)}`, { cache: "no-store" });
+    const r = await fetch(`/api/admin/products?q=${encodeURIComponent(q)}`, { cache: "no-store", headers: authHeaders(t) });
     const j = await r.json();
     setItems(j?.items || []);
   }

@@ -10,11 +10,10 @@ async function loadData({ token, q, status, limit = 100 }) {
     process.env.NEXT_PUBLIC_BASE_URL ||
     `${h.get("x-forwarded-proto") || "https"}://${h.get("host")}`;
   const u = new URL(`${base}/api/admin/orders`);
-  u.searchParams.set("token", token);
   if (q) u.searchParams.set("q", q);
   if (status) u.searchParams.set("status", status);
   u.searchParams.set("limit", String(limit));
-  const r = await fetch(u.toString(), { cache: "no-store" });
+  const r = await fetch(u.toString(), { cache: "no-store", headers: { Authorization: `Bearer ${token}` } });
   if (!r.ok) return { ok:false, items:[] };
   return r.json();
 }

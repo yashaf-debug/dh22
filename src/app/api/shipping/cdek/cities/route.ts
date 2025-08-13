@@ -4,6 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { all, run } from "@/app/lib/db"; // наши хелперы для D1
 
+interface City {
+  code: number;
+  city: string;
+  region: string;
+  country_code: string;
+}
+
 function norm(s: string) {
   return s
     .toLowerCase()
@@ -40,7 +47,7 @@ export async function GET(req: NextRequest) {
 
   // 1) Сначала ищем в своём кэше (быстро и предсказуемо)
   // Поддерживаем и prefix ("мо%"), и contains по второму слову ("% мо%")
-  let cached: any[] = [];
+  let cached: City[] = [];
   let cacheAvailable = true;
   try {
     cached = await all(
@@ -60,7 +67,7 @@ export async function GET(req: NextRequest) {
 
   if (cacheAvailable && cached.length >= limit) {
     return NextResponse.json(
-      cached.map((c:any)=>({
+      cached.map((c: City)=>({
         code: c.code,
         name: c.city,
         region: c.region,
@@ -75,7 +82,7 @@ export async function GET(req: NextRequest) {
   const base = env.CDEK_API_BASE || "https://api.cdek.ru/v2";
   const token = await getToken(base, env.CDEK_API_CLIENT_ID || "", env.CDEK_API_CLIENT_SECRET || "");
 
-  let ext: any[] = [];
+  let ext: City[] = [];
   if (token) {
     for (const variant of [raw, raw.toUpperCase(), q]) {
       const r = await fetch(
@@ -88,12 +95,12 @@ export async function GET(req: NextRequest) {
   }
 
   // upsert в D1 и объединённый ответ
-  const merged: any[] = [...cached];
+  const merged: City[] = [...cached];
   for (const c of Array.isArray(ext) ? ext : []) {
-    const code = Number(c.code);
-    const city = String(c.city || "");
-    const region = String(c.region || "");
-    const cc = String(c.country_code || "RU");
+    const code = Number((c as any).code);
+    const city = String((c as any).city || "");
+    const region = String((c as any).region || "");
+    const cc = String((c as any).country_code || "RU");
     const search = norm([city, region].filter(Boolean).join(", "));
     if (cacheAvailable) {
       try {
@@ -121,11 +128,11 @@ export async function GET(req: NextRequest) {
 
   // Убираем дубли по code и ограничиваем лимитом
   const seen = new Set<number>();
-  const out = merged.filter((c:any)=> {
+  const out = merged.filter((c: City)=> {
     if (seen.has(c.code)) return false;
     seen.add(c.code);
     return true;
-  }).slice(0, limit).map((c:any)=>({
+  }).slice(0, limit).map((c: City)=>({
     code: c.code,
     name: c.city,
     region: c.region,

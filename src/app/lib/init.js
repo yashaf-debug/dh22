@@ -50,5 +50,21 @@ export async function ensureOrdersTables() {
   `);
   await run(`CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(number)`);
   await run(`CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id)`);
+  await run(`
+    CREATE TABLE IF NOT EXISTS webhook_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      path TEXT,
+      headers TEXT,
+      body TEXT
+    )
+  `);
+  await run(`
+    CREATE TABLE IF NOT EXISTS kv (
+      k TEXT PRIMARY KEY,
+      v TEXT,
+      expires_at INTEGER
+    )
+  `);
   bootstrapped = true;
 }
