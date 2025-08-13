@@ -1,13 +1,15 @@
 "use client";
 export const runtime = 'edge'
 import { useEffect, useState } from "react";
+import { track } from "../../lib/analytics";
 
 export default function SuccessPage({ searchParams }) {
   const number = (searchParams?.o || searchParams?.order || "").trim();
 
   const [state, setState] = useState({ status: "loading", paid: false });
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState<any>(null);
   const [payBusy, setPayBusy] = useState(false);
+  const [purchaseTracked, setPurchaseTracked] = useState(false);
 
   // telegram deeplink state
   const [tgUrl, setTgUrl] = useState("");
@@ -24,7 +26,7 @@ export default function SuccessPage({ searchParams }) {
         if (r.ok) {
           const j = await r.json();
           const paid = j?.order?.status === "paid";
-          setOrder(j?.order || null);
+          setOrder(j?.order ? { ...j.order, items: j.items } : null);
           setState({ status: j?.order?.status || "new", paid });
           if (!paid) t = setTimeout(tick, 2000);
         } else {
@@ -89,6 +91,14 @@ export default function SuccessPage({ searchParams }) {
     !state.paid;
 
   const showTgButton = Boolean(tgReady && tgUrl && order && !order.customer_tg_chat_id);
+
+  useEffect(() => {
+    if (!purchaseTracked && state.paid && order) {
+      const items = (order.items || []).map((i: any) => ({ item_id: i.slug, item_name: i.name, price: i.price / 100, quantity: i.qty }));
+      track.purchase({ order_number: number, value: (order.amount_total || 0) / 100, items });
+      setPurchaseTracked(true);
+    }
+  }, [purchaseTracked, state.paid, order, number]);
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-4">
