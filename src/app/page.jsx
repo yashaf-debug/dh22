@@ -5,7 +5,7 @@ export const runtime = "edge";
 
 export default async function Home() {
   const products = await all(
-    "SELECT id,slug,name,price,COALESCE(NULLIF(main_image,'/i'),image_url) AS image_url FROM products WHERE active=1 AND quantity>0 ORDER BY id DESC LIMIT 8"
+    "SELECT id,slug,name,price,COALESCE(main_image,image_url) AS image_url FROM products WHERE active=1 AND quantity>0 ORDER BY id DESC LIMIT 8"
   );
   return (
     <section className="container mx-auto px-4 py-10">
@@ -15,9 +15,11 @@ export default async function Home() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {products.map((p) => {
-          const img = p.image_url?.startsWith("/i/") || p.image_url?.startsWith("http")
-            ? p.image_url
-            : "/placeholder.png";
+          const img =
+            (p.image_url || p.main_image || "").startsWith("/i/") ||
+            (p.image_url || p.main_image || "").startsWith("http")
+              ? p.image_url || p.main_image
+              : "/placeholder.png";
           return (
             <Link key={p.slug} href={`/product/${p.slug}`} className="card">
               <img src={img} alt={p.name} className="w-full aspect-[3/4] object-cover border" />

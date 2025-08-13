@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   const rows = await all(
     `SELECT id,slug,name,price,category,active,quantity,
-            COALESCE(NULLIF(main_image,'/i'),image_url) AS main_image
+            COALESCE(main_image,image_url) AS main_image
        FROM products
        ${where.length ? "WHERE " + where.join(" AND ") : ""}
        ORDER BY id DESC
@@ -57,15 +57,15 @@ export async function POST(req: NextRequest) {
   const quantity = Math.max(0, parseInt(b.quantity || 0));
   const category = (b.category || "").trim();
   const description = b.description || "";
-  let main_image = (b.main_image || "").trim();
+  let main_image = (b.main_image || b.image_url || "").trim();
   if (!main_image || main_image === "/i") main_image = null;
   const sizes = JSON.stringify(b.sizes || []);
   const colors = JSON.stringify(b.colors || []);
   const gallery = JSON.stringify(b.gallery || []);
 
   await run(
-    `INSERT INTO products (slug,name,price,category,active,quantity,description,main_image,sizes,colors,gallery,updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+    `INSERT INTO products (slug,name,price,category,active,quantity,description,main_image,image_url,sizes,colors,gallery,updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
     slug,
     name,
     price,
@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
     active,
     quantity,
     description,
+    main_image,
     main_image,
     sizes,
     colors,

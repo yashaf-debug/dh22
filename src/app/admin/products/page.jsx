@@ -32,9 +32,11 @@ export default function AdminProductsList({ searchParams }) {
       </div>
       <div className="divide-y">
         {items.map((p) => {
-          const img = p.main_image?.startsWith("/i/") || p.main_image?.startsWith("http")
-            ? p.main_image
-            : "/placeholder.png";
+          const img =
+            (p.image_url || p.main_image || "").startsWith("/i/") ||
+            (p.image_url || p.main_image || "").startsWith("http")
+              ? p.image_url || p.main_image
+              : "/placeholder.png";
           return (
             <div key={p.id} className="py-3 flex items-center gap-4">
               <img src={img} alt="" className="w-12 h-12 object-cover border" />
