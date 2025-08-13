@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   const rows = await all(
     `SELECT id,slug,name,price,category,active,quantity,
-            COALESCE(main_image,image_url) AS main_image
+            COALESCE(NULLIF(main_image,'/i'),image_url) AS main_image
        FROM products
        ${where.length ? "WHERE " + where.join(" AND ") : ""}
        ORDER BY id DESC
@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
   const quantity = Math.max(0, parseInt(b.quantity || 0));
   const category = (b.category || "").trim();
   const description = b.description || "";
-  const main_image = (b.main_image || "").trim();
+  let main_image = (b.main_image || "").trim();
+  if (!main_image || main_image === "/i") main_image = null;
   const sizes = JSON.stringify(b.sizes || []);
   const colors = JSON.stringify(b.colors || []);
   const gallery = JSON.stringify(b.gallery || []);

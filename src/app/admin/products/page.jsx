@@ -31,16 +31,21 @@ export default function AdminProductsList({ searchParams }) {
         <Link className="border px-3" href={`/admin/products/new?t=${encodeURIComponent(token)}`}>+ Новый</Link>
       </div>
       <div className="divide-y">
-        {items.map((p) => (
-          <div key={p.id} className="py-3 flex items-center gap-4">
-            <img src={p.main_image || "/placeholder.png"} alt="" className="w-12 h-12 object-cover border" />
-            <div className="flex-1">
-              <div className="font-medium">{p.name}</div>
-              <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
+        {items.map((p) => {
+          const img = p.main_image?.startsWith("/i/") || p.main_image?.startsWith("http")
+            ? p.main_image
+            : "/placeholder.png";
+          return (
+            <div key={p.id} className="py-3 flex items-center gap-4">
+              <img src={img} alt="" className="w-12 h-12 object-cover border" />
+              <div className="flex-1">
+                <div className="font-medium">{p.name}</div>
+                <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
+              </div>
+              <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(token)}`}>Править</Link>
             </div>
-            <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(token)}`}>Править</Link>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
