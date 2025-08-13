@@ -2,18 +2,14 @@
 export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { withToken } from "../_lib";
 
 export default function AdminProductsList({ searchParams }) {
-  const token = searchParams?.t || "";
+  const t = searchParams?.t || "";
   const [q, setQ] = useState(searchParams?.q || "");
   const [items, setItems] = useState([]);
 
   async function load() {
-    const u = new URL("/api/admin/products", window.location.origin);
-    u.searchParams.set("token", token);
-    if (q) u.searchParams.set("q", q);
-    const r = await fetch(u, { cache: "no-store" });
+    const r = await fetch(`/api/admin/products?token=${encodeURIComponent(t)}&q=${encodeURIComponent(q)}`, { cache: "no-store" });
     const j = await r.json();
     setItems(j?.items || []);
   }
@@ -28,7 +24,7 @@ export default function AdminProductsList({ searchParams }) {
       <div className="flex gap-2">
         <input className="border px-2 py-1" placeholder="поиск…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="border px-3" onClick={load}>Искать</button>
-        <Link className="border px-3" href={`/admin/products/new?t=${encodeURIComponent(token)}`}>+ Новый</Link>
+        <Link className="border px-3" href={`/admin/products/new?t=${encodeURIComponent(t)}`}>+ Новый</Link>
       </div>
       <div className="divide-y">
         {items.map((p) => {
@@ -44,7 +40,7 @@ export default function AdminProductsList({ searchParams }) {
                 <div className="font-medium">{p.name}</div>
                 <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
               </div>
-              <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(token)}`}>Править</Link>
+              <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(t)}`}>Править</Link>
             </div>
           );
         })}

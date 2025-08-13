@@ -3,61 +3,47 @@ export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 import { all, first, run } from "@/app/lib/db";
 
-function ok(data: any = {}) {
-  return NextResponse.json({ ok: true, ...data }, { status: 200 });
-}
-function fail(error: string, detail?: any, status = 200) {
-  return NextResponse.json({ ok: false, error, detail }, { status });
-}
+const getToken = (url: string) => {
+  const u = new URL(url);
+  return u.searchParams.get("token") || u.searchParams.get("t") || "";
+};
+const ok = (x: any = {}) => NextResponse.json({ ok: true, ...x }, { status: 200 });
+const fail = (error: string, detail?: any) =>
+  NextResponse.json({ ok: false, error, detail }, { status: 200 });
 
-function parseArr(x: any) {
-  if (!x) return [];
-  if (Array.isArray(x)) return x;
-  try {
-    const s = String(x).trim();
-    if (!s) return [];
-    return JSON.parse(s);
-  } catch {
-    return [];
-  }
-}
-
-function int(v: any, d = 0) {
+const toInt = (v: any, d = 0) => {
   const n = Number(v);
   return Number.isFinite(n) ? Math.trunc(n) : d;
-}
-function bool(v: any) {
-  if (typeof v === "boolean") return v;
-  return v === "1" || v === 1 || String(v).toLowerCase() === "true";
-}
-const normSlug = (s: string) =>
+};
+const toBool = (v: any) =>
+  typeof v === "boolean" ? v : v === 1 || v === "1" || String(v).toLowerCase() === "true";
+const toArr = (v: any) => {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  try { return JSON.parse(String(v)); } catch { return []; }
+};
+const slugify = (s: string) =>
   (s || "")
     .toLowerCase()
-    .replace(/[^a-z0-9\u0400-\u04FF-]+/gi, "-")
+    .replace(/[^a-z0-9\u0400-\u04ff-]+/gi, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const token = searchParams.get("token") || "";
-    if (token !== process.env.ADMIN_TOKEN) return fail("unauthorized");
-
-    const q = (searchParams.get("q") || "").trim();
-    const rows = await all(
-      `
-      SELECT id, slug, name, price, quantity, active,
-             COALESCE(main_image, image_url) AS image_url,
-             category, updated_at
-      FROM products
-      WHERE (? = '' OR name LIKE '%'||?||'%' OR slug LIKE '%'||?||'%')
-      ORDER BY id DESC
-      LIMIT 200
-      `,
+    if (getToken(req.url) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
+    const q = (new URL(req.url).searchParams.get("q") || "").trim();
+    const items = await all(
+      `SELECT id, slug, name, price, quantity, active,
+              COALESCE(main_image, image_url) AS image_url,
+              category, updated_at
+         FROM products
+        WHERE (? = '' OR name LIKE '%'||?||'%' OR slug LIKE '%'||?||'%')
+        ORDER BY id DESC
+        LIMIT 200`,
       q, q, q
     );
-
-    return ok({ items: rows });
+    return ok({ items });
   } catch (e: any) {
     return fail("get_products_failed", String(e));
   }
@@ -65,31 +51,39 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const token = searchParams.get("token") || "";
-    if (token !== process.env.ADMIN_TOKEN) return fail("unauthorized");
+    if (getToken(req.url) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
 
-    const body = await req.json();
-    const name       = (body.name || "").toString().trim();
-    const price      = int(body.price, 0);
-    const quantity   = int(body.quantity, 0);
-    const active     = bool(body.active);
-    const category   = (body.category || "").toString().trim();
-    const description= (body.description || "").toString();
-    const sizes      = JSON.stringify(parseArr(body.sizes));
-    const colors     = JSON.stringify(parseArr(body.colors));
-    const main_image = (body.main_image || body.image_url || "").toString().trim();
-    const slug       = normSlug(body.slug || name) || `item-${Date.now()}`;
+    const b = await req.json();
+    const name        = String(b.name || "").trim();
+    const price       = toInt(b.price);
+    const quantity    = toInt(b.quantity, 0);
+    const active      = toBool(b.active) ? 1 : 0;
+    const category    = String(b.category || "").trim();
+    const description = String(b.description || "");
+    const sizes       = JSON.stringify(toArr(b.sizes));
+    const colors      = JSON.stringify(toArr(b.colors));
+    const main_image  = String(b.main_image || b.image_url || "").trim();
+    const baseSlug    = slugify(b.slug || name) || `item-${Date.now()}`;
+
+    // делаем slug уникальным
+    let slug = baseSlug;
+    for (let i = 0; i < 3; i++) {
+      const ex = await first("SELECT id FROM products WHERE slug=?", slug);
+      if (!ex) break;
+      slug = `${baseSlug}-${Date.now().toString(36).slice(-4)}`;
+    }
+
     const updated_at = new Date().toISOString();
-
     await run(
-      `INSERT INTO products (slug, name, price, quantity, active, category, description, sizes, colors, main_image, updated_at)
+      `INSERT INTO products (slug, name, price, quantity, active, category, description,
+                             sizes, colors, main_image, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      slug, name, price, quantity, active ? 1 : 0, category, description, sizes, colors, main_image, updated_at
+      slug, name, price, quantity, active, category, description,
+      sizes, colors, main_image, updated_at
     );
 
-    const row = await first(`SELECT * FROM products WHERE slug=?`, slug);
-    return ok({ item: row });
+    const item = await first("SELECT * FROM products WHERE slug=?", slug);
+    return ok({ item });
   } catch (e: any) {
     return fail("create_product_failed", String(e));
   }
