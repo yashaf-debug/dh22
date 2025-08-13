@@ -2,8 +2,20 @@
 import { useRef, useState } from "react";
 import { withToken } from "../_lib";
 
+function safeJsonArray(v) {
+  try {
+    if (Array.isArray(v)) return v;
+    const p = JSON.parse(String(v));
+    return Array.isArray(p) ? p : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function ProductForm({ token, initial, onSaved }) {
-  const [form, setForm] = useState(initial || { active: true, quantity: 0, sizes: [], colors: [], gallery: [] });
+  const [form, setForm] = useState(initial || { active: true, quantity: 0 });
+  const [sizes, setSizes] = useState(initial?.sizes ? String(initial.sizes) : "[]");
+  const [colors, setColors] = useState(initial?.colors ? String(initial.colors) : "[]");
   const fileRef = useRef(null);
 
   function set(k, v) {
@@ -20,14 +32,20 @@ export default function ProductForm({ token, initial, onSaved }) {
     else alert(j?.error || "upload error");
   }
   async function submit() {
-    const payload = { ...form, price: parseInt(form.price || 0) || 0, quantity: parseInt(form.quantity || 0) || 0 };
+    const payload = {
+      ...form,
+      price: Number(form.price) || 0,
+      quantity: Number(form.quantity) || 0,
+      sizes: safeJsonArray(sizes),
+      colors: safeJsonArray(colors),
+    };
     const method = form.id ? "PATCH" : "POST";
     const url = form.id ? withToken(`/api/admin/products/${form.id}`, token) : withToken("/api/admin/products", token);
     const r = await fetch(url, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
     const ct = r.headers.get("content-type") || "";
     const data = ct.includes("application/json") ? await r.json() : { ok: false, error: await r.text() };
-    if (!r.ok || !data.ok) {
-      alert(`Ошибка: ${data.error || r.status}`);
+    if (!data.ok) {
+      alert(`Ошибка: ${data.error}${data.detail ? " — "+data.detail : ""}`);
       return;
     }
     onSaved && onSaved(data);
@@ -72,10 +90,10 @@ export default function ProductForm({ token, initial, onSaved }) {
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="flex flex-col">Размеры (JSON)
-          <input className="border px-2 py-1" value={JSON.stringify(form.sizes || [])} onChange={(e) => set("sizes", JSON.parse(e.target.value || "[]"))} />
+          <input className="border px-2 py-1" value={sizes} onChange={(e) => setSizes(e.target.value)} />
         </label>
         <label className="flex flex-col">Цвета (JSON)
-          <input className="border px-2 py-1" value={JSON.stringify(form.colors || [])} onChange={(e) => set("colors", JSON.parse(e.target.value || "[]"))} />
+          <input className="border px-2 py-1" value={colors} onChange={(e) => setColors(e.target.value)} />
         </label>
       </div>
 
