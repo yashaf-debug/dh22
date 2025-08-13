@@ -20,13 +20,17 @@ export default function ProductForm({ token, initial, onSaved }) {
     else alert(j?.error || "upload error");
   }
   async function submit() {
-    const body = { ...form, price: parseInt(form.price || 0) || 0, quantity: parseInt(form.quantity || 0) || 0 };
+    const payload = { ...form, price: parseInt(form.price || 0) || 0, quantity: parseInt(form.quantity || 0) || 0 };
     const method = form.id ? "PATCH" : "POST";
     const url = form.id ? withToken(`/api/admin/products/${form.id}`, token) : withToken("/api/admin/products", token);
-    const r = await fetch(url, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    const j = await r.json();
-    if (j?.ok) onSaved && onSaved(j);
-    else alert(j?.error || "save error");
+    const r = await fetch(url, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+    const ct = r.headers.get("content-type") || "";
+    const data = ct.includes("application/json") ? await r.json() : { ok: false, error: await r.text() };
+    if (!r.ok || !data.ok) {
+      alert(`Ошибка: ${data.error || r.status}`);
+      return;
+    }
+    onSaved && onSaved(data);
   }
 
   return (
