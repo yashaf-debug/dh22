@@ -1,83 +1,104 @@
 export const runtime = "edge";
 
 import { NextRequest, NextResponse } from "next/server";
-import { all, first, run } from "@/app/lib/db";
+import { first, run } from "@/app/lib/db";
 
-function okToken(url: URL) {
-  return (url.searchParams.get("token") || "") === (process.env.ADMIN_TOKEN || "");
+function ok(data: any = {}) {
+  return NextResponse.json({ ok: true, ...data }, { status: 200 });
+}
+function fail(error: string, detail?: any, status = 200) {
+  return NextResponse.json({ ok: false, error, detail }, { status });
 }
 
-async function loadOne(idOrSlug: string) {
-  const isNum = /^\d+$/.test(idOrSlug);
-  const row: any = isNum
-    ? await first("SELECT * FROM products WHERE id=?", idOrSlug)
-    : await first("SELECT * FROM products WHERE slug=?", idOrSlug);
-  if (row) row.main_image = row.main_image || row.image_url || "";
-  return row;
+function parseArr(x: any) {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  try { return JSON.parse(String(x)); } catch { return []; }
 }
+function int(v: any, d = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.trunc(n) : d;
+}
+function bool(v: any) {
+  if (typeof v === "boolean") return v;
+  return v === "1" || v === 1 || String(v).toLowerCase() === "true";
+}
+const normSlug = (s: string) =>
+  (s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0400-\u04FF-]+/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const url = new URL(req.url);
-  if (!okToken(url)) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
-  const row = await loadOne(params.id);
-  if (!row) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
-  return NextResponse.json({ ok: true, item: row });
+  try {
+    const token = new URL(req.url).searchParams.get("token") || "";
+    if (token !== process.env.ADMIN_TOKEN) return fail("unauthorized");
+
+    const row = await first(
+      `SELECT id, slug, name, price, quantity, active, category, description,
+              COALESCE(main_image, image_url) AS main_image,
+              sizes, colors, updated_at
+       FROM products WHERE id=? OR slug=?`,
+      params.id, params.id
+    );
+    if (!row) return fail("not_found", null, 404);
+    return ok({ item: row });
+  } catch (e: any) {
+    return fail("get_product_failed", String(e));
+  }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const url = new URL(req.url);
-  if (!okToken(url)) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  try {
+    const token = new URL(req.url).searchParams.get("token") || "";
+    if (token !== process.env.ADMIN_TOKEN) return fail("unauthorized");
 
-  const b = await req.json();
-  const row = await loadOne(params.id);
-  if (!row) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+    const body = await req.json();
 
-  const fields: string[] = [];
-  const vals: any[] = [];
+    const name       = (body.name || "").toString().trim();
+    const slug       = normSlug(body.slug || name);
+    const price      = int(body.price, 0);
+    const quantity   = int(body.quantity, 0);
+    const active     = bool(body.active) ? 1 : 0;
+    const category   = (body.category || "").toString().trim();
+    const description= (body.description || "").toString();
+    const sizes      = JSON.stringify(parseArr(body.sizes));
+    const colors     = JSON.stringify(parseArr(body.colors));
+    const main_image = (body.main_image || body.image_url || "").toString().trim();
+    const updated_at = new Date().toISOString();
 
-  function set(name: string, v: any) {
-    fields.push(`${name}=?`);
-    vals.push(v);
+    await run(
+      `UPDATE products
+         SET slug=?,
+             name=?, price=?, quantity=?, active=?,
+             category=?, description=?,
+             sizes=?, colors=?,
+             main_image=?, updated_at=?
+       WHERE id=?`,
+      slug, name, price, quantity, active,
+      category, description,
+      sizes, colors,
+      main_image, updated_at,
+      params.id
+    );
+
+    const row = await first(`SELECT * FROM products WHERE id=?`, params.id);
+    return ok({ item: row });
+  } catch (e: any) {
+    return fail("update_product_failed", String(e));
   }
-
-  if (typeof b.slug === "string" && b.slug.trim() && b.slug.trim() !== row.slug) {
-    const exists = await first("SELECT id FROM products WHERE slug=? AND id<>?", b.slug.trim(), row.id);
-    if (exists) return NextResponse.json({ ok: false, error: "slug_exists" }, { status: 409 });
-    set("slug", b.slug.trim());
-  }
-  if (typeof b.name === "string") set("name", b.name.trim());
-  if (b.price != null) set("price", Math.max(0, parseInt(b.price)));
-  if (typeof b.category === "string") set("category", b.category.trim());
-  if (b.active != null) set("active", b.active ? 1 : 0);
-  if (b.quantity != null) set("quantity", Math.max(0, parseInt(b.quantity)));
-  if (typeof b.description === "string") set("description", b.description);
-  if (typeof b.main_image === "string" || typeof b.image_url === "string") {
-    let m = (b.main_image || b.image_url || "").trim();
-    m = m && m !== "/i" ? m : null;
-    set("main_image", m);
-    fields.push("image_url=COALESCE(?, image_url)");
-    vals.push(m);
-  }
-  if (b.sizes) set("sizes", JSON.stringify(b.sizes));
-  if (b.colors) set("colors", JSON.stringify(b.colors));
-  if (b.gallery) set("gallery", JSON.stringify(b.gallery));
-
-  set("updated_at", new Date().toISOString());
-
-  if (fields.length) {
-    await run(`UPDATE products SET ${fields.join(", ")} WHERE id=?`, ...vals, row.id);
-  }
-  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const url = new URL(req.url);
-  if (!okToken(url)) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  try {
+    const token = new URL(req.url).searchParams.get("token") || "";
+    if (token !== process.env.ADMIN_TOKEN) return fail("unauthorized");
 
-  const row = await loadOne(params.id);
-  if (!row) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
-
-  await run("UPDATE products SET active=0, quantity=0, updated_at=? WHERE id=?", new Date().toISOString(), row.id);
-  return NextResponse.json({ ok: true });
+    await run(`DELETE FROM products WHERE id=?`, params.id);
+    return ok();
+  } catch (e: any) {
+    return fail("delete_product_failed", String(e));
+  }
 }
 

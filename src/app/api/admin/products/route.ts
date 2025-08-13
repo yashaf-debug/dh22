@@ -3,84 +3,95 @@ export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 import { all, first, run } from "@/app/lib/db";
 
-function okToken(url: URL) {
-  return (url.searchParams.get("token") || "") === (process.env.ADMIN_TOKEN || "");
+function ok(data: any = {}) {
+  return NextResponse.json({ ok: true, ...data }, { status: 200 });
+}
+function fail(error: string, detail?: any, status = 200) {
+  return NextResponse.json({ ok: false, error, detail }, { status });
 }
 
+function parseArr(x: any) {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  try {
+    const s = String(x).trim();
+    if (!s) return [];
+    return JSON.parse(s);
+  } catch {
+    return [];
+  }
+}
+
+function int(v: any, d = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.trunc(n) : d;
+}
+function bool(v: any) {
+  if (typeof v === "boolean") return v;
+  return v === "1" || v === 1 || String(v).toLowerCase() === "true";
+}
+const normSlug = (s: string) =>
+  (s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0400-\u04FF-]+/gi, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  if (!okToken(url)) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  try {
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get("token") || "";
+    if (token !== process.env.ADMIN_TOKEN) return fail("unauthorized");
 
-  const q = (url.searchParams.get("q") || "").trim();
-  const active = url.searchParams.get("active");
-  const limit = Math.min(parseInt(url.searchParams.get("limit") || "50"), 100);
+    const q = (searchParams.get("q") || "").trim();
+    const rows = await all(
+      `
+      SELECT id, slug, name, price, quantity, active,
+             COALESCE(main_image, image_url) AS image_url,
+             category, updated_at
+      FROM products
+      WHERE (? = '' OR name LIKE '%'||?||'%' OR slug LIKE '%'||?||'%')
+      ORDER BY id DESC
+      LIMIT 200
+      `,
+      q, q, q
+    );
 
-  const where: string[] = [];
-  const params: any[] = [];
-
-  if (q) {
-    where.push("(name LIKE ? OR slug LIKE ? OR description LIKE ?)");
-    params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+    return ok({ items: rows });
+  } catch (e: any) {
+    return fail("get_products_failed", String(e));
   }
-  if (active === "1" || active === "0") {
-    where.push("active=?");
-    params.push(parseInt(active));
-  }
-
-  const rows = await all(
-    `SELECT id,slug,name,price,category,active,quantity,
-            COALESCE(main_image,image_url) AS main_image
-       FROM products
-       ${where.length ? "WHERE " + where.join(" AND ") : ""}
-       ORDER BY id DESC
-       LIMIT ?`,
-    ...params,
-    limit
-  );
-  return NextResponse.json({ ok: true, items: rows });
 }
 
 export async function POST(req: NextRequest) {
-  const url = new URL(req.url);
-  if (!okToken(url)) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  try {
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get("token") || "";
+    if (token !== process.env.ADMIN_TOKEN) return fail("unauthorized");
 
-  const b = await req.json();
-  const name = (b.name || "").trim();
-  const slug = (b.slug || "").trim();
-  if (!name || !slug) return NextResponse.json({ ok: false, error: "name_slug_required" }, { status: 400 });
+    const body = await req.json();
+    const name       = (body.name || "").toString().trim();
+    const price      = int(body.price, 0);
+    const quantity   = int(body.quantity, 0);
+    const active     = bool(body.active);
+    const category   = (body.category || "").toString().trim();
+    const description= (body.description || "").toString();
+    const sizes      = JSON.stringify(parseArr(body.sizes));
+    const colors     = JSON.stringify(parseArr(body.colors));
+    const main_image = (body.main_image || body.image_url || "").toString().trim();
+    const slug       = normSlug(body.slug || name) || `item-${Date.now()}`;
+    const updated_at = new Date().toISOString();
 
-  const exists = await first("SELECT id FROM products WHERE slug=?", slug);
-  if (exists) return NextResponse.json({ ok: false, error: "slug_exists" }, { status: 409 });
+    await run(
+      `INSERT INTO products (slug, name, price, quantity, active, category, description, sizes, colors, main_image, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      slug, name, price, quantity, active ? 1 : 0, category, description, sizes, colors, main_image, updated_at
+    );
 
-  const price = Math.max(0, parseInt(b.price || 0));
-  const active = b.active ? 1 : 0;
-  const quantity = Math.max(0, parseInt(b.quantity || 0));
-  const category = (b.category || "").trim();
-  const description = b.description || "";
-  let main_image = (b.main_image || b.image_url || "").trim();
-  if (!main_image || main_image === "/i") main_image = null;
-  const sizes = JSON.stringify(b.sizes || []);
-  const colors = JSON.stringify(b.colors || []);
-  const gallery = JSON.stringify(b.gallery || []);
-
-  await run(
-    `INSERT INTO products (slug,name,price,category,active,quantity,description,main_image,image_url,sizes,colors,gallery,updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
-    slug,
-    name,
-    price,
-    category,
-    active,
-    quantity,
-    description,
-    main_image,
-    main_image,
-    sizes,
-    colors,
-    gallery
-  );
-
-  const p: any = await first("SELECT id FROM products WHERE slug=?", slug);
-  return NextResponse.json({ ok: true, id: p?.id });
+    const row = await first(`SELECT * FROM products WHERE slug=?`, slug);
+    return ok({ item: row });
+  } catch (e: any) {
+    return fail("create_product_failed", String(e));
+  }
 }
 
