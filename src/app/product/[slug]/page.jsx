@@ -5,7 +5,7 @@ export const runtime = "edge";
 
 export default async function ProductPage({ params }) {
   const p = await first(
-    "SELECT slug,name,price,description,quantity,COALESCE(NULLIF(main_image,'/i'),image_url) AS main_image,sizes,colors,gallery FROM products WHERE slug=? AND active=1 AND quantity>0",
+    "SELECT slug,name,price,description,quantity,COALESCE(main_image,image_url) AS main_image,sizes,colors,gallery FROM products WHERE slug=? AND active=1 AND quantity>0",
     params.slug
   );
   if (!p) return <div className="container mx-auto px-4 py-10">Товар не найден</div>;

@@ -12,7 +12,7 @@ async function loadOne(idOrSlug: string) {
   const row: any = isNum
     ? await first("SELECT * FROM products WHERE id=?", idOrSlug)
     : await first("SELECT * FROM products WHERE slug=?", idOrSlug);
-  if (row) row.main_image = (row.main_image && row.main_image !== "/i") ? row.main_image : (row.image_url || "");
+  if (row) row.main_image = row.main_image || row.image_url || "";
   return row;
 }
 
@@ -51,9 +51,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (b.active != null) set("active", b.active ? 1 : 0);
   if (b.quantity != null) set("quantity", Math.max(0, parseInt(b.quantity)));
   if (typeof b.description === "string") set("description", b.description);
-  if (typeof b.main_image === "string") {
-    let m = b.main_image.trim();
-    set("main_image", m && m !== "/i" ? m : null);
+  if (typeof b.main_image === "string" || typeof b.image_url === "string") {
+    let m = (b.main_image || b.image_url || "").trim();
+    m = m && m !== "/i" ? m : null;
+    set("main_image", m);
+    fields.push("image_url=COALESCE(?, image_url)");
+    vals.push(m);
   }
   if (b.sizes) set("sizes", JSON.stringify(b.sizes));
   if (b.colors) set("colors", JSON.stringify(b.colors));
