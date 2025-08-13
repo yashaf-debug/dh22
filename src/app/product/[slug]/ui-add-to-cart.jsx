@@ -4,9 +4,37 @@ import { useState } from 'react';
 export default function AddToCart({ product }) {
   const [size, setSize] = useState((product.sizes && product.sizes[0]) || '');
   const [color, setColor] = useState((product.colors && product.colors[0]) || '');
-  const [qty, setQty] = useState(1);
+  const maxQty = Math.max(1, Number(product?.quantity ?? 99));
+  const [qtyInput, setQtyInput] = useState("1");
+
+  function onQtyChange(e) {
+    const digits = e.target.value.replace(/[^\d]/g, "");
+    setQtyInput(digits);
+  }
+
+  function normalizeQty(v) {
+    let n = parseInt(v, 10);
+    if (!Number.isFinite(n) || n < 1) n = 1;
+    if (n > maxQty) n = maxQty;
+    return String(n);
+  }
+
+  function onQtyBlur() {
+    setQtyInput(prev => normalizeQty(prev));
+  }
+
+  function inc() {
+    setQtyInput(p => normalizeQty(String((parseInt(p || "1", 10) || 1) + 1)));
+  }
+
+  function dec() {
+    setQtyInput(p => normalizeQty(String((parseInt(p || "1", 10) || 1) - 1)));
+  }
 
   function add() {
+    const normalized = normalizeQty(qtyInput);
+    setQtyInput(normalized);
+    const qty = parseInt(normalized, 10);
     let cart = [];
     try {
       const raw = localStorage.getItem('dh22_cart');
@@ -52,7 +80,19 @@ export default function AddToCart({ product }) {
       )}
       <div className="flex gap-2 items-center">
         <span className="text-sm w-20">Кол-во</span>
-        <input type="number" min={1} className="border px-2 py-1 w-24" value={qty} onChange={e => setQty(parseInt(e.target.value, 10) || 1)} />
+        <button type="button" onClick={dec} className="border px-2 py-1">–</button>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="\d*"
+          className="border px-2 py-1 w-24"
+          value={qtyInput}
+          onChange={onQtyChange}
+          onBlur={onQtyBlur}
+          min={1}
+          max={product.quantity}
+        />
+        <button type="button" onClick={inc} className="border px-2 py-1">+</button>
       </div>
       <button className="btn btn-primary" onClick={add} disabled={product.quantity <= 0}>
         Добавить в корзину
