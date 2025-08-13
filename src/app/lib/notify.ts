@@ -5,11 +5,13 @@ import { headers } from "next/headers";
 /** Базовый URL (для ссылок в письмах/ТГ) */
 export function publicBaseUrl() {
   const h = headers();
-  return (
-    process.env.PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    `${h.get("x-forwarded-proto") || "https"}://${h.get("host")}`
-  );
+  const envUrl = process.env.PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
+  if (envUrl) return envUrl;
+  const host = h.get("host");
+  if (!host) {
+    throw new Error("publicBaseUrl: host header missing");
+  }
+  return `${h.get("x-forwarded-proto") || "https"}://${host}`;
 }
 
 export function rub(kop: number | string) {
@@ -73,15 +75,16 @@ export function orderEmailHtml(params: {
   const { title, preheader = "", order, items } = params;
   const total = rub(order?.amount_total || 0);
   const delivery = rub(order?.delivery_price || 0);
+  const esc = (s: any) => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]!));
   const rows = items.map(i => `
     <tr>
-      <td style="padding:8px 0">${i.name} × ${i.qty}</td>
+      <td style="padding:8px 0">${esc(i.name)} × ${i.qty}</td>
       <td style="padding:8px 0; text-align:right">${rub(i.price)}</td>
     </tr>
   `).join("");
 
   const deliveryBlock = `
-    <p><b>Доставка:</b> ${order?.delivery_method || "—"} ${order?.delivery_pvz_name ? "• " + order.delivery_pvz_name : ""} ${order?.delivery_address ? "• " + order.delivery_address : ""} ${order?.delivery_eta ? "• " + order.delivery_eta : ""}</p>
+    <p><b>Доставка:</b> ${esc(order?.delivery_method || "—")} ${order?.delivery_pvz_name ? "• " + esc(order.delivery_pvz_name) : ""} ${order?.delivery_address ? "• " + esc(order.delivery_address) : ""} ${order?.delivery_eta ? "• " + esc(order.delivery_eta) : ""}</p>
     <p><b>Стоимость доставки:</b> ${delivery}</p>
   `;
 
@@ -100,9 +103,9 @@ export function orderEmailHtml(params: {
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="muted" style="font-size:12px">${preheader}</div>
-      <h2 style="margin:8px 0 0">${title}</h2>
-      <div class="muted" style="margin-top:6px">Номер заказа: <b>${order?.number}</b></div>
+      <div class="muted" style="font-size:12px">${esc(preheader)}</div>
+      <h2 style="margin:8px 0 0">${esc(title)}</h2>
+      <div class="muted" style="margin-top:6px">Номер заказа: <b>${esc(order?.number)}</b></div>
 
       <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
 
@@ -114,9 +117,9 @@ export function orderEmailHtml(params: {
 
       <p class="total">Итого к оплате: ${total}</p>
 
-      <p class="muted">Покупатель: ${order?.customer_name || "—"} • ${order?.customer_phone || "—"} • ${order?.customer_email || "—"}</p>
+      <p class="muted">Покупатель: ${esc(order?.customer_name || "—")} • ${esc(order?.customer_phone || "—")} • ${esc(order?.customer_email || "—")}</p>
     </div>
-    <p class="muted" style="text-align:center;margin-top:12px">${process.env.SITE_TITLE || "DH22"} • ${publicBaseUrl()}</p>
+    <p class="muted" style="text-align:center;margin-top:12px">${esc(process.env.SITE_TITLE || "DH22")} • ${publicBaseUrl()}</p>
   </div>
 </body></html>`;
 }

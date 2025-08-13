@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProductForm from "../_Form";
-import { withToken } from "../../_lib";
+import { authHeaders } from "../../_lib";
 
 export default function EditProductPage({ params, searchParams }) {
   const token = searchParams?.t || "";
@@ -12,7 +12,7 @@ export default function EditProductPage({ params, searchParams }) {
 
   useEffect(() => {
     (async () => {
-      const r = await fetch(withToken(`/api/admin/products/${params.id}`, token), { cache: "no-store" });
+      const r = await fetch(`/api/admin/products/${params.id}`, { cache: "no-store", headers: authHeaders(token) });
       const j = await r.json();
       setItem(j?.item || null);
     })();

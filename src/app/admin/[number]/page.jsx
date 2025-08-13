@@ -11,8 +11,7 @@ async function loadOrder(number, token) {
     process.env.NEXT_PUBLIC_BASE_URL ||
     `${h.get("x-forwarded-proto") || "https"}://${h.get("host")}`;
   const url = new URL(`${base}/api/admin/order/${encodeURIComponent(number)}`);
-  url.searchParams.set("token", token);
-  const r = await fetch(url.toString(), { cache:"no-store" });
+  const r = await fetch(url.toString(), { cache:"no-store", headers: { Authorization: `Bearer ${token}` } });
   if (!r.ok) return null;
   return r.json();
 }

@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { first, all } from "@/app/lib/db";
 
 export async function GET(req: NextRequest, { params }: { params: { number: string } }) {
-  const url = new URL(req.url);
-  const token = url.searchParams.get("token") || "";
+  const token = req.headers.get("authorization")?.split(" ")[1] || "";
   if (token !== (process.env.ADMIN_TOKEN || "")) {
     return NextResponse.json({ ok:false, error:"forbidden" }, { status: 403 });
   }

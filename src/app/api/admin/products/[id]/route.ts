@@ -3,10 +3,7 @@ export const runtime = "edge";
 import { NextRequest, NextResponse } from "next/server";
 import { first, run } from "@/app/lib/db";
 
-const getToken = (url: string) => {
-  const u = new URL(url);
-  return u.searchParams.get("token") || u.searchParams.get("t") || "";
-};
+const getToken = (req: NextRequest) => req.headers.get("authorization")?.split(" ")[1] || "";
 const ok = (x: any = {}) => NextResponse.json({ ok: true, ...x }, { status: 200 });
 const fail = (error: string, detail?: any) =>
   NextResponse.json({ ok: false, error, detail }, { status: 200 });
@@ -28,7 +25,7 @@ const slugify = (s: string) =>
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (getToken(req.url) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
+    if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
     const item = await first(
       `SELECT id, slug, name, price, quantity, active, category, description,
               COALESCE(main_image, image_url) AS main_image,
@@ -46,7 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (getToken(req.url) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
+    if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
 
     const b = await req.json();
     const name        = String(b.name || "").trim();
@@ -79,7 +76,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (getToken(req.url) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
+    if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
     await run("DELETE FROM products WHERE id=?", params.id);
     return ok();
   } catch (e: any) {

@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
-import { withToken } from "../_lib";
+import { authHeaders } from "../_lib";
 
 function safeJsonArray(v) {
   try {
@@ -26,7 +26,7 @@ export default function ProductForm({ token, initial, onSaved }) {
     if (!f) return;
     const fd = new FormData();
     fd.append("file", f);
-    const r = await fetch(withToken("/api/admin/uploads", token), { method: "POST", body: fd });
+    const r = await fetch("/api/admin/uploads", { method: "POST", body: fd, headers: authHeaders(token) });
     const j = await r.json();
     if (j?.ok) set("main_image", j.url);
     else alert(j?.error || "upload error");
@@ -40,8 +40,8 @@ export default function ProductForm({ token, initial, onSaved }) {
       colors: safeJsonArray(colors),
     };
     const method = form.id ? "PATCH" : "POST";
-    const url = form.id ? withToken(`/api/admin/products/${form.id}`, token) : withToken("/api/admin/products", token);
-    const r = await fetch(url, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+    const url = form.id ? `/api/admin/products/${form.id}` : "/api/admin/products";
+    const r = await fetch(url, { method, headers: { "content-type": "application/json", ...authHeaders(token) }, body: JSON.stringify(payload) });
     const ct = r.headers.get("content-type") || "";
     const data = ct.includes("application/json") ? await r.json() : { ok: false, error: await r.text() };
     if (!data.ok) {

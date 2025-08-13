@@ -37,3 +37,16 @@ CREATE TABLE order_items (
 
 CREATE INDEX idx_orders_number ON orders(number);
 CREATE INDEX idx_order_items_order ON order_items(order_id);
+CREATE TABLE IF NOT EXISTS webhook_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  path TEXT,
+  headers TEXT,
+  body TEXT
+);
+
+CREATE TABLE IF NOT EXISTS kv (
+  k TEXT PRIMARY KEY,
+  v TEXT,
+  expires_at INTEGER
+);

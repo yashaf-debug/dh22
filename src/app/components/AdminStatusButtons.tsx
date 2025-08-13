@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { authHeaders } from "@/app/admin/_lib";
 
 const BUTTONS: Array<{ key:string; label:string; cls?:string }> = [
   { key:"paid",       label:"Оплачен" },
@@ -23,9 +24,9 @@ export default function AdminStatusButtons({ number, token, current }: { number:
     }
     setBusy(s);
     try {
-      const r = await fetch(`/api/admin/order/${encodeURIComponent(number)}/status?token=${encodeURIComponent(token)}`, {
+      const r = await fetch(`/api/admin/order/${encodeURIComponent(number)}/status`, {
         method: "PATCH",
-        headers: { "content-type":"application/json" },
+        headers: { "content-type":"application/json", ...authHeaders(token) },
         body: JSON.stringify(body)
       });
       const j = await r.json();

@@ -35,3 +35,16 @@ CREATE TABLE IF NOT EXISTS cities (
 );
 CREATE INDEX IF NOT EXISTS idx_cities_search ON cities(search);
 
+CREATE TABLE IF NOT EXISTS webhook_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  path TEXT,
+  headers TEXT,
+  body TEXT
+);
+
+CREATE TABLE IF NOT EXISTS kv (
+  k TEXT PRIMARY KEY,
+  v TEXT,
+  expires_at INTEGER
+);
