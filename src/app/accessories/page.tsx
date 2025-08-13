@@ -1,7 +1,23 @@
-import Link from "next/link";
-import { all } from "../lib/db";
-import { rub } from "../lib/money";
-export const runtime = "edge";
+import Link from 'next/link';
+import Image from 'next/image';
+import { all } from '../lib/db';
+import { rub } from '../lib/money';
+
+export const runtime = 'edge';
+export const revalidate = 3600;
+
+export async function generateMetadata() {
+  const url = 'https://dh22.ru/accessories';
+  const title = 'Аксессуары — DH22';
+  const desc = 'Аксессуары DH22';
+  return {
+    title,
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: { type: 'website', url, title, description: desc },
+    twitter: { card: 'summary_large_image', title, description: desc },
+  };
+}
 
 export default async function Accessories() {
   const items = await all(
@@ -19,7 +35,7 @@ export default async function Accessories() {
               : "/placeholder.png";
           return (
             <Link key={p.slug} href={`/product/${p.slug}`} className="card">
-              <img src={img} alt={p.name} className="w-full aspect-[3/4] object-cover border" />
+              <Image src={img} alt={p.name} width={300} height={400} sizes="(max-width:768px) 50vw, 25vw" className="w-full h-auto object-cover border" />
               <div className="text-sm">{p.name}</div>
               <div className="text-sm opacity-80">{rub(p.price)}</div>
             </Link>

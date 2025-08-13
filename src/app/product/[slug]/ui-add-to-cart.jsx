@@ -1,11 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { track } from '@/app/lib/analytics';
 
 export default function AddToCart({ product }) {
   const [size, setSize] = useState((product.sizes && product.sizes[0]) || '');
   const [color, setColor] = useState((product.colors && product.colors[0]) || '');
   const maxQty = Math.max(1, Number(product?.quantity ?? 99));
   const [qtyInput, setQtyInput] = useState("1");
+
+  useEffect(() => {
+    track.view_item({ id: product.slug, name: product.name, price: product.price / 100, category: product.category });
+  }, [product]);
 
   function onQtyChange(e) {
     const digits = e.target.value.replace(/[^\d]/g, "");
@@ -57,6 +62,7 @@ export default function AddToCart({ product }) {
     } catch (err) {
       console.error('Failed to update cart in storage', err);
     }
+    track.add_to_cart({ id: product.slug, name: product.name, price: product.price / 100, qty });
     alert('Товар добавлен в корзину');
   }
 
