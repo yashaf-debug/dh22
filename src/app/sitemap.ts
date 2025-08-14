@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { all } from '@/app/lib/db';
-
+export const runtime = 'edge'
 const base =
   process.env.PUBLIC_BASE_URL ||
   process.env.NEXT_PUBLIC_BASE_URL ||
