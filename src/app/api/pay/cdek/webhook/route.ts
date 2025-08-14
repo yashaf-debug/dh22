@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { logEvent } from '@/lib/logs';
 import { NextRequest } from 'next/server';
-
+export const runtime = 'edge';
 const SIGNATURE_HEADERS = ['x-signature','x-content-signature','signature'];
 
 async function hmac(body: string, secret: string) {
