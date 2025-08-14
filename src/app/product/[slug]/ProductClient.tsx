@@ -1,8 +1,8 @@
 // src/app/product/[slug]/ProductClient.tsx
 'use client';
 
-import { useState, useRef } from 'react';
-import { imgProps } from '@/lib/images';
+import { useState } from 'react';
+import { toR2Url } from '@/lib/r2';
 import { rub } from '@/app/lib/money';
 
 type Product = {
@@ -17,12 +17,11 @@ type Product = {
 };
 
 export default function ProductClient({ product }: { product: Product }) {
-  const qtyRef = useRef<HTMLInputElement>(null);
+  const [qty, setQty] = useState(1);
   const [color, setColor] = useState<string | undefined>(product.colors?.[0]);
   const [size, setSize] = useState<string | undefined>(product.sizes?.[0]);
 
   const addToCart = () => {
-    const qty = Math.max(1, parseInt(qtyRef.current?.value || '1', 10));
     const item = {
       slug: product.slug,
       name: product.name,
@@ -50,10 +49,18 @@ export default function ProductClient({ product }: { product: Product }) {
     location.href = '/cart';
   };
 
+  const src = toR2Url(product.main_image) || '/images/placeholder.png';
+
   return (
-    <div className="grid md:grid-cols-[1fr_1fr] gap-8">
+    <div key={product.id} className="grid md:grid-cols-[1fr_1fr] gap-8">
       <div>
-        <img {...imgProps(product.main_image, `Фото «${product.name}»`)} className="product-img" />
+        <img
+          src={src}
+          alt={`Фото «${product.name}»`}
+          loading="lazy"
+          decoding="async"
+          className="product-img"
+        />
       </div>
 
       <div>
@@ -82,12 +89,13 @@ export default function ProductClient({ product }: { product: Product }) {
         <div className="mt-4">
           <div className="text-sm opacity-70 mb-1">Количество</div>
           <input
-            type="number"
-            min={1}
             inputMode="numeric"
+            pattern="[0-9]*"
             className="border px-3 py-2 w-24"
-            defaultValue={1}
-            ref={qtyRef}
+            value={qty}
+            onChange={(e) =>
+              setQty(Math.max(1, Number(e.target.value.replace(/\D/g, '')) || 1))
+            }
           />
         </div>
 

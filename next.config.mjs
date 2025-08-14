@@ -5,6 +5,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'dh22.ru', pathname: '/i/**' },
       { protocol: 'https', hostname: 'dh22.pages.dev', pathname: '/i/**' },
+      { protocol: 'https', hostname: '**.r2.dev' },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },

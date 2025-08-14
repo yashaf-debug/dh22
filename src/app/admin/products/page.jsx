@@ -3,8 +3,8 @@ export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authHeaders } from "../_lib";
-import { imgProps } from "@/lib/images";
-import { createProduct } from './actions';
+import { toR2Url } from '@/lib/r2';
+import { createNewProduct } from './actions';
 
 export default function AdminProductsList({ searchParams }) {
   const t = searchParams?.t || "";
@@ -27,7 +27,7 @@ export default function AdminProductsList({ searchParams }) {
       <div className="flex gap-2">
         <input className="border px-2 py-1" placeholder="поиск…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="border px-3" onClick={load}>Искать</button>
-        <form action={createProduct}>
+        <form action={createNewProduct}>
           <button className="btn btn-sm" type="submit">+ Новый</button>
         </form>
       </div>
@@ -36,7 +36,18 @@ export default function AdminProductsList({ searchParams }) {
             return (
               <div key={p.id} className="py-3 flex items-center gap-4">
                 <div className="w-12 h-12">
-                  <img {...imgProps(p.main_image || p.image_url, p.name)} className="product-thumb" />
+                  {(() => {
+                    const src = toR2Url(p.main_image || p.image_url) || '/images/placeholder.png';
+                    return (
+                      <img
+                        src={src}
+                        alt={p.name}
+                        loading="lazy"
+                        decoding="async"
+                        className="product-thumb"
+                      />
+                    );
+                  })()}
                 </div>
                 <div className="flex-1">
                   <div className="font-medium">{p.name}</div>
