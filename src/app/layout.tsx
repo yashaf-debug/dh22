@@ -54,7 +54,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </footer>
 
         {/* Yandex.Metrika 103743080 */}
-        <Script id="ym-init" strategy="afterInteractive">{`
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           (function(m,e,t,r,i,k,a){
             m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
             m[i].l=1*new Date();
@@ -63,7 +65,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=103743080', 'ym');
           window.dataLayer = window.dataLayer || [];
           ym(103743080, 'init', { ssr:true, webvisor:true, clickmap:true, ecommerce:'dataLayer', accurateTrackBounce:true, trackLinks:true });
-        `}</Script>
+        `,
+          }}
+        />
         <noscript>
           <div><img src="https://mc.yandex.ru/watch/103743080" style={{position:'absolute',left:'-9999px'}} alt="" /></div>
         </noscript>
