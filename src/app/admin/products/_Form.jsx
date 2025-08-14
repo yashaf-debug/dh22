@@ -92,7 +92,13 @@ export default function ProductForm({ token, initial, onSaved }) {
           }} />
         </div>
       </div>
-      {preview && <img src={resolveImageUrl(preview, 'width=600,quality=82')} alt="preview" className="h-24 border" />}
+      {preview ? (
+        <img
+          src={resolveImageUrl(preview, 'width=600,quality=82')}
+          alt="preview"
+          className="h-24 border mt-2"
+        />
+      ) : null}
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="flex flex-col">Размеры (JSON)

@@ -1,6 +1,5 @@
 import ProductCard from "@/app/components/ProductCard";
 import { all } from "../lib/db";
-import { rub } from "../lib/money";
 export const runtime = 'edge';
 
 export default async function NewArrivals() {
@@ -12,7 +11,7 @@ export default async function NewArrivals() {
       <h1 className="text-2xl mb-6">Новинки</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {items.map((p) => (
-          <ProductCard key={p.slug} product={{ ...p, price_fmt: rub(p.price) }} />
+          <ProductCard key={p.slug} product={p} />
         ))}
       </div>
     </div>

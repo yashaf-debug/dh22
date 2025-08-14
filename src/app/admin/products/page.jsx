@@ -26,7 +26,7 @@ export default function AdminProductsList({ searchParams }) {
       <div className="flex gap-2">
         <input className="border px-2 py-1" placeholder="поиск…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="border px-3" onClick={load}>Искать</button>
-        <Link className="border px-3" href={`/admin/products/new?t=${encodeURIComponent(t)}`}>+ Новый</Link>
+        <Link href="/admin/products/new" className="btn btn-sm">+ Новый</Link>
       </div>
       <div className="divide-y">
         {items.map((p) => {

@@ -1,35 +1,22 @@
-import Image from 'next/image';
 import Link from 'next/link';
-import { productImageSrc } from '@/app/lib/products';
+import { resolveImageUrl, rubKopecks } from '@/lib/images';
 
 export default function ProductCard({ product }: { product: any }) {
-  const src = productImageSrc(product);
-  const isSvg = src.endsWith('.svg');
+  const raw = product.image_url || (product.image_key ? `/i/${product.image_key}` : undefined) || product.main_image;
+  const src = resolveImageUrl(raw);
 
   return (
     <Link href={`/product/${product.slug}`} className="card">
-      {isSvg ? (
-        <img
-          src={src}
-          alt={product.name}
-          width={300}
-          height={400}
-          loading="lazy"
-          className="w-full h-auto object-cover border"
-        />
-      ) : (
-        <Image
-          src={src}
-          alt={product.name}
-          width={300}
-          height={400}
-          sizes="(max-width:768px) 50vw, 25vw"
-          className="w-full h-auto object-cover border"
-          priority={false}
-        />
-      )}
+      <img
+        src={src}
+        alt={product.name}
+        width={300}
+        height={400}
+        loading="lazy"
+        className="w-full h-auto object-cover border"
+      />
       <div className="text-sm">{product.name}</div>
-      <div className="text-sm opacity-80">{product.price_fmt}</div>
+      <div className="text-sm opacity-80">{rubKopecks(product.price)}</div>
     </Link>
   );
 }
