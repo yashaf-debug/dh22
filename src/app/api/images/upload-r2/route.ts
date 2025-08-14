@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     if (!file) return NextResponse.json({ error:'file required' }, { status:400 });
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const key = `${Date.now()}-${slug(file.name || 'upload')}.${ext}`;
-    await env.DH22_IMAGES.put(key, file.stream() as any, {
+    await env.dh22-images.put(key, file.stream() as any, {
       httpMetadata: { contentType: file.type || 'image/jpeg' },
     });
     return NextResponse.json({ key, url: `/r2/${key}` }); // храним как /r2/<key>
