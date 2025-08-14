@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { logEvent } from '@/lib/logs';
-
+export const runtime = 'edge';
 export async function GET(req: NextRequest) {
   const key = req.nextUrl.searchParams.get('key');
   if (!key || key !== process.env.ADMIN_BACKUP_KEY) {
