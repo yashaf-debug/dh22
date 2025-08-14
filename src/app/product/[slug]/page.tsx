@@ -40,28 +40,30 @@ export default async function ProductPage({ params }: { params: { slug: string }
             {features.length ? <div>{features.join(' / ')}</div> : null}
           </div>
 
-          <form method="post" action="/api/cart/add" className="mt-6 space-y-3">
+          <form method="post" action="/api/cart/add" className="space-y-3">
             <input type="hidden" name="product_id" value={p.id} />
-            {!!colors.length && (
-              <div>
-                <label className="block text-sm mb-1">Цвет</label>
-                <select name="color" className="border px-3 py-2 w-full">
-                  {colors.map(c => <option key={c} value={c}>{c}</option>)}
+
+            {!!colors.length ? (
+              <>
+                <label className="block text-sm">Цвет</label>
+                <select name="color" className="select w-full">
+                  {colors.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
-              </div>
-            )}
-            {!!sizes.length && (
-              <div>
-                <label className="block text-sm mb-1">Размер</label>
-                <select name="size" className="border px-3 py-2 w-full">
-                  {sizes.map(s => <option key={s} value={s}>{s}</option>)}
+              </>
+            ) : null}
+
+            {!!sizes.length ? (
+              <>
+                <label className="block text-sm">Размер</label>
+                <select name="size" className="select w-full">
+                  {sizes.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
-              </div>
-            )}
-            <div>
-              <label className="block text-sm">Количество</label>
-              <QtyInput name="qty" defaultValue={1} />
-            </div>
+              </>
+            ) : null}
+
+            <label className="block text-sm">Количество</label>
+            <QtyInput name="qty" defaultValue={1} />
+
             <button type="submit" className="btn btn-primary">В корзину</button>
           </form>
         </div>

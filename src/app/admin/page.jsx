@@ -59,30 +59,36 @@ export default async function AdminList({ searchParams }) {
         <button className="px-4 py-2 border">Искать</button>
       </form>
 
-      <div className="space-y-2">
+        <div className="space-y-2">
         {data?.items?.map((o)=>(
-          <Link
-            key={o.number}
-            href={`/admin/${encodeURIComponent(o.number)}?t=${encodeURIComponent(token)}`}
-            className="block border p-3 hover:bg-gray-50"
-          >
-            <div className="flex justify-between">
-              <div>
-                <div className="font-medium">#{o.number}</div>
-                <div className="text-sm opacity-80">
-                  {o.customer_name} • {o.customer_phone} • {o.customer_email}
+          <div key={o.id} className="border p-3 hover:bg-gray-50">
+            <Link
+              href={`/admin/${encodeURIComponent(o.number)}?t=${encodeURIComponent(token)}`}
+              className="block"
+            >
+              <div className="flex justify-between">
+                <div>
+                  <div className="font-medium">#{o.number}</div>
+                  <div className="text-sm opacity-80">
+                    {o.customer_name} • {o.customer_phone} • {o.customer_email}
+                  </div>
+                </div>
+                <div className="text-sm text-right">
+                  <div>{o.status}{o.payment_method ? ` • ${o.payment_method}` : ""}</div>
+                  <div><Rub v={o.amount_total} /></div>
+                  <div className="opacity-60">{o.created_at}</div>
                 </div>
               </div>
-              <div className="text-sm text-right">
-                <div>{o.status}{o.payment_method ? ` • ${o.payment_method}` : ""}</div>
-                <div><Rub v={o.amount_total} /></div>
-                <div className="opacity-60">{o.created_at}</div>
+              <div className="text-xs opacity-70">
+                Доставка: {o.delivery_method || "—"} • {(Number(o.delivery_price||0)/100).toFixed(2)} ₽
               </div>
-            </div>
-            <div className="text-xs opacity-70">
-              Доставка: {o.delivery_method || "—"} • {(Number(o.delivery_price||0)/100).toFixed(2)} ₽
-            </div>
-          </Link>
+            </Link>
+            <form method="post" action={`/api/admin/orders/${o.id}/delete`} onSubmit={(e) => {
+              if (!confirm('Удалить заказ?')) e.preventDefault();
+            }}>
+              <button type="submit" className="btn btn-danger btn-sm mt-2">Удалить</button>
+            </form>
+          </div>
         ))}
 
         {!data?.items?.length && <div className="opacity-70">Нет заказов</div>}

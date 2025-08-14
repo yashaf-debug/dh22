@@ -1,31 +1,29 @@
-const R2_BASE = (process.env.NEXT_PUBLIC_R2_PUBLIC_BASE || '').replace(/[/]+$/, '');
-const CF_BASE = (process.env.NEXT_PUBLIC_CF_IMAGES_BASE || '').replace(/[/]+$/, '');
+const R2_BASE = (process.env.NEXT_PUBLIC_R2_PUBLIC_BASE || '').replace(/\/+$/, '');
+const CF_BASE = (process.env.NEXT_PUBLIC_CF_IMAGES_BASE || '').replace(/\/+$/, '');
 const DEFAULT_OPTS = 'width=1200,quality=85';
 
-/** Вернёт корректный URL для <img>. Поддерживает:
- * - абсолютные http(s)
- * - локальные /images/*
- * - старые /i/<cf-image-id> (Cloudflare Images)
- * - R2: /r2/<key> или просто <key> из R2
- */
 export function resolveImageUrl(src?: string, opts = DEFAULT_OPTS) {
+  // совсем пусто → плейсхолдер
   if (!src) return '/placeholder.svg';
 
-  if (src.startsWith('http')) return `/cdn-cgi/image/${opts}/${src}`;
+  // абсолютный URL? оборачиваем в /cdn-cgi/image
+  if (/^https?:\/\//i.test(src)) return `/cdn-cgi/image/${opts}/${src}`;
 
+  // локальные иконки, svg и т.п.
   if (src.startsWith('/images/') || src === '/placeholder.svg') return src;
 
+  // старые Cloudflare Images: /i/<id>
   if (src.startsWith('/i/')) {
-    const id = src.replace(/^[/]?i[/]/, '');
-    if (CF_BASE) return `${CF_BASE}/${id}/public`;
-    return '/placeholder.svg';
+    const id = src.replace(/^\/?i\//, '');
+    return CF_BASE ? `${CF_BASE}/${id}/public` : '/placeholder.svg';
   }
 
-  // R2: допустимы "r2/<key>" и "/r2/<key>" и просто "<key>"
-  const key = src.replace(/^[/]?r2[/]/, '');
+  // R2: допускаем '/r2/<key>' или просто '<key>'
+  const key = src.replace(/^\/?r2\//, '');
   if (R2_BASE) return `/cdn-cgi/image/${opts}/${R2_BASE}/${encodeURI(key)}`;
 
-  return src;
+  // бэкап
+  return '/placeholder.svg';
 }
 
 export function rubKopecks(v?: number) {
