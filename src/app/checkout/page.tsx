@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import CityAutocomplete from "@/app/components/CityAutocomplete";
 import CdekMapPicker from "@/app/components/CdekMapPicker";
 import { rub } from "../lib/money";
-import { imgProps } from "@/lib/images";
+import { toR2Url } from '@/lib/r2';
 import { evBeginCheckout, evSelectPVZ, evPaymentMethod } from "../lib/metrics";
 
 type PVZ = { code: string; name: string; address: string };
@@ -264,7 +264,10 @@ export default function CheckoutPage() {
           {cart.map((i, idx) => (
             <div key={idx} className="flex items-center gap-3 border-b pb-3">
               <div className="w-16 h-20">
-                <img {...imgProps(i.image || i.image_url, i.name)} className="cart-thumb" />
+                {(() => {
+                  const src = toR2Url(i.image || i.image_url) || '/images/placeholder.png';
+                  return <img src={src} alt={i.name} width={80} height={80} />;
+                })()}
               </div>
               <div className="flex-1">
                 <div className="text-sm">{i.name}</div>

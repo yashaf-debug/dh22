@@ -1,5 +1,5 @@
 import { queryAll } from '@/lib/db';
-import MainImageField from './MainImageField';
+import AdminProductForm from './AdminProductForm';
 
 export const runtime = 'edge';
 
@@ -26,16 +26,7 @@ export default async function EditProduct({ params }: { params: { id: string } }
       <h1 className="text-2xl font-semibold mb-6">
         Правка товара — {product.name || 'Без названия'} <span className="text-neutral-400">#{product.id}</span>
       </h1>
-      <form method="post" action={`/api/admin/products/${product.id}/update`} className="space-y-3">
-        <input name="name" defaultValue={product.name} className="border px-3 py-2 w-full" />
-        <textarea name="description" defaultValue={product.description || ''} className="border px-3 py-2 w-full" />
-        <input name="price" type="number" defaultValue={product.price / 100} className="border px-3 py-2 w-full" />
-        <input name="stock" type="number" defaultValue={product.stock} className="border px-3 py-2 w-full" />
-        <MainImageField initial={product.main_image || ''} />
-        <input name="sizes" defaultValue={product.sizes || '[]'} placeholder='["XS","S","M"]' className="border px-3 py-2 w-full" />
-        <input name="colors" defaultValue={product.colors || '[]'} placeholder='["черный","белый"]' className="border px-3 py-2 w-full" />
-        <button type="submit" className="btn btn-primary">Сохранить</button>
-      </form>
+      <AdminProductForm product={product} />
       
     </div>
   );

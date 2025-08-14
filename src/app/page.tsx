@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { queryAll } from '@/lib/db';
-import { imgProps } from '@/lib/images';
+import { toR2Url } from '@/lib/r2';
 import { rub } from '@/app/lib/money';
 
 export const runtime = 'edge';
@@ -28,8 +28,19 @@ export default async function Home() {
           try { fallback = JSON.parse(p.images ?? '[]')[0]; } catch {}
           return (
             <Link key={p.id} className="card" href={`/product/${p.slug}`}>
-              <div className="grid-product-thumb">
-                <img {...imgProps(p.main_image ?? fallback, p.name)} className="product-thumb" />
+              <div style={{ height: 360 }}>
+                {(() => {
+                  const src = toR2Url(p.main_image ?? fallback) || '/images/placeholder.png';
+                  return (
+                    <img
+                      src={src}
+                      alt={p.name}
+                      loading="lazy"
+                      decoding="async"
+                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                    />
+                  );
+                })()}
               </div>
               <div className="text-sm">{p.name}</div>
               <div className="text-sm opacity-80">{rub(p.price)}</div>

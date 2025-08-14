@@ -1,6 +1,6 @@
 // src/app/components/ProductCard.tsx
 import Link from 'next/link';
-import { imgProps } from '@/lib/images';
+import { toR2Url } from '@/lib/r2';
 import { rub } from '@/app/lib/money';
 
 type Product = {
@@ -11,10 +11,17 @@ type Product = {
 };
 
 export default function ProductCard({ product }: { product: Product }) {
+  const src = toR2Url(product.main_image) || '/images/placeholder.png';
   return (
     <Link href={`/product/${product.slug}`} className="card">
-      <div className="grid-product-thumb">
-        <img {...imgProps(product.main_image, product.name)} className="product-thumb" />
+      <div style={{ height: 360 }}>
+        <img
+          src={src}
+          alt={product.name}
+          loading="lazy"
+          decoding="async"
+          style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+        />
       </div>
       <div className="text-sm">{product.name}</div>
       <div className="text-sm opacity-80">{rub(product.price)}</div>
