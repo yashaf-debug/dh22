@@ -49,7 +49,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <footer className="border-t border-black/10 mt-16">
           <div className="container mx-auto px-4 py-10 text-sm flex flex-col md:flex-row gap-4 justify-between">
             <div>© {new Date().getFullYear()} DH22</div>
-            <div className="opacity-70">Доставка / Возврат / Политика конфиденциальности</div>
+            <div className="opacity-70 space-x-3">
+              <Link href="/delivery">Доставка</Link>
+              <span>/</span>
+              <Link href="/returns">Возврат</Link>
+              <span>/</span>
+              <Link href="/privacy">Политика конфиденциальности</Link>
+              <span>/</span>
+              <Link href="/terms">Пользовательское соглашение</Link>
+              <span>/</span>
+              <Link href="/oferta">Договор-оферта</Link>
+            </div>
           </div>
         </footer>
 
