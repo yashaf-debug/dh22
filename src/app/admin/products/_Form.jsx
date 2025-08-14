@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { authHeaders } from "../_lib";
 
 function safeJsonArray(v) {
@@ -17,20 +17,17 @@ export default function ProductForm({ token, initial, onSaved }) {
   const [sizes, setSizes] = useState(initial?.sizes ? String(initial.sizes) : "[]");
   const [colors, setColors] = useState(initial?.colors ? String(initial.colors) : "[]");
   const [preview, setPreview] = useState(initial?.main_image || "");
-  const fileRef = useRef(null);
 
   function set(k, v) {
     setForm((s) => ({ ...s, [k]: v }));
   }
-  async function upload() {
-    const f = fileRef.current?.files?.[0];
-    if (!f) return;
-    const fd = new FormData();
-    fd.append("file", f);
-    const res = await fetch("/api/images/upload", { method: "POST", body: fd });
+  async function uploadToR2(file) {
+    const fd = new FormData(); fd.append('file', file, file.name);
+    const res = await fetch('/api/images/upload-r2', { method:'POST', body: fd });
     const data = await res.json();
-    if (data?.url) { set("main_image", data.url); setPreview(data.url); }
-    else alert(data?.error || "upload error");
+    if (!res.ok || !data?.url) throw new Error(data?.error || 'upload failed');
+    set('main_image', data.url); // /r2/<key>
+    setPreview(data.url);
   }
   async function submit() {
     const payload = {
@@ -84,8 +81,11 @@ export default function ProductForm({ token, initial, onSaved }) {
           <input className="border px-2 py-1" value={form.main_image || ""} onChange={(e) => { set("main_image", e.target.value); setPreview(e.target.value); }} />
         </label>
         <div className="flex items-center gap-2">
-          <input type="file" ref={fileRef} />
-          <button type="button" className="border px-3 py-1" onClick={upload}>Загрузить</button>
+          <input type="file" onChange={async (e)=>{
+            const f = e.currentTarget.files?.[0];
+            if (!f) return;
+            try { await uploadToR2(f); } catch { alert('upload error'); }
+          }} />
         </div>
       </div>
       {preview && <img src={preview} alt="preview" className="w-32 h-auto border" />}

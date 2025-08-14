@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { queryAll } from '@/lib/db';
 import { resolveImageUrl, firstFromJsonArray, formatPriceRubKopecks } from '@/lib/images';
+import QtyInput from '@/components/QtyInput';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -58,11 +59,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             )}
             <div>
               <label className="block text-sm mb-1">Количество</label>
-              <input
-                type="number" name="qty" min={1} step={1} defaultValue={1}
-                className="border px-3 py-2 w-24"
-                onInput={(e:any) => { const v = Math.max(1, parseInt(e.currentTarget.value || '1', 10)); e.currentTarget.value = String(v); }}
-              />
+              <QtyInput name="qty" defaultValue={1}/>
             </div>
             <input type="hidden" name="slug" value={p.slug} />
             <button className="border px-4 py-2" type="submit">В корзину</button>
