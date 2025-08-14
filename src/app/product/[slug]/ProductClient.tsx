@@ -1,67 +1,95 @@
-"use client";
+// src/app/product/[slug]/ProductClient.tsx
+'use client';
 
-import { useEffect, useState } from "react";
-import { evViewItem, evAddToCart } from "@/app/lib/metrics";
+import { useState } from 'react';
+import { resolveImageUrl } from '@/lib/images';
 
-type Props = {
+type Product = {
+  id: number;
   slug: string;
   name: string;
   price: number;
-  category?: string;
+  description?: string | null;
+  colors?: string[] | null;
+  sizes?: string[] | null;
+  main_image?: string | null;
 };
 
-export default function ProductClient({ slug, name, price, category }: Props) {
-  const [qty, setQty] = useState(1);
+export default function ProductClient({ product }: { product: Product }) {
+  const [qty, setQty] = useState<number>(1);
+  const [color, setColor] = useState<string | undefined>(product.colors?.[0]);
+  const [size, setSize] = useState<string | undefined>(product.sizes?.[0]);
 
-  useEffect(() => {
-    evViewItem({
-      id: slug,
-      name,
-      price: price / 100,
-      category,
-    });
-  }, [slug]);
+  const img = resolveImageUrl(product.main_image, 'width=1000,fit=cover');
 
-  const addToCart = () => {
-    evAddToCart({
-      id: slug,
-      name,
-      price: price / 100,
-      qty,
+  const addToCart = async () => {
+    const res = await fetch('/api/cart/add', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        slug: product.slug,
+        price: product.price,
+        qty,
+        color: color || null,
+        size: size || null,
+      }),
     });
-    // logic of adding to cart
-    try {
-      const raw = localStorage.getItem("dh22_cart");
-      const cart = raw ? JSON.parse(raw) : [];
-      const existing = cart.find((i: any) => i.slug === slug);
-      if (existing) existing.qty += qty;
-      else cart.push({ slug, name, price, qty });
-      localStorage.setItem("dh22_cart", JSON.stringify(cart));
-      alert("Товар добавлен в корзину");
-    } catch {}
+    if (!res.ok) {
+      alert('Не удалось добавить в корзину');
+      return;
+    }
+    location.href = '/cart';
   };
 
   return (
-    <div>
-      <h1 className="text-2xl mb-2">{name}</h1>
-      <div className="opacity-70 mb-4">{(price / 100).toLocaleString()} ₽</div>
+    <div className="grid md:grid-cols-[1fr_1fr] gap-8">
+      <div>
+        <img src={img} alt={product.name} className="w-full h-auto object-cover border" />
+      </div>
 
-      <label className="block text-sm mb-1">Количество</label>
-      <input
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={qty}
-        onChange={(e) => {
-          const v = e.target.value.replace(/\D/g, "");
-          setQty(v === "" ? 1 : Math.max(1, parseInt(v, 10)));
-        }}
-        className="border px-3 py-2 rounded w-24"
-      />
+      <div>
+        <h1 className="text-3xl font-medium">{product.name}</h1>
+        <div className="text-xl mt-2">{product.price.toLocaleString('ru-RU')} ₽</div>
+        {product.description && <p className="opacity-80 mt-4">{product.description}</p>}
 
-      <button onClick={addToCart} className="btn-primary mt-4">
-        В корзину
-      </button>
+        {product.colors?.length ? (
+          <div className="mt-6">
+            <div className="text-sm opacity-70 mb-1">Цвет</div>
+            <select className="border px-2 py-2 w-full" value={color} onChange={e => setColor(e.target.value)}>
+              {product.colors.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        ) : null}
+
+        {product.sizes?.length ? (
+          <div className="mt-4">
+            <div className="text-sm opacity-70 mb-1">Размер</div>
+            <select className="border px-2 py-2 w-full" value={size} onChange={e => setSize(e.target.value)}>
+              {product.sizes.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        ) : null}
+
+        <div className="mt-4">
+          <div className="text-sm opacity-70 mb-1">Количество</div>
+          <input
+            type="number"
+            min={1}
+            inputMode="numeric"
+            className="border px-3 py-2 w-24"
+            value={qty}
+            onChange={(e) => {
+              const v = Math.max(1, Number(e.target.value.replace(/\D/g, '')) || 1);
+              setQty(v);
+            }}
+          />
+        </div>
+
+        <button className="mt-6 bg-black text-white px-4 py-3" onClick={addToCart}>
+          В корзину
+        </button>
+      </div>
     </div>
   );
 }
+

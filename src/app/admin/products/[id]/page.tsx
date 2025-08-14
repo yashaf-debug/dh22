@@ -34,11 +34,7 @@ export default async function EditProduct({ params }: { params: { id: string } }
         <input name="colors" defaultValue={product.colors || '[]'} placeholder='["черный","белый"]' className="input w-full" />
         <button type="submit" className="btn btn-primary">Сохранить</button>
       </form>
-      <form method="post" action={`/api/admin/products/${product.id}/delete`} onSubmit={(e) => {
-        if (!confirm('Удалить товар?')) e.preventDefault();
-      }}>
-        <button type="submit" className="btn btn-danger btn-sm">Удалить</button>
-      </form>
+      
     </div>
   );
 }
@@ -57,7 +53,7 @@ function MainImageField({ initial }: { initial: string }) {
       />
       {mainImage ? (
         <img
-          src={resolveImageUrl(mainImage, 'width=600,quality=82')}
+          src={resolveImageUrl(mainImage, 'width=600,fit=cover')}
           alt="preview"
           className="h-24 w-auto border mt-2 object-contain"
         />

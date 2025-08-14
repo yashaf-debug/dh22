@@ -1,21 +1,16 @@
+// src/app/components/ProductCard.tsx
 import Link from 'next/link';
-import { resolveImageUrl, rubKopecks } from '@/lib/images';
+import { resolveImageUrl } from '@/lib/images';
 
-export default function ProductCard({ product }: { product: any }) {
-  const images = Array.isArray(product.images)
-    ? product.images
-    : typeof product.images === 'string'
-      ? (() => { try { return JSON.parse(product.images); } catch { return []; } })()
-      : [];
+type Product = {
+  slug: string;
+  name: string;
+  price: number;
+  main_image?: string | null;
+};
 
-  const imgSrc =
-    product.main_image ||
-    product.image_url ||
-    images[0] ||
-    '/placeholder.svg';
-
-  const src = resolveImageUrl(imgSrc);
-
+export default function ProductCard({ product }: { product: Product }) {
+  const src = resolveImageUrl(product.main_image, 'width=600,fit=cover');
   return (
     <Link href={`/product/${product.slug}`} className="card">
       <img
@@ -25,9 +20,11 @@ export default function ProductCard({ product }: { product: any }) {
         height={400}
         loading="lazy"
         className="w-full h-auto object-cover border"
+        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
       />
       <div className="text-sm">{product.name}</div>
-      <div className="text-sm opacity-80">{rubKopecks(product.price)}</div>
+      <div className="text-sm opacity-80">{product.price.toLocaleString('ru-RU')} ₽</div>
     </Link>
   );
 }
+

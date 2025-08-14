@@ -1,3 +1,4 @@
+// src/app/api/images/upload-r2/route.ts
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
@@ -11,13 +12,18 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const file = form.get('file') as File | null;
     if (!file) return NextResponse.json({ error:'file required' }, { status:400 });
+
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const key = `${Date.now()}-${slug(file.name || 'upload')}.${ext}`;
+
     await env.DH22_IMAGES.put(key, file.stream() as any, {
       httpMetadata: { contentType: file.type || 'image/jpeg' },
     });
-    return NextResponse.json({ key, url: `/r2/${key}` }); // храним как /r2/<key>
+
+    // В БД сохраняем строку вида /r2/<key>
+    return NextResponse.json({ key, stored: `/r2/${key}` });
   } catch (e:any) {
     return NextResponse.json({ error: String(e?.message||e) }, { status:500 });
   }
 }
+

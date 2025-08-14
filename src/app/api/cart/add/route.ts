@@ -1,44 +1,25 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-
+// src/app/api/cart/add/route.ts
 export const runtime = 'edge';
+import { NextResponse } from 'next/server';
 
-type CartItem = { key: string; id: number; qty: number; size?: string | null; color?: string | null };
+type CartItem = { slug: string; price: number; qty: number; color?: string|null; size?: string|null; };
+
+function readCart(cookieHeader?: string): CartItem[] {
+  const m = (cookieHeader || '').match(/(?:^|;\s*)cart=([^;]+)/);
+  if (!m) return [];
+  try { return JSON.parse(decodeURIComponent(m[1])); } catch { return []; }
+}
 
 export async function POST(req: Request) {
-  const form = await req.formData();
-  const id = Number(form.get('product_id') || 0);
-  const qty = Math.max(1, parseInt(String(form.get('qty') || '1'), 10));
-  const size = (form.get('size') as string) || null;
-  const color = (form.get('color') as string) || null;
+  const body = await req.json() as CartItem;
+  const cart = readCart(req.headers.get('cookie') || '');
 
-  const dest = new URL('/cart', req.url);
+  const idx = cart.findIndex(i => i.slug === body.slug && i.color === (body.color||null) && i.size === (body.size||null));
+  if (idx >= 0) cart[idx].qty += Math.max(1, Number(body.qty||1));
+  else cart.push({ slug: body.slug, price: body.price, qty: Math.max(1, Number(body.qty||1)), color: body.color||null, size: body.size||null });
 
-  if (!id || !Number.isFinite(id)) {
-    return NextResponse.redirect(dest);
-  }
-
-  const key = `${id}:${size || ''}:${color || ''}`;
-  const bag = cookies();
-  let cart: CartItem[] = [];
-  try {
-    cart = JSON.parse(bag.get('cart')?.value || '[]');
-    if (!Array.isArray(cart)) cart = [];
-  } catch {
-    cart = [];
-  }
-
-  const found = cart.find((i) => i.key === key);
-  if (found) found.qty += qty;
-  else cart.push({ key, id, qty, size, color });
-
-  const res = NextResponse.redirect(dest);
-  res.cookies.set('cart', JSON.stringify(cart), {
-    path: '/',
-    httpOnly: false,
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  const res = NextResponse.json({ ok: true, cart });
+  res.headers.set('Set-Cookie', `cart=${encodeURIComponent(JSON.stringify(cart))}; Path=/; Max-Age=2592000; SameSite=Lax`);
   return res;
 }
 
