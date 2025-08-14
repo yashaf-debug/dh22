@@ -1,10 +1,26 @@
-'use client';
+"use client";
 import { useState } from 'react';
-export default function QtyInput({ name='qty', defaultValue=1 }:{name?:string;defaultValue?:number;}){
-  const [qty, setQty] = useState<number>(defaultValue);
+
+export default function QtyInput({ name='qty', defaultValue=1 }:{name?:string; defaultValue?:number;}) {
+  const [raw, setRaw] = useState(String(defaultValue));
   return (
-    <input type="number" name={name} min={1} step={1} value={qty}
-      onChange={e=>setQty(Math.max(1, Number(e.target.value)||1))}
-      inputMode="numeric" pattern="[0-9]*" className="border px-3 py-2 w-24" />
+    <input
+      type="text"
+      name={name}
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={raw}
+      onChange={(e)=>{
+        // оставляем только цифры, допускаем пусто
+        const v = e.target.value.replace(/[^\d]/g,'');
+        setRaw(v);
+      }}
+      onBlur={()=>{
+        const n = Math.max(1, parseInt(raw || '0', 10));
+        setRaw(String(n));
+      }}
+      className="border px-3 py-2 w-24"
+      placeholder="1"
+    />
   );
 }
