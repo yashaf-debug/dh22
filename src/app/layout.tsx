@@ -47,20 +47,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </header>
         <main>{children}</main>
         <footer className="border-t border-black/10 mt-16">
-          <div className="container mx-auto px-4 py-10 text-sm flex flex-col md:flex-row gap-4 justify-between">
-            <div>© {new Date().getFullYear()} DH22</div>
-            <div className="opacity-70 space-x-3">
-              <Link href="/delivery">Доставка</Link>
-              <span>/</span>
-              <Link href="/returns">Возврат</Link>
-              <span>/</span>
-              <Link href="/privacy">Политика конфиденциальности</Link>
-              <span>/</span>
-              <Link href="/terms">Пользовательское соглашение</Link>
-              <span>/</span>
-              <Link href="/oferta">Договор-оферта</Link>
+            <div className="container mx-auto px-4 py-10 text-sm flex flex-col md:flex-row gap-4 justify-between">
+              <div>© {new Date().getFullYear()} DH22</div>
+              <div className="opacity-70 space-x-3">
+                <Link href="/delivery">Доставка</Link>
+                <span>/</span>
+                <span>Возврат</span>
+                <span>/</span>
+                <span>Политика конфиденциальности</span>
+              </div>
             </div>
-          </div>
         </footer>
 
         {/* Yandex.Metrika 103743080 */}
