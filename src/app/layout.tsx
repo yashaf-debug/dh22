@@ -52,9 +52,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <div className="opacity-70 space-x-3">
                 <Link href="/delivery">Доставка</Link>
                 <span>/</span>
-                <span>Возврат</span>
+                <Link href="/returns">Возврат</Link>
                 <span>/</span>
-                <span>Политика конфиденциальности</span>
+                <Link href="/privacy">Политика конфиденциальности</Link>
+                <span>/</span>
+                <Link href="/terms">Пользовательское соглашение</Link>
               </div>
             </div>
         </footer>
