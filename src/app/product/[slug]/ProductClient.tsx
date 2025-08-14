@@ -1,8 +1,9 @@
 // src/app/product/[slug]/ProductClient.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { resolveImageUrl } from '@/lib/images';
+import { rub } from '@/app/lib/money';
 
 type Product = {
   id: number;
@@ -16,7 +17,7 @@ type Product = {
 };
 
 export default function ProductClient({ product }: { product: Product }) {
-  const [qty, setQty] = useState<number>(1);
+  const qtyRef = useRef<HTMLInputElement>(null);
   const [color, setColor] = useState<string | undefined>(product.colors?.[0]);
   const [size, setSize] = useState<string | undefined>(product.sizes?.[0]);
 
@@ -26,6 +27,7 @@ export default function ProductClient({ product }: { product: Product }) {
   }
 
   const addToCart = () => {
+    const qty = Math.max(1, parseInt(qtyRef.current?.value || '1', 10));
     const item = {
       slug: product.slug,
       name: product.name,
@@ -61,7 +63,7 @@ export default function ProductClient({ product }: { product: Product }) {
 
       <div>
         <h1 className="text-3xl font-medium">{product.name}</h1>
-        <div className="text-xl mt-2">{product.price.toLocaleString('ru-RU')} ₽</div>
+        <div className="text-xl mt-2">{rub(product.price)}</div>
         {product.description && <p className="opacity-80 mt-4">{product.description}</p>}
 
         {product.colors?.length ? (
@@ -89,11 +91,8 @@ export default function ProductClient({ product }: { product: Product }) {
             min={1}
             inputMode="numeric"
             className="border px-3 py-2 w-24"
-            value={qty}
-            onChange={(e) => {
-              const v = Math.max(1, Number(e.target.value.replace(/\D/g, '')) || 1);
-              setQty(v);
-            }}
+            defaultValue={1}
+            ref={qtyRef}
           />
         </div>
 

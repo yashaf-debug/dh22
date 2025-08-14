@@ -11,7 +11,7 @@ export default function MainImageField({ initial }: { initial: string }) {
         name="main_image"
         value={mainImage}
         onChange={(e) => setMainImage(e.target.value)}
-        className="input w-full"
+        className="border px-3 py-2 w-full"
       />
       {mainImage ? (
         <img

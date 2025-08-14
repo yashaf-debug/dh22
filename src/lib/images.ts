@@ -13,16 +13,26 @@ export function resolveImageUrl(src?: string | null, opts?: string): string {
     return USE_CF_TRANSFORM && opts ? `/cdn-cgi/image/${opts}/${src}` : src;
   }
 
-  // R2: /r2/<key>
+  // R2: allow bare keys like `folder/file.jpg` or prefix `r2/`
+  if (!src.startsWith('/') && !src.startsWith('i/')) {
+    const key = src.replace(/^r2\//, '');
+    const raw = `${R2_BASE}/${key}`;
+    return USE_CF_TRANSFORM && opts ? `/cdn-cgi/image/${opts}/${raw}` : raw;
+  }
+
   if (src.startsWith('/r2/')) {
     const key = src.replace(/^\/r2\//, '');
     const raw = `${R2_BASE}/${key}`;
     return USE_CF_TRANSFORM && opts ? `/cdn-cgi/image/${opts}/${raw}` : raw;
   }
 
-  // Cloudflare Images: /i/<id>
+  // Cloudflare Images: allow `/i/<id>` or `i/<id>`
   if (src.startsWith('/i/')) {
     const id = src.replace(/^\/i\//, '');
+    return `${CF_IMAGES_BASE}/${id}/public`;
+  }
+  if (src.startsWith('i/')) {
+    const id = src.replace(/^i\//, '');
     return `${CF_IMAGES_BASE}/${id}/public`;
   }
 

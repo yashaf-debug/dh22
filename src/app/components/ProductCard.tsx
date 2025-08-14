@@ -1,6 +1,7 @@
 // src/app/components/ProductCard.tsx
 import Link from 'next/link';
 import { resolveImageUrl } from '@/lib/images';
+import { rub } from '@/app/lib/money';
 
 type Product = {
   slug: string;
@@ -23,7 +24,7 @@ export default function ProductCard({ product }: { product: Product }) {
         onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
       />
       <div className="text-sm">{product.name}</div>
-      <div className="text-sm opacity-80">{product.price.toLocaleString('ru-RU')} ₽</div>
+      <div className="text-sm opacity-80">{rub(product.price)}</div>
     </Link>
   );
 }

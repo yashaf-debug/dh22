@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { queryAll } from '@/lib/db';
 import { resolveImageUrl } from '@/lib/images';
+import { rub } from '@/app/lib/money';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,7 @@ export default async function Home() {
                 <img src={resolveImageUrl(p.main_image ?? fallback)} alt={p.name} loading="lazy" className="object-cover w-full h-full" />
               </div>
               <div className="text-sm">{p.name}</div>
-              <div className="text-sm opacity-80">{p.price.toLocaleString('ru-RU')} ₽</div>
+              <div className="text-sm opacity-80">{rub(p.price)}</div>
             </Link>
           );
         })}
