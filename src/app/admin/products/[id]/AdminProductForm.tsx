@@ -29,13 +29,14 @@ export default function AdminProductForm({ product }: { product: Product }) {
     const file = e.target.files?.[0];
     if (!file) return;
     const fd = new FormData();
-    fd.append('file', file);
+    fd.append('file', file); // ИМЯ ПОЛЯ ДОЛЖНО БЫТЬ "file"
     const res = await fetch('/api/images/upload', { method: 'POST', body: fd });
-    if (!res.ok) {
-      alert('upload error');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.ok) {
+      alert('upload error: ' + (data?.error || res.status));
       return;
     }
-    const data = await res.json();
+    // сохраняем как "/r2/<key>" — это и пишем в D1
     setForm(prev => ({ ...prev, main_image: data.path }));
   }
 
