@@ -24,6 +24,6 @@ export async function POST(req: NextRequest) {
   const buf = new Uint8Array(await file.arrayBuffer());
   const id = nanoid();
   await run("INSERT INTO uploads (id, mime, bytes) VALUES (?,?,?)", id, file.type || "application/octet-stream", buf);
-  return NextResponse.json({ ok: true, id, url: `/r/${id}`, mime: file.type });
+  return NextResponse.json({ ok: true, id, url: `/i/${id}`, mime: file.type });
 }
 

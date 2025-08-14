@@ -20,8 +20,8 @@ export async function POST(req: Request) {
       httpMetadata: { contentType: file.type || 'image/jpeg' },
     });
 
-    // В БД сохраняем строку вида /r/<key>
-    return NextResponse.json({ key, stored: `/r/${key}` });
+    // В БД сохраняем строку вида /r2/<key>
+    return NextResponse.json({ key, stored: `/r2/${key}` });
   } catch (e:any) {
     return NextResponse.json({ error: String(e?.message||e) }, { status:500 });
   }
