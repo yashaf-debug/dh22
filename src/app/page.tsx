@@ -3,6 +3,7 @@ import { queryAll } from '@/lib/db';
 import { resolveImageUrl, firstFromJsonArray, formatPriceRubKopecks } from '@/lib/images';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 type Product = {
   id: number; slug: string; name: string; price: number; currency: string;
