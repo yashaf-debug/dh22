@@ -8,5 +8,9 @@ const nextConfig = {
     ],
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },
+  async rewrites() {
+    const base = process.env.NEXT_PUBLIC_CF_IMAGES_BASE;
+    return base ? [{ source: '/i/:id', destination: `${base}/:id/public` }] : [];
+  },
 };
-module.exports = nextConfig;
+export default nextConfig;

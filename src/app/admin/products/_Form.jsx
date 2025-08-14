@@ -16,6 +16,7 @@ export default function ProductForm({ token, initial, onSaved }) {
   const [form, setForm] = useState(initial || { active: true, quantity: 0 });
   const [sizes, setSizes] = useState(initial?.sizes ? String(initial.sizes) : "[]");
   const [colors, setColors] = useState(initial?.colors ? String(initial.colors) : "[]");
+  const [preview, setPreview] = useState(initial?.main_image || "");
   const fileRef = useRef(null);
 
   function set(k, v) {
@@ -26,10 +27,10 @@ export default function ProductForm({ token, initial, onSaved }) {
     if (!f) return;
     const fd = new FormData();
     fd.append("file", f);
-    const r = await fetch("/api/admin/uploads", { method: "POST", body: fd, headers: authHeaders(token) });
-    const j = await r.json();
-    if (j?.ok) set("main_image", j.url);
-    else alert(j?.error || "upload error");
+    const res = await fetch("/api/images/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    if (data?.url) { set("main_image", data.url); setPreview(data.url); }
+    else alert(data?.error || "upload error");
   }
   async function submit() {
     const payload = {
@@ -80,13 +81,14 @@ export default function ProductForm({ token, initial, onSaved }) {
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="flex flex-col">Основное фото URL
-          <input className="border px-2 py-1" value={form.main_image || ""} onChange={(e) => set("main_image", e.target.value)} />
+          <input className="border px-2 py-1" value={form.main_image || ""} onChange={(e) => { set("main_image", e.target.value); setPreview(e.target.value); }} />
         </label>
         <div className="flex items-center gap-2">
           <input type="file" ref={fileRef} />
           <button type="button" className="border px-3 py-1" onClick={upload}>Загрузить</button>
         </div>
       </div>
+      {preview && <img src={preview} alt="preview" className="w-32 h-auto border" />}
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="flex flex-col">Размеры (JSON)
