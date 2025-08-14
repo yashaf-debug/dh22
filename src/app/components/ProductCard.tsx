@@ -2,8 +2,19 @@ import Link from 'next/link';
 import { resolveImageUrl, rubKopecks } from '@/lib/images';
 
 export default function ProductCard({ product }: { product: any }) {
-  const raw = product.image_url || (product.image_key ? `/i/${product.image_key}` : undefined) || product.main_image;
-  const src = resolveImageUrl(raw);
+  const images = Array.isArray(product.images)
+    ? product.images
+    : typeof product.images === 'string'
+      ? (() => { try { return JSON.parse(product.images); } catch { return []; } })()
+      : [];
+
+  const imgSrc =
+    product.main_image ||
+    product.image_url ||
+    images[0] ||
+    '/placeholder.svg';
+
+  const src = resolveImageUrl(imgSrc);
 
   return (
     <Link href={`/product/${product.slug}`} className="card">

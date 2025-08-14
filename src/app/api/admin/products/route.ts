@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     const q = (new URL(req.url).searchParams.get("q") || "").trim();
     const items = await all(
       `SELECT id, slug, name, price, quantity, active,
-              COALESCE(main_image, image_url) AS image_url,
+              main_image, image_url, images,
               category, updated_at
          FROM products
         WHERE (? = '' OR name LIKE '%'||?||'%' OR slug LIKE '%'||?||'%')

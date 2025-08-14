@@ -19,7 +19,7 @@ export async function generateMetadata() {
 
 export default async function Accessories() {
   const items = await all(
-    "SELECT id,slug,name,price,image_url,image_key FROM products WHERE category='Аксессуары' AND active=1 AND quantity>0 ORDER BY id DESC LIMIT 20"
+    "SELECT id,slug,name,price,main_image,image_url,images FROM products WHERE category='Аксессуары' AND active=1 AND quantity>0 ORDER BY id DESC LIMIT 20"
   );
   return (
     <div className="container mx-auto px-4 py-10">

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 type Product = {
   id: number; slug: string; name: string; description?: string | null;
-  price: number; currency: string; main_image?: string | null; images?: string | null;
+  price: number; currency: string; main_image?: string | null; image_url?: string | null; images?: string | null;
   colors?: string | null; sizes?: string | null; stock?: string | null; category?: string | null; subcategory?: string | null;
 };
 
@@ -17,8 +17,15 @@ export default async function ProductPage({ params }: { params: { slug: string }
   if (!rows.length) notFound();
   const p = rows[0];
   const images: string[] = (() => { try { return JSON.parse(p.images ?? '[]'); } catch { return []; } })();
-  const firstImg = resolveImageUrl(p.main_image ?? images[0]);
-  const gallery = [p.main_image, ...images].filter(Boolean).map(u => resolveImageUrl(u!));
+  const imgSrc =
+    p.main_image ||
+    p.image_url ||
+    images[0] ||
+    '/placeholder.svg';
+  const firstImg = resolveImageUrl(imgSrc);
+  const gallery = [p.main_image, p.image_url, ...images]
+    .filter(Boolean)
+    .map((u) => resolveImageUrl(u!));
   const features = (p.description ?? '').split('/').map(s => s.trim()).filter(Boolean);
   const sizes: string[] = (() => { try { return JSON.parse(p.sizes ?? '[]'); } catch { return []; } })();
   const colors: string[] = (() => { try { return JSON.parse(p.colors ?? '[]'); } catch { return []; } })();
