@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { queryAll } from '@/lib/db';
-import { resolveImageUrl, firstFromJsonArray, formatPriceRubKopecks } from '@/lib/images';
+import { resolveImageUrl, rubKopecks } from '@/lib/images';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -23,12 +23,13 @@ export default async function Home() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {products.map(p => {
-          const fallback = firstFromJsonArray(p.images ?? undefined);
+          let fallback: string | undefined;
+          try { fallback = JSON.parse(p.images ?? '[]')[0]; } catch {}
           return (
             <Link key={p.id} className="card" href={`/product/${p.slug}`}>
               <img src={resolveImageUrl(p.main_image ?? fallback)} alt={p.name} width={300} height={400} loading="lazy" className="w-full h-auto object-cover border" />
               <div className="text-sm">{p.name}</div>
-              <div className="text-sm opacity-80">{formatPriceRubKopecks(p.price, p.currency)}</div>
+              <div className="text-sm opacity-80">{rubKopecks(p.price)}</div>
             </Link>
           );
         })}

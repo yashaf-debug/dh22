@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { queryAll } from '@/lib/db';
-import { resolveImageUrl, firstFromJsonArray, formatPriceRubKopecks } from '@/lib/images';
+import { resolveImageUrl, rubKopecks } from '@/lib/images';
 import QtyInput from '@/components/QtyInput';
 
 export const runtime = 'edge';
@@ -16,8 +16,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const rows = await queryAll<Product>(`SELECT * FROM products WHERE slug=? LIMIT 1`, params.slug);
   if (!rows.length) notFound();
   const p = rows[0];
-  const firstImg = resolveImageUrl(p.main_image ?? firstFromJsonArray(p.images ?? undefined));
   const images: string[] = (() => { try { return JSON.parse(p.images ?? '[]'); } catch { return []; } })();
+  const firstImg = resolveImageUrl(p.main_image ?? images[0]);
   const gallery = [p.main_image, ...images].filter(Boolean).map(u => resolveImageUrl(u!));
   const features = (p.description ?? '').split('/').map(s => s.trim()).filter(Boolean);
   const sizes: string[] = (() => { try { return JSON.parse(p.sizes ?? '[]'); } catch { return []; } })();
@@ -35,12 +35,13 @@ export default async function ProductPage({ params }: { params: { slug: string }
         </div>
         <div>
           <h1 className="text-2xl md:text-3xl font-medium">{p.name}</h1>
-          <div className="mt-2 text-lg">{formatPriceRubKopecks(p.price, p.currency)}</div>
+          <div className="mt-2 text-lg">{rubKopecks(p.price)}</div>
           <div className="mt-6 text-sm opacity-80 text-center">
             {features.length ? <div>{features.join(' / ')}</div> : null}
           </div>
 
-          <form className="mt-6 space-y-3" action="/cart" method="POST">
+          <form method="post" action="/api/cart/add" className="mt-6 space-y-3">
+            <input type="hidden" name="product_id" value={p.id} />
             {!!colors.length && (
               <div>
                 <label className="block text-sm mb-1">Цвет</label>
@@ -58,11 +59,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
               </div>
             )}
             <div>
-              <label className="block text-sm mb-1">Количество</label>
-              <QtyInput name="qty" defaultValue={1}/>
+              <label className="block text-sm">Количество</label>
+              <QtyInput name="qty" defaultValue={1} />
             </div>
-            <input type="hidden" name="slug" value={p.slug} />
-            <button className="border px-4 py-2" type="submit">В корзину</button>
+            <button type="submit" className="btn btn-primary">В корзину</button>
           </form>
         </div>
       </div>

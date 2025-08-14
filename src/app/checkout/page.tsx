@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import CityAutocomplete from "@/app/components/CityAutocomplete";
 import CdekMapPicker from "@/app/components/CdekMapPicker";
 import { rub } from "../lib/money";
+import { resolveImageUrl } from "@/lib/images";
 import { evBeginCheckout, evSelectPVZ, evPaymentMethod } from "../lib/metrics";
 
 type PVZ = { code: string; name: string; address: string };
@@ -263,7 +264,7 @@ export default function CheckoutPage() {
           {cart.map((i, idx) => (
             <div key={idx} className="flex items-center gap-3 border-b pb-3">
               <img
-                src={i.image}
+                src={resolveImageUrl(i.image)}
                 className="w-16 h-20 object-cover border"
                 alt={i.name}
               />
