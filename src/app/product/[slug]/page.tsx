@@ -12,18 +12,30 @@ export default async function ProductPage({ params }: { params:{slug:string} }) 
   }
 
   const src = productImageSrc(product);
+  const isSvg = src.endsWith('.svg');
 
   return (
     <div className="container mx-auto px-4 py-10 grid md:grid-cols-2 gap-8">
       <div>
-        <Image
-          src={src}
-          alt={product.name}
-          width={900}
-          height={1200}
-          sizes="(max-width:768px) 100vw, 50vw"
-          className="w-full h-auto object-cover border"
-        />
+        {isSvg ? (
+          <img
+            src={src}
+            alt={product.name}
+            width={900}
+            height={1200}
+            loading="lazy"
+            className="w-full h-auto object-cover border"
+          />
+        ) : (
+          <Image
+            src={src}
+            alt={product.name}
+            width={900}
+            height={1200}
+            sizes="(max-width:768px) 100vw, 50vw"
+            className="w-full h-auto object-cover border"
+          />
+        )}
       </div>
       <ProductClient
         slug={product.slug}
