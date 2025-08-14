@@ -21,20 +21,32 @@ export default function ProductClient({ product }: { product: Product }) {
   const [size, setSize] = useState<string | undefined>(product.sizes?.[0]);
 
   const img = resolveImageUrl(product.main_image, 'width=1000,fit=cover');
+  if (!img.startsWith('/') && !/^https?:\/\//.test(img)) {
+    console.warn('resolveImageUrl produced relative path:', img);
+  }
 
-  const addToCart = async () => {
-    const res = await fetch('/api/cart/add', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        slug: product.slug,
-        price: product.price,
-        qty,
-        color: color || null,
-        size: size || null,
-      }),
-    });
-    if (!res.ok) {
+  const addToCart = () => {
+    const item = {
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      image: product.main_image,
+      qty,
+      color: color || null,
+      size: size || null,
+    };
+    try {
+      const raw = localStorage.getItem('dh22_cart');
+      const cart = raw ? JSON.parse(raw) : [];
+      const existing = cart.find((i: any) => i.slug === item.slug && i.color === item.color && i.size === item.size);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        cart.push(item);
+      }
+      localStorage.setItem('dh22_cart', JSON.stringify(cart));
+    } catch (err) {
+      console.error('Failed to update cart', err);
       alert('Не удалось добавить в корзину');
       return;
     }

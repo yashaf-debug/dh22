@@ -26,7 +26,8 @@ export function resolveImageUrl(src?: string | null, opts?: string): string {
     return `${CF_IMAGES_BASE}/${id}/public`;
   }
 
-  // Любой другой относительный путь — оставляем как есть
-  return src;
+  // Любой другой относительный путь — превращаем в абсолютный
+  const path = src.startsWith('/') ? src : `/${src}`;
+  return path;
 }
 
