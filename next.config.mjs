@@ -3,8 +3,8 @@ const nextConfig = {
   images: {
     loader: 'default',
     remotePatterns: [
-      { protocol: 'https', hostname: 'dh22.ru', pathname: '/i/**' },
-      { protocol: 'https', hostname: 'dh22.pages.dev', pathname: '/i/**' },
+      { protocol: 'https', hostname: 'dh22.ru', pathname: '/r/**' },
+      { protocol: 'https', hostname: 'dh22.pages.dev', pathname: '/r/**' },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },
@@ -13,8 +13,8 @@ const nextConfig = {
     return [];
   },
   async rewrites() {
-    const base = process.env.NEXT_PUBLIC_CF_IMAGES_BASE;
-    return base ? [{ source: '/i/:id', destination: `${base}/:id/public` }] : [];
+    const base = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE;
+    return base ? [{ source: '/r/:key', destination: `${base}/:key` }] : [];
   },
 };
 export default nextConfig;
