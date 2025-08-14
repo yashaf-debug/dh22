@@ -1,8 +1,9 @@
 // src/app/product/[slug]/ProductClient.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { resolveImageUrl } from '@/lib/images';
+import { rub } from '@/app/lib/money';
 
 type Product = {
   id: number;
@@ -16,25 +17,38 @@ type Product = {
 };
 
 export default function ProductClient({ product }: { product: Product }) {
-  const [qty, setQty] = useState<number>(1);
+  const qtyRef = useRef<HTMLInputElement>(null);
   const [color, setColor] = useState<string | undefined>(product.colors?.[0]);
   const [size, setSize] = useState<string | undefined>(product.sizes?.[0]);
 
   const img = resolveImageUrl(product.main_image, 'width=1000,fit=cover');
+  if (!img.startsWith('/') && !/^https?:\/\//.test(img)) {
+    console.warn('resolveImageUrl produced relative path:', img);
+  }
 
-  const addToCart = async () => {
-    const res = await fetch('/api/cart/add', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        slug: product.slug,
-        price: product.price,
-        qty,
-        color: color || null,
-        size: size || null,
-      }),
-    });
-    if (!res.ok) {
+  const addToCart = () => {
+    const qty = Math.max(1, parseInt(qtyRef.current?.value || '1', 10));
+    const item = {
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      image: product.main_image,
+      qty,
+      color: color || null,
+      size: size || null,
+    };
+    try {
+      const raw = localStorage.getItem('dh22_cart');
+      const cart = raw ? JSON.parse(raw) : [];
+      const existing = cart.find((i: any) => i.slug === item.slug && i.color === item.color && i.size === item.size);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        cart.push(item);
+      }
+      localStorage.setItem('dh22_cart', JSON.stringify(cart));
+    } catch (err) {
+      console.error('Failed to update cart', err);
       alert('Не удалось добавить в корзину');
       return;
     }
@@ -49,7 +63,7 @@ export default function ProductClient({ product }: { product: Product }) {
 
       <div>
         <h1 className="text-3xl font-medium">{product.name}</h1>
-        <div className="text-xl mt-2">{product.price.toLocaleString('ru-RU')} ₽</div>
+        <div className="text-xl mt-2">{rub(product.price)}</div>
         {product.description && <p className="opacity-80 mt-4">{product.description}</p>}
 
         {product.colors?.length ? (
@@ -77,11 +91,8 @@ export default function ProductClient({ product }: { product: Product }) {
             min={1}
             inputMode="numeric"
             className="border px-3 py-2 w-24"
-            value={qty}
-            onChange={(e) => {
-              const v = Math.max(1, Number(e.target.value.replace(/\D/g, '')) || 1);
-              setQty(v);
-            }}
+            defaultValue={1}
+            ref={qtyRef}
           />
         </div>
 

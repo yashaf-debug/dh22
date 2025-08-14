@@ -8,7 +8,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const form = await req.formData();
   const name = String(form.get('name') || '');
   const description = String(form.get('description') || '');
-  const price = parseInt(String(form.get('price') || '0'), 10) || 0;
+  const price = Math.round(parseFloat(String(form.get('price') || '0')) * 100) || 0;
   const stock = parseInt(String(form.get('stock') || '0'), 10) || 0;
   const main_image = String(form.get('main_image') || '').trim();
 

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { queryAll } from '@/lib/db';
 import { resolveImageUrl } from '@/lib/images';
+import { rub } from '@/app/lib/money';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -27,9 +28,11 @@ export default async function Home() {
           try { fallback = JSON.parse(p.images ?? '[]')[0]; } catch {}
           return (
             <Link key={p.id} className="card" href={`/product/${p.slug}`}>
-              <img src={resolveImageUrl(p.main_image ?? fallback)} alt={p.name} width={300} height={400} loading="lazy" className="w-full h-auto object-cover border" />
+              <div className="aspect-[3/4] overflow-hidden border">
+                <img src={resolveImageUrl(p.main_image ?? fallback)} alt={p.name} loading="lazy" className="object-cover w-full h-full" />
+              </div>
               <div className="text-sm">{p.name}</div>
-              <div className="text-sm opacity-80">{p.price.toLocaleString('ru-RU')} ₽</div>
+              <div className="text-sm opacity-80">{rub(p.price)}</div>
             </Link>
           );
         })}
