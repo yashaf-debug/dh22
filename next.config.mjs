@@ -1,5 +1,10 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    instrumentationHook: true,
+  },
   images: {
     loader: 'default',
     remotePatterns: [
@@ -18,4 +23,7 @@ const nextConfig = {
     return base ? [{ source: '/i/:id', destination: `${base}/:id/public` }] : [];
   },
 };
-export default nextConfig;
+
+export default withSentryConfig(nextConfig, {
+  silent: true,
+});
