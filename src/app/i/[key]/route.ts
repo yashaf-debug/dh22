@@ -1,6 +1,6 @@
 export const runtime = "edge";
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { first } from "@/app/lib/db";
 
 // base64 -> Uint8Array (в Edge есть atob)
@@ -11,13 +11,13 @@ function b64ToUint8(b64: string) {
   return out;
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: { key: string } }) {
   try {
-    const id = (params.id || "").trim();
-    if (!id) return new Response("Not found", { status: 404 });
+    const key = (params.key || "").trim();
+    if (!key) return new NextResponse("Not found", { status: 404 });
 
-    const row: any = await first("SELECT mime, bytes FROM uploads WHERE id=?", id);
-    if (!row) return new Response("Not found", { status: 404 });
+    const row: any = await first("SELECT mime, bytes FROM uploads WHERE id=?", key);
+    if (!row) return new NextResponse("Not found", { status: 404 });
 
     let body: any = row.bytes;
 
@@ -42,15 +42,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       body = new Uint8Array([]);
     }
 
-    const mime = row.mime || "application/octet-stream";
-    return new Response(body, {
-      headers: {
-        "content-type": mime,
-        "cache-control": "public, max-age=31536000, immutable"
-      }
+    const headers = new Headers({
+      "content-type": row.mime || "application/octet-stream",
+      "cache-control": "public, max-age=31536000, immutable",
     });
+    return new NextResponse(body, { headers });
   } catch (e) {
     // чтобы не ронять весь рендер — отдаём 404
-    return new Response("Not found", { status: 404 });
+    return new NextResponse("Not found", { status: 404 });
   }
 }
