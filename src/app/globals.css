@@ -11,3 +11,9 @@ a { text-underline-offset:2px; }
 .card { @apply flex flex-col gap-2; }
 .navlink { @apply uppercase tracking-wide text-sm; }
 .badge { @apply text-xs uppercase tracking-widest; }
+
+article.prose p { margin: 0.5rem 0; }
+article.prose h2,
+article.prose h3 { margin-top: 1.25rem; }
+article.prose ul,
+article.prose ol { padding-left: 1.25rem; margin: 0.5rem 0; }
