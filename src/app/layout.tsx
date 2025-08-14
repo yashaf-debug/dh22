@@ -57,6 +57,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <Link href="/privacy">Политика конфиденциальности</Link>
                 <span>/</span>
                 <Link href="/terms">Пользовательское соглашение</Link>
+                <span>/</span>
+                <Link href="/oferta">Договор-оферта</Link>
               </div>
             </div>
         </footer>
