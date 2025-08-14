@@ -1,25 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { resolveImageUrl } from '@/lib/images';
+import ImageUploader from '@/components/admin/ImageUploader';
 
 export default function MainImageField({ initial }: { initial: string }) {
   const [mainImage, setMainImage] = useState(initial);
   return (
-    <div>
+    <div className="space-y-2">
       <input
         name="main_image"
         value={mainImage}
         onChange={(e) => setMainImage(e.target.value)}
         className="border px-3 py-2 w-full"
       />
-      {mainImage ? (
-        <img
-          src={resolveImageUrl(mainImage, 'width=600,fit=cover')}
-          alt="preview"
-          className="h-24 w-auto border mt-2 object-contain"
-        />
-      ) : null}
+      <ImageUploader value={mainImage} onChange={setMainImage} />
     </div>
   );
 }

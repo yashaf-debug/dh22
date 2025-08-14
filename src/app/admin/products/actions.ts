@@ -1,9 +1,10 @@
-import { getRequestContext } from '@cloudflare/next-on-pages';
-export const runtime = 'edge';
+'use server';
 
-export async function GET(req: Request) {
-  const env: any = getRequestContext().env;
-  const db = env.DB ?? env.DH22_DB;
+import { redirect } from 'next/navigation';
+import { d1 } from '@/lib/db';
+
+export async function createProduct() {
+  const db = d1();
   const slug = `new-${Date.now()}`;
   const stmt = db.prepare(
     `INSERT INTO products
@@ -12,5 +13,6 @@ export async function GET(req: Request) {
   ).bind(slug);
   const result: any = await stmt.run();
   const id = result?.meta?.last_row_id ?? result?.meta?.lastRowId ?? 0;
-  return Response.redirect(new URL(`/admin/products/${id}?t=${Date.now()}`, req.url), 302);
+  redirect(`/admin/products/${id}`);
 }
+

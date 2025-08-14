@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { resolveImageUrl } from '@/lib/images';
+import { imgProps } from '@/lib/images';
 import { rub } from '@/app/lib/money';
 
 type Product = {
@@ -20,11 +20,6 @@ export default function ProductClient({ product }: { product: Product }) {
   const qtyRef = useRef<HTMLInputElement>(null);
   const [color, setColor] = useState<string | undefined>(product.colors?.[0]);
   const [size, setSize] = useState<string | undefined>(product.sizes?.[0]);
-
-  const img = resolveImageUrl(product.main_image, 'width=1000,fit=cover');
-  if (!img.startsWith('/') && !/^https?:\/\//.test(img)) {
-    console.warn('resolveImageUrl produced relative path:', img);
-  }
 
   const addToCart = () => {
     const qty = Math.max(1, parseInt(qtyRef.current?.value || '1', 10));
@@ -58,7 +53,7 @@ export default function ProductClient({ product }: { product: Product }) {
   return (
     <div className="grid md:grid-cols-[1fr_1fr] gap-8">
       <div>
-        <img src={img} alt={product.name} className="w-full h-auto object-cover border" />
+        <img {...imgProps(product.main_image, `Фото «${product.name}»`)} className="product-img" />
       </div>
 
       <div>

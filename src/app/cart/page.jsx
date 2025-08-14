@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { rub } from "../lib/money";
-import { resolveImageUrl } from "@/lib/images";
+import { imgProps } from "@/lib/images";
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
@@ -54,7 +54,9 @@ export default function CartPage() {
           <div className="md:col-span-2 flex flex-col gap-4">
             {cart.map((i,idx)=>(
               <div key={idx} className="flex items-center gap-4 border-b pb-4">
-                <img src={resolveImageUrl(i.image)} className="w-24 h-32 object-cover border" alt={i.name} />
+                <div className="w-24 h-32">
+                  <img {...imgProps(i.image || i.image_url, i.name)} className="cart-thumb" />
+                </div>
                 <div className="flex-1">
                   <div className="text-sm">{i.name}</div>
                   <div className="text-xs opacity-70">{[i.color,i.size].filter(Boolean).join(' · ')}</div>

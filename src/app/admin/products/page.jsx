@@ -3,7 +3,8 @@ export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authHeaders } from "../_lib";
-import { resolveImageUrl } from "@/lib/images";
+import { imgProps } from "@/lib/images";
+import { createProduct } from './actions';
 
 export default function AdminProductsList({ searchParams }) {
   const t = searchParams?.t || "";
@@ -26,14 +27,17 @@ export default function AdminProductsList({ searchParams }) {
       <div className="flex gap-2">
         <input className="border px-2 py-1" placeholder="поиск…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="border px-3" onClick={load}>Искать</button>
-        <Link href="/admin/products/new" className="btn btn-sm">+ Новый</Link>
+        <form action={createProduct}>
+          <button className="btn btn-sm" type="submit">+ Новый</button>
+        </form>
       </div>
       <div className="divide-y">
           {items.map((p) => {
-            const img = resolveImageUrl(p.main_image || p.image_url);
             return (
               <div key={p.id} className="py-3 flex items-center gap-4">
-                <img src={img} alt="" className="w-12 h-12 object-cover border" />
+                <div className="w-12 h-12">
+                  <img {...imgProps(p.main_image || p.image_url, p.name)} className="product-thumb" />
+                </div>
                 <div className="flex-1">
                   <div className="font-medium">{p.name}</div>
                   <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
