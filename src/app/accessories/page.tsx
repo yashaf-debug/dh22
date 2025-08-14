@@ -1,7 +1,8 @@
-import Link from 'next/link';
-import CfImage from '@/app/components/CfImage';
-import { all } from '../lib/db';
-import { rub } from '../lib/money';
+import Image from "next/image";
+import Link from "next/link";
+import { cfLoader } from "@/app/lib/cfImage";
+import { all } from "../lib/db";
+import { rub } from "../lib/money";
 
 export const runtime = 'edge';
 export const revalidate = 3600;
@@ -35,7 +36,15 @@ export default async function Accessories() {
               : "/placeholder.png";
           return (
             <Link key={p.slug} href={`/product/${p.slug}`} className="card">
-                <CfImage src={img} alt={p.name} width={300} height={400} sizes="(max-width:768px) 50vw, 25vw" className="w-full h-auto object-cover border" />
+              <Image
+                src={img}
+                alt={p.name}
+                width={300}
+                height={400}
+                sizes="(max-width:768px) 50vw, 25vw"
+                className="w-full h-auto object-cover border"
+                loader={cfLoader as any}
+              />
               <div className="text-sm">{p.name}</div>
               <div className="text-sm opacity-80">{rub(p.price)}</div>
             </Link>
