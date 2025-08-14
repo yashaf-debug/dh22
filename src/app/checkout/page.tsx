@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import CityAutocomplete from "@/app/components/CityAutocomplete";
 import CdekMapPicker from "@/app/components/CdekMapPicker";
 import { rub } from "../lib/money";
-import { track } from "../lib/analytics";
+import { evBeginCheckout, evSelectPVZ, evPaymentMethod } from "../lib/metrics";
 
 type PVZ = { code: string; name: string; address: string };
 
@@ -23,9 +23,8 @@ export default function CheckoutPage() {
     const raw = localStorage.getItem('dh22_cart');
     const parsed = raw ? JSON.parse(raw) : [];
     setCart(parsed);
-    const value = parsed.reduce((s: number, i: any) => s + i.price * i.qty, 0) / 100;
-    const items = parsed.map((i: any) => ({ item_id: i.slug, item_name: i.name, price: i.price / 100, quantity: i.qty }));
-    if (parsed.length) track.begin_checkout({ value, items });
+      const sum = parsed.reduce((s: number, i: any) => s + i.price * i.qty, 0) / 100;
+      if (parsed.length) evBeginCheckout(sum);
   }, []);
 
   const itemsTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -206,8 +205,8 @@ export default function CheckoutPage() {
                   cityCode={cityCode || undefined}
                   yandexApiKey={process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || ""}
                   onSelect={(pvz) => {
-                    setDelivery(d => ({ ...d, pvz }));
-                    track.select_pvz({ code: pvz.code, address: pvz.address });
+                      setDelivery(d => ({ ...d, pvz }));
+                      evSelectPVZ(pvz.code, pvz.address);
                   }}
                   buttonText="Выбрать ПВЗ на карте"
                 />
@@ -233,8 +232,8 @@ export default function CheckoutPage() {
                 value="online"
                 checked={paymentMethod === "online"}
                 onChange={() => {
-                  setPaymentMethod('online');
-                  track.payment_method_selected({ method: 'online' });
+                    setPaymentMethod('online');
+                    evPaymentMethod('online');
                 }}
               />
               <span>Онлайн (CDEK Pay)</span>
@@ -246,8 +245,8 @@ export default function CheckoutPage() {
                 value="cod"
                 checked={paymentMethod === "cod"}
                 onChange={() => {
-                  setPaymentMethod('cod');
-                  track.payment_method_selected({ method: 'cod' });
+                    setPaymentMethod('cod');
+                    evPaymentMethod('cod');
                 }}
               />
               <span>При получении</span>
