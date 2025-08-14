@@ -31,7 +31,12 @@ export default async function ProductPage({ params }: { params:{slug:string} }) 
           className="w-full h-auto object-cover border"
         />
       </div>
-      <ProductClient product={{ slug: product.slug, name: product.name, price: product.price, category: product.category }} />
+      <ProductClient
+        slug={product.slug}
+        name={product.name}
+        price={product.price}
+        category={product.category}
+      />
     </div>
   );
 }
