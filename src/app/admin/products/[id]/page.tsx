@@ -23,7 +23,9 @@ export default async function EditProduct({ params }: { params: { id: string } }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-4">
-      <h1 className="text-2xl">Правка товара</h1>
+      <h1 className="text-2xl font-semibold mb-6">
+        Правка товара — {product.name || 'Без названия'} <span className="text-neutral-400">#{product.id}</span>
+      </h1>
       <form method="post" action={`/api/admin/products/${product.id}/update`} className="space-y-3">
         <input name="name" defaultValue={product.name} className="border px-3 py-2 w-full" />
         <textarea name="description" defaultValue={product.description || ''} className="border px-3 py-2 w-full" />

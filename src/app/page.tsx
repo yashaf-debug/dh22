@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { queryAll } from '@/lib/db';
-import { resolveImageUrl } from '@/lib/images';
+import { imgProps } from '@/lib/images';
 import { rub } from '@/app/lib/money';
 
 export const runtime = 'edge';
@@ -28,8 +28,8 @@ export default async function Home() {
           try { fallback = JSON.parse(p.images ?? '[]')[0]; } catch {}
           return (
             <Link key={p.id} className="card" href={`/product/${p.slug}`}>
-              <div className="aspect-[3/4] overflow-hidden border">
-                <img src={resolveImageUrl(p.main_image ?? fallback)} alt={p.name} loading="lazy" className="object-cover w-full h-full" />
+              <div className="grid-product-thumb">
+                <img {...imgProps(p.main_image ?? fallback, p.name)} className="product-thumb" />
               </div>
               <div className="text-sm">{p.name}</div>
               <div className="text-sm opacity-80">{rub(p.price)}</div>
