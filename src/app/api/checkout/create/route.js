@@ -1,9 +1,11 @@
 export const runtime = 'edge';
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import * as Sentry from '@sentry/nextjs';
 import { run, first, all } from "@/app/lib/db";
 import { insertOrder, insertItem, byNumber } from "@/app/lib/sql";
 import { ensureOrdersTables } from "@/app/lib/init";
 import { notifyOrderCreated } from "@/app/lib/notify";
+import { verifyTurnstile } from '@/lib/turnstile';
+import { logEvent } from '@/lib/logs';
 
 function bad(msg, code=400){
   return new Response(
@@ -13,10 +15,14 @@ function bad(msg, code=400){
 }
 
 export async function POST(req) {
-  const env = getRequestContext().env;
   try {
     await ensureOrdersTables();
     const body = await req.json();
+    const token = String(body.cf_turnstile_token || '');
+    const ip = req.headers.get('cf-connecting-ip') || undefined;
+    const ok = await verifyTurnstile(token, ip);
+    if (!ok) return bad('Turnstile failed', 400);
+
     const { customer, items } = body;
     const delivery = body.delivery || {};
     const payment_method = body.payment_method === "cod" ? "cod" : "online";
@@ -85,8 +91,15 @@ export async function POST(req) {
       await notifyOrderCreated(createdOrder, createdItems);
     } catch {}
 
-    return new Response(JSON.stringify({ ok: true, orderNumber: number, orderId: order.id }), { headers: { "content-type": "application/json" } });
+    await logEvent('info','checkout','order-created',{ orderId: order.id, orderNumber: number, total: amount_total });
+
+    return new Response(
+      JSON.stringify({ ok: true, orderNumber: number, orderId: order.id }),
+      { headers: { "content-type": "application/json" } }
+    );
   } catch (e) {
+    Sentry.captureException(e);
+    await logEvent('error','checkout','exception',{ error: String(e) });
     return bad(`D1_ERROR: ${e.message || "Ошибка создания заказа"}`, 500);
   }
 }

@@ -1,81 +1,46 @@
-export const runtime = "edge";
+import * as Sentry from '@sentry/nextjs';
+import { logEvent } from '@/lib/logs';
+import { NextRequest } from 'next/server';
 
-import { NextRequest, NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
-import { first, all, run } from "@/app/lib/db";
-import { notifyOrderPaid } from "@/app/lib/notify";
-import { cdekSignature } from "@/app/lib/cdek/signature";
+const SIGNATURE_HEADERS = ['x-signature','x-content-signature','signature'];
 
-/** Простой логгер вебхуков (если у тебя уже есть — можешь сохранить свой) */
-async function logWebhook(path: string, headersObj: any, body: any) {
-  try {
-    await run(
-      "INSERT INTO webhook_logs (path, headers, body) VALUES (?,?,?)",
-      path,
-      JSON.stringify(headersObj),
-      typeof body === "string" ? body : JSON.stringify(body)
-    );
-  } catch {}
+async function hmac(body: string, secret: string) {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
 export async function POST(req: NextRequest) {
-  const raw = await req.text(); // сохраняем «как есть» на всякий случай
-  let body: any = null;
-  try { body = JSON.parse(raw); } catch { body = raw; }
+  try {
+    const secret = process.env.CDEKPAY_WEBHOOK_SECRET;
+    if (!secret) return new Response('No secret', { status: 500 });
 
-  // лог
-  const headersObj: any = {};
-  req.headers.forEach((v, k) => (headersObj[k] = v));
-  await logWebhook("/api/pay/cdek/webhook", headersObj, body);
+    const raw = await req.text(); // важно получить СЫРОЕ тело
+    const headerSig =
+      SIGNATURE_HEADERS.map(h => req.headers.get(h)).find(Boolean) || '';
 
-  // ожидаем payload вида { payment: { order_id, access_key, pay_amount, ... }, signature: ... }
-  const payment = (body && body.payment) ? body.payment : null;
-  const signature = typeof body?.signature === "string" ? body.signature : "";
-  const cdek_order_id = payment?.order_id ? String(payment.order_id) : null;
+    const calc = await hmac(raw, secret);
 
-  if (!cdek_order_id) {
-    return NextResponse.json({ ok:false, error:"no_order_id" }, { status: 200 });
+    if (!headerSig || headerSig.toLowerCase() !== calc) {
+      await logEvent('warn','cdek:webhook','bad-signature',{ headerSig, calc });
+      return new Response('Bad signature', { status: 401 });
+    }
+
+    const payload = JSON.parse(raw);
+
+    // TODO: обработай статусы платежей (paid/canceled/refunded etc.)
+    await logEvent('info','cdek:webhook','ok', { order_id: payload?.order_id, status: payload?.status });
+
+    return new Response('ok', { status: 200 });
+  } catch (err) {
+    Sentry.captureException(err);
+    await logEvent('error','cdek:webhook','exception',{ error: String(err) });
+    return new Response('error', { status: 500 });
   }
-
-  const { env } = getRequestContext();
-  const secret = env.CDEK_PAY_SECRET || "";
-  if (!secret || !payment || !signature) {
-    return NextResponse.json({ ok:false, error:"bad_signature" }, { status: 200 });
-  }
-  const expected = await cdekSignature(payment, secret);
-  if (expected !== signature) {
-    return NextResponse.json({ ok:false, error:"signature_mismatch" }, { status: 200 });
-  }
-
-  // наш заказ ищем по сохранённому ранее cdek_order_id (мы его кладём при создании payment link)
-  const order: any = await first("SELECT * FROM orders WHERE cdek_order_id=?", cdek_order_id);
-  if (!order) {
-    return NextResponse.json({ ok:false, error:"order_not_found" }, { status: 200 });
-  }
-
-  // если уже оплачен — просто подтверждаем
-  if (order.status === "paid") {
-    return NextResponse.json({ ok:true, status:"already_paid" }, { status: 200 });
-  }
-
-  // помечаем оплаченным
-  const now = new Date().toISOString();
-  await run(
-    `UPDATE orders
-       SET status='paid', paid_at=?, status_updated_at=?
-     WHERE id=?`,
-    now, now, order.id
-  );
-  await run(
-    `INSERT INTO order_history (order_id, from_status, to_status, actor)
-     VALUES (?,?,?,'webhook')`,
-    order.id, order.status, "paid"
-  );
-
-  // пришлём уведомления
-  const items = await all("SELECT name, qty, price FROM order_items WHERE order_id=?", order.id);
-  const fresh = await first("SELECT * FROM orders WHERE id=?", order.id);
-  await notifyOrderPaid(fresh, items);
-
-  return NextResponse.json({ ok:true, status:"paid" }, { status: 200 });
 }

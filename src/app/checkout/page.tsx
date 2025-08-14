@@ -6,6 +6,7 @@ import CdekMapPicker from "@/app/components/CdekMapPicker";
 import { rub } from "../lib/money";
 import { imgProps } from "@/lib/images";
 import { evBeginCheckout, evSelectPVZ, evPaymentMethod } from "../lib/metrics";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 type PVZ = { code: string; name: string; address: string };
 
@@ -19,6 +20,7 @@ export default function CheckoutPage() {
   const [delivery, setDelivery] = useState<{ price_kop: number; eta: string; pvz: PVZ | null }>({ price_kop: 0, eta: "", pvz: null });
   const [loadingShip, setLoadingShip] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
+  const [cfToken, setCfToken] = useState('');
 
   useEffect(() => {
     const raw = localStorage.getItem('dh22_cart');
@@ -86,6 +88,7 @@ export default function CheckoutPage() {
         items: cart,
         amount: { total: orderTotal },
         payment_method: paymentMethod,
+        cf_turnstile_token: cfToken,
       };
       const r1 = await fetch("/api/checkout/create", {
         method: "POST",
@@ -254,7 +257,10 @@ export default function CheckoutPage() {
             </label>
           </div>
 
-  <button className="btn btn-primary w-48" disabled={loading} onClick={submit}>
+  <div className="mt-4">
+        <TurnstileWidget onVerify={setCfToken} />
+      </div>
+      <button className="btn btn-primary w-48" disabled={loading || !cfToken} onClick={submit}>
             {loading ? "Создаём..." : "Перейти к оплате"}
           </button>
         </div>
