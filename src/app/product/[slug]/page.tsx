@@ -1,80 +1,38 @@
+// src/app/product/[slug]/page.tsx
 import { notFound } from 'next/navigation';
 import { queryAll } from '@/lib/db';
-import { resolveImageUrl, rubKopecks } from '@/lib/images';
-import QtyInput from '@/components/QtyInput';
+import ProductClient from './ProductClient';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 type Product = {
-  id: number; slug: string; name: string; description?: string | null;
-  price: number; currency: string; main_image?: string | null; image_url?: string | null; images?: string | null;
-  colors?: string | null; sizes?: string | null; stock?: string | null; category?: string | null; subcategory?: string | null;
+  id: number;
+  slug: string;
+  name: string;
+  price: number;
+  description?: string | null;
+  colors?: string | null;
+  sizes?: string | null;
+  main_image?: string | null;
 };
 
-export default async function ProductPage({ params }: { params: { slug: string }}) {
-  const rows = await queryAll<Product>(`SELECT * FROM products WHERE slug=? LIMIT 1`, params.slug);
+export default async function ProductPage({ params }: { params: { slug: string } }) {
+  const rows = await queryAll<Product>(
+    `SELECT id, slug, name, price, description, colors, sizes, main_image FROM products WHERE slug=? LIMIT 1`,
+    params.slug
+  );
   if (!rows.length) notFound();
   const p = rows[0];
-  const images: string[] = (() => { try { return JSON.parse(p.images ?? '[]'); } catch { return []; } })();
-  const imgSrc =
-    p.main_image ||
-    p.image_url ||
-    images[0] ||
-    '/placeholder.svg';
-  const firstImg = resolveImageUrl(imgSrc);
-  const gallery = [p.main_image, p.image_url, ...images]
-    .filter(Boolean)
-    .map((u) => resolveImageUrl(u!));
-  const features = (p.description ?? '').split('/').map(s => s.trim()).filter(Boolean);
-  const sizes: string[] = (() => { try { return JSON.parse(p.sizes ?? '[]'); } catch { return []; } })();
-  const colors: string[] = (() => { try { return JSON.parse(p.colors ?? '[]'); } catch { return []; } })();
+  const product = {
+    ...p,
+    colors: (() => { try { return JSON.parse(p.colors ?? '[]'); } catch { return []; } })(),
+    sizes: (() => { try { return JSON.parse(p.sizes ?? '[]'); } catch { return []; } })(),
+  };
   return (
     <div className="container mx-auto px-4 py-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <img src={firstImg} alt={p.name} className="w-full h-auto object-cover border" />
-          {!!gallery.length && (
-            <div className="grid grid-cols-4 gap-2 mt-3">
-              {gallery.map((g, i) => <img key={i} src={g} alt={`${p.name} ${i+1}`} className="w-full h-auto object-cover border" />)}
-            </div>
-          )}
-        </div>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-medium">{p.name}</h1>
-          <div className="mt-2 text-lg">{rubKopecks(p.price)}</div>
-          <div className="mt-6 text-sm opacity-80 text-center">
-            {features.length ? <div>{features.join(' / ')}</div> : null}
-          </div>
-
-          <form method="post" action="/api/cart/add" className="space-y-3">
-            <input type="hidden" name="product_id" value={p.id} />
-
-            {!!colors.length ? (
-              <>
-                <label className="block text-sm">Цвет</label>
-                <select name="color" className="select w-full">
-                  {colors.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </>
-            ) : null}
-
-            {!!sizes.length ? (
-              <>
-                <label className="block text-sm">Размер</label>
-                <select name="size" className="select w-full">
-                  {sizes.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </>
-            ) : null}
-
-            <label className="block text-sm">Количество</label>
-            <QtyInput name="qty" defaultValue={1} />
-
-            <button type="submit" className="btn btn-primary">В корзину</button>
-          </form>
-        </div>
-      </div>
+      <ProductClient product={product} />
     </div>
   );
 }
+

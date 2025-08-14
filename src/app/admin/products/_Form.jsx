@@ -22,14 +22,13 @@ export default function ProductForm({ token, initial, onSaved }) {
     setForm((s) => ({ ...s, [k]: v }));
   }
   async function uploadToR2(file) {
-    const fd = new FormData(); fd.append('file', file, file.name);
+    const fd = new FormData();
+    fd.set('file', file);
     const res = await fetch('/api/images/upload-r2', { method:'POST', body: fd });
-    const data = await res.json().catch(()=>({}));
-    if (!res.ok || !data?.url) {
-      alert('upload error: ' + (data?.error || res.statusText));
-      throw new Error(data?.error || 'upload failed');
-    }
-    set('main_image', data.url); // /r2/<key>
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'upload error');
+    // data.stored = "/r2/<key>"
+    set('main_image', data.stored);
   }
   async function submit() {
     const payload = {
@@ -92,7 +91,7 @@ export default function ProductForm({ token, initial, onSaved }) {
       </div>
       {form.main_image ? (
         <img
-          src={resolveImageUrl(form.main_image, 'width=600,quality=82')}
+          src={resolveImageUrl(form.main_image, 'width=600,fit=cover')}
           alt="preview"
           className="h-24 w-auto border mt-2 object-contain"
         />

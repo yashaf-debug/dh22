@@ -39,11 +39,14 @@ export default function AdminProductsList({ searchParams }) {
                   <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
                 </div>
                 <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(t)}`}>Править</Link>
-                <form method="post" action={`/api/admin/products/${p.id}/delete`} onSubmit={(e) => {
-                  if (!confirm('Удалить товар?')) e.preventDefault();
-                }}>
-                  <button type="submit" className="btn btn-danger btn-sm">Удалить</button>
-                </form>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={async () => {
+                    if (!confirm('Удалить товар?')) return;
+                    await fetch(`/api/admin/products/${p.id}`, { method:'DELETE', headers: authHeaders(t) });
+                    load();
+                  }}
+                >Удалить</button>
               </div>
             );
           })}
