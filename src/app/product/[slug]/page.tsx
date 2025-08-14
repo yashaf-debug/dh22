@@ -1,48 +1,73 @@
-import Image from "next/image";
-import { getProductBySlug } from "@/app/lib/db-products";
-import { productImageSrc } from "@/app/lib/products";
-import ProductClient from "./ProductClient";
+import { notFound } from 'next/navigation';
+import { queryAll } from '@/lib/db';
+import { resolveImageUrl, firstFromJsonArray, formatPriceRubKopecks } from '@/lib/images';
 
-export const runtime = "edge";
+export const runtime = 'edge';
 
-export default async function ProductPage({ params }: { params:{slug:string} }) {
-  const product: any = await getProductBySlug(params.slug);
-  if (!product) {
-    return <div className="container mx-auto px-4 py-10">Товар не найден</div>;
-  }
+type Product = {
+  id: number; slug: string; name: string; description?: string | null;
+  price: number; currency: string; main_image?: string | null; images?: string | null;
+  colors?: string | null; sizes?: string | null; stock?: string | null; category?: string | null; subcategory?: string | null;
+};
 
-  const src = productImageSrc(product);
-  const isSvg = src.endsWith('.svg');
-
+export default async function ProductPage({ params }: { params: { slug: string }}) {
+  const rows = await queryAll<Product>(`SELECT * FROM products WHERE slug=? LIMIT 1`, params.slug);
+  if (!rows.length) notFound();
+  const p = rows[0];
+  const firstImg = resolveImageUrl(p.main_image ?? firstFromJsonArray(p.images ?? undefined));
+  const images: string[] = (() => { try { return JSON.parse(p.images ?? '[]'); } catch { return []; } })();
+  const gallery = [p.main_image, ...images].filter(Boolean).map(u => resolveImageUrl(u!));
+  const features = (p.description ?? '').split('/').map(s => s.trim()).filter(Boolean);
+  const sizes: string[] = (() => { try { return JSON.parse(p.sizes ?? '[]'); } catch { return []; } })();
+  const colors: string[] = (() => { try { return JSON.parse(p.colors ?? '[]'); } catch { return []; } })();
   return (
-    <div className="container mx-auto px-4 py-10 grid md:grid-cols-2 gap-8">
-      <div>
-        {isSvg ? (
-          <img
-            src={src}
-            alt={product.name}
-            width={900}
-            height={1200}
-            loading="lazy"
-            className="w-full h-auto object-cover border"
-          />
-        ) : (
-          <Image
-            src={src}
-            alt={product.name}
-            width={900}
-            height={1200}
-            sizes="(max-width:768px) 100vw, 50vw"
-            className="w-full h-auto object-cover border"
-          />
-        )}
+    <div className="container mx-auto px-4 py-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <img src={firstImg} alt={p.name} className="w-full h-auto object-cover border" />
+          {!!gallery.length && (
+            <div className="grid grid-cols-4 gap-2 mt-3">
+              {gallery.map((g, i) => <img key={i} src={g} alt={`${p.name} ${i+1}`} className="w-full h-auto object-cover border" />)}
+            </div>
+          )}
+        </div>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-medium">{p.name}</h1>
+          <div className="mt-2 text-lg">{formatPriceRubKopecks(p.price, p.currency)}</div>
+          <div className="mt-6 text-sm opacity-80 text-center">
+            {features.length ? <div>{features.join(' / ')}</div> : null}
+          </div>
+
+          <form className="mt-6 space-y-3" action="/cart">
+            {!!colors.length && (
+              <div>
+                <label className="block text-sm mb-1">Цвет</label>
+                <select name="color" className="border px-3 py-2 w-full">
+                  {colors.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            )}
+            {!!sizes.length && (
+              <div>
+                <label className="block text-sm mb-1">Размер</label>
+                <select name="size" className="border px-3 py-2 w-full">
+                  {sizes.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="block text-sm mb-1">Количество</label>
+              <input
+                type="number" name="qty" min={1} step={1} defaultValue={1}
+                className="border px-3 py-2 w-24"
+                onInput={(e:any) => { const v = Math.max(1, parseInt(e.currentTarget.value || '1', 10)); e.currentTarget.value = String(v); }}
+              />
+            </div>
+            <input type="hidden" name="slug" value={p.slug} />
+            <button className="border px-4 py-2" type="submit">В корзину</button>
+          </form>
+        </div>
       </div>
-      <ProductClient
-        slug={product.slug}
-        name={product.name}
-        price={product.price}
-        category={product.category}
-      />
     </div>
   );
 }
