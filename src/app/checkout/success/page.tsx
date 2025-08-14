@@ -1,7 +1,7 @@
 "use client";
 export const runtime = 'edge'
-import { useEffect, useState } from "react";
-import { track } from "../../lib/analytics";
+import { useEffect, useState, useRef } from "react";
+import { evPurchase } from "@/app/lib/metrics";
 
 export default function SuccessPage({ searchParams }) {
   const number = (searchParams?.o || searchParams?.order || "").trim();
@@ -9,7 +9,7 @@ export default function SuccessPage({ searchParams }) {
   const [state, setState] = useState({ status: "loading", paid: false });
   const [order, setOrder] = useState<any>(null);
   const [payBusy, setPayBusy] = useState(false);
-  const [purchaseTracked, setPurchaseTracked] = useState(false);
+    const sentRef = useRef(false);
 
   // telegram deeplink state
   const [tgUrl, setTgUrl] = useState("");
@@ -28,6 +28,16 @@ export default function SuccessPage({ searchParams }) {
           const paid = j?.order?.status === "paid";
           setOrder(j?.order ? { ...j.order, items: j.items } : null);
           setState({ status: j?.order?.status || "new", paid });
+          if (paid && !sentRef.current) {
+            sentRef.current = true;
+            const items = (j.items || []).map((i: any) => ({ id: i.slug, name: i.name, price: i.price / 100, qty: i.qty }));
+            evPurchase({
+              number: j.order.number,
+              revenue: (j.order.amount_total || 0) / 100,
+              shipping: (j.order.shipping_price || 0) / 100,
+              items,
+            });
+          }
           if (!paid) t = setTimeout(tick, 2000);
         } else {
           t = setTimeout(tick, 3000);
@@ -91,14 +101,6 @@ export default function SuccessPage({ searchParams }) {
     !state.paid;
 
   const showTgButton = Boolean(tgReady && tgUrl && order && !order.customer_tg_chat_id);
-
-  useEffect(() => {
-    if (!purchaseTracked && state.paid && order) {
-      const items = (order.items || []).map((i: any) => ({ item_id: i.slug, item_name: i.name, price: i.price / 100, quantity: i.qty }));
-      track.purchase({ order_number: number, value: (order.amount_total || 0) / 100, items });
-      setPurchaseTracked(true);
-    }
-  }, [purchaseTracked, state.paid, order, number]);
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-4">
