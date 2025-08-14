@@ -8,6 +8,7 @@ const nextConfig = {
     ],
     minimumCacheTTL: 60 * 60 * 24 * 7,
   },
+
   async redirects() {
     return [
       { source: '/delivery', destination: '/legal/delivery', permanent: true },

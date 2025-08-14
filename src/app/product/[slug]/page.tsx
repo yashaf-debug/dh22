@@ -40,7 +40,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             {features.length ? <div>{features.join(' / ')}</div> : null}
           </div>
 
-          <form className="mt-6 space-y-3" action="/cart">
+          <form className="mt-6 space-y-3" action="/cart" method="POST">
             {!!colors.length && (
               <div>
                 <label className="block text-sm mb-1">Цвет</label>

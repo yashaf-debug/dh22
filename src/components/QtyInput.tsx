@@ -1,7 +1,9 @@
 "use client";
 import { useState } from 'react';
 
-export default function QtyInput({ name='qty', defaultValue=1 }:{name?:string; defaultValue?:number;}) {
+export default function QtyInput({ name = 'qty', defaultValue = 1 }:{
+  name?: string; defaultValue?: number;
+}) {
   const [raw, setRaw] = useState(String(defaultValue));
   return (
     <input
@@ -10,12 +12,11 @@ export default function QtyInput({ name='qty', defaultValue=1 }:{name?:string; d
       inputMode="numeric"
       pattern="[0-9]*"
       value={raw}
-      onChange={(e)=>{
-        // оставляем только цифры, допускаем пусто
-        const v = e.target.value.replace(/[^\d]/g,'');
+      onChange={(e) => {
+        const v = e.target.value.replace(/[^\d]/g, ''); // только цифры, пусто разрешено
         setRaw(v);
       }}
-      onBlur={()=>{
+      onBlur={() => {
         const n = Math.max(1, parseInt(raw || '0', 10));
         setRaw(String(n));
       }}
