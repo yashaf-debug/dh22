@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authHeaders } from "../_lib";
+import { resolveImageUrl } from "@/lib/images";
 
 export default function AdminProductsList({ searchParams }) {
   const t = searchParams?.t || "";
@@ -29,11 +30,7 @@ export default function AdminProductsList({ searchParams }) {
       </div>
       <div className="divide-y">
         {items.map((p) => {
-          const img =
-            (p.image_url || p.main_image || "").startsWith("/i/") ||
-            (p.image_url || p.main_image || "").startsWith("http")
-              ? p.image_url || p.main_image
-              : "/placeholder.png";
+          const img = resolveImageUrl(p.image_url || p.main_image);
           return (
             <div key={p.id} className="py-3 flex items-center gap-4">
               <img src={img} alt="" className="w-12 h-12 object-cover border" />

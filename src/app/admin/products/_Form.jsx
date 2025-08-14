@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { authHeaders } from "../_lib";
+import { resolveImageUrl } from "@/lib/images";
 
 function safeJsonArray(v) {
   try {
@@ -24,10 +25,13 @@ export default function ProductForm({ token, initial, onSaved }) {
   async function uploadToR2(file) {
     const fd = new FormData(); fd.append('file', file, file.name);
     const res = await fetch('/api/images/upload-r2', { method:'POST', body: fd });
-    const data = await res.json();
-    if (!res.ok || !data?.url) throw new Error(data?.error || 'upload failed');
+    const data = await res.json().catch(()=>({}));
+    if (!res.ok || !data?.url) {
+      alert('upload error: ' + (data?.error || res.statusText));
+      throw new Error(data?.error || 'upload failed');
+    }
     set('main_image', data.url); // /r2/<key>
-    setPreview(data.url);
+    setPreview(data.url); // покажем через resolveImageUrl()
   }
   async function submit() {
     const payload = {
@@ -84,11 +88,11 @@ export default function ProductForm({ token, initial, onSaved }) {
           <input type="file" onChange={async (e)=>{
             const f = e.currentTarget.files?.[0];
             if (!f) return;
-            try { await uploadToR2(f); } catch { alert('upload error'); }
+            try { await uploadToR2(f); } catch {}
           }} />
         </div>
       </div>
-      {preview && <img src={preview} alt="preview" className="w-32 h-auto border" />}
+      {preview && <img src={resolveImageUrl(preview, 'width=600,quality=82')} alt="preview" className="h-24 border" />}
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="flex flex-col">Размеры (JSON)
