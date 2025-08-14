@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { toR2Url } from '@/lib/r2';
+import { r2Url } from '@/lib/r2';
 
 interface Product {
   id: number;
@@ -24,19 +24,17 @@ export default function AdminProductForm({ product }: { product: Product }) {
     sizes: product.sizes || '[]',
     colors: product.colors || '[]',
   });
+  const [file, setFile] = useState<File | null>(null);
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleUpload(file: File) {
     const fd = new FormData();
-    fd.append('file', file); // ИМЯ ПОЛЯ ДОЛЖНО БЫТЬ "file"
+    fd.append('file', file);
     const res = await fetch('/api/images/upload', { method: 'POST', body: fd });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data?.ok) {
-      alert('upload error: ' + (data?.error || res.status));
+    const data = await res.json();
+    if (!data.ok) {
+      alert(data.error || 'upload failed');
       return;
     }
-    // сохраняем как "/r2/<key>" — это и пишем в D1
     setForm(prev => ({ ...prev, main_image: data.path }));
   }
 
@@ -46,8 +44,8 @@ export default function AdminProductForm({ product }: { product: Product }) {
       action={`/api/admin/products/${product.id}/update`}
       className="space-y-3"
     >
-      <label className="block">
-        <div>Название</div>
+      <label className="field">
+        <span>Название</span>
         <input
           name="name"
           value={form.name}
@@ -55,8 +53,8 @@ export default function AdminProductForm({ product }: { product: Product }) {
           className="border px-3 py-2 w-full"
         />
       </label>
-      <label className="block">
-        <div>Описание</div>
+      <label className="field">
+        <span>Описание</span>
         <textarea
           name="description"
           value={form.description}
@@ -64,8 +62,8 @@ export default function AdminProductForm({ product }: { product: Product }) {
           className="border px-3 py-2 w-full"
         />
       </label>
-      <label className="block">
-        <div>Цена (в копейках)</div>
+      <label className="field">
+        <span>Цена (в копейках)</span>
         <input
           name="price"
           type="number"
@@ -74,8 +72,8 @@ export default function AdminProductForm({ product }: { product: Product }) {
           className="border px-3 py-2 w-full"
         />
       </label>
-      <label className="block">
-        <div>Остаток</div>
+      <label className="field">
+        <span>Остаток</span>
         <input
           name="stock"
           type="number"
@@ -84,8 +82,8 @@ export default function AdminProductForm({ product }: { product: Product }) {
           className="border px-3 py-2 w-full"
         />
       </label>
-      <label className="block">
-        <div>Основное фото URL (строка /r2/&lt;key&gt;)</div>
+      <label className="field">
+        <span>Основное фото URL</span>
         <input
           name="main_image"
           value={form.main_image}
@@ -93,17 +91,19 @@ export default function AdminProductForm({ product }: { product: Product }) {
           className="border px-3 py-2 w-full"
         />
       </label>
-      <input type="file" accept="image/*" onChange={handleUpload} />
-      <div>
-        <div>Превью (картинка)</div>
-        <img
-          src={toR2Url(form.main_image) ?? ''}
-          alt="preview"
-          style={{ maxWidth: 200 }}
-        />
+      <div className="flex items-center gap-2">
+        <input type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] || null)} />
+        <button type="button" className="btn" onClick={() => file && handleUpload(file)}>Загрузить</button>
       </div>
-      <label className="block">
-        <div>Размеры (JSON)</div>
+      {form.main_image && (
+        <img
+          src={r2Url(form.main_image)}
+          alt="preview"
+          style={{ width: 160, height: 160, objectFit: 'cover' }}
+        />
+      )}
+      <label className="field">
+        <span>Размеры (JSON)</span>
         <input
           name="sizes"
           value={form.sizes}
@@ -111,8 +111,8 @@ export default function AdminProductForm({ product }: { product: Product }) {
           className="border px-3 py-2 w-full"
         />
       </label>
-      <label className="block">
-        <div>Цвета (JSON)</div>
+      <label className="field">
+        <span>Цвета (JSON)</span>
         <input
           name="colors"
           value={form.colors}

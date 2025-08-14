@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { queryAll } from '@/lib/db';
-import { toR2Url } from '@/lib/r2';
+import { r2Url } from '@/lib/r2';
 import { rub } from '@/app/lib/money';
 
 export const runtime = 'edge';
@@ -30,7 +30,7 @@ export default async function Home() {
             <Link key={p.id} className="card" href={`/product/${p.slug}`}>
               <div style={{ height: 360 }}>
                 {(() => {
-                  const src = toR2Url(p.main_image ?? fallback) || '/images/placeholder.png';
+                  const src = r2Url(p.main_image ?? fallback) || '/images/placeholder.png';
                   return (
                     <img
                       src={src}

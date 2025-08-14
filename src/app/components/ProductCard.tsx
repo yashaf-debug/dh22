@@ -1,6 +1,6 @@
 // src/app/components/ProductCard.tsx
 import Link from 'next/link';
-import { toR2Url } from '@/lib/r2';
+import { r2Url } from '@/lib/r2';
 import { rub } from '@/app/lib/money';
 
 type Product = {
@@ -11,7 +11,7 @@ type Product = {
 };
 
 export default function ProductCard({ product }: { product: Product }) {
-  const src = toR2Url(product.main_image) || '/images/placeholder.png';
+  const src = r2Url(product.main_image) || '/images/placeholder.png';
   return (
     <Link href={`/product/${product.slug}`} className="card">
       <div style={{ height: 360 }}>

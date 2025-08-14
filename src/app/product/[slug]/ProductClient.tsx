@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { toR2Url } from '@/lib/r2';
+import { r2Url } from '@/lib/r2';
 import { rub } from '@/app/lib/money';
 
 type Product = {
@@ -49,7 +49,7 @@ export default function ProductClient({ product }: { product: Product }) {
     location.href = '/cart';
   };
 
-  const src = toR2Url(product.main_image) || '/images/placeholder.png';
+  const src = r2Url(product.main_image) || '/images/placeholder.png';
 
   return (
     <div key={product.id} className="grid md:grid-cols-[1fr_1fr] gap-8">
