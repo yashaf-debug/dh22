@@ -29,19 +29,24 @@ export default function AdminProductsList({ searchParams }) {
         <Link href="/admin/products/new" className="btn btn-sm">+ Новый</Link>
       </div>
       <div className="divide-y">
-        {items.map((p) => {
-          const img = resolveImageUrl(p.image_url || p.main_image);
-          return (
-            <div key={p.id} className="py-3 flex items-center gap-4">
-              <img src={img} alt="" className="w-12 h-12 object-cover border" />
-              <div className="flex-1">
-                <div className="font-medium">{p.name}</div>
-                <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
+          {items.map((p) => {
+            const img = resolveImageUrl(p.image_url || p.main_image);
+            return (
+              <div key={p.id} className="py-3 flex items-center gap-4">
+                <img src={img} alt="" className="w-12 h-12 object-cover border" />
+                <div className="flex-1">
+                  <div className="font-medium">{p.name}</div>
+                  <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
+                </div>
+                <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(t)}`}>Править</Link>
+                <form method="post" action={`/api/admin/products/${p.id}/delete`} onSubmit={(e) => {
+                  if (!confirm('Удалить товар?')) e.preventDefault();
+                }}>
+                  <button type="submit" className="btn btn-danger btn-sm">Удалить</button>
+                </form>
               </div>
-              <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(t)}`}>Править</Link>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );

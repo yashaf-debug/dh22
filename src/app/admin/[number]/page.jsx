@@ -43,7 +43,14 @@ export default async function AdminOrder({ params, searchParams }) {
               </div>
               <div className="text-sm opacity-70">{data.order.created_at}</div>
             </div>
-            <AdminStatusButtons number={number} token={token} current={data.order.status} />
+            <div className="flex flex-col items-end gap-2">
+              <AdminStatusButtons number={number} token={token} current={data.order.status} />
+              <form method="post" action={`/api/admin/orders/${data.order.id}/delete`} onSubmit={(e) => {
+                if (!confirm('Удалить заказ?')) e.preventDefault();
+              }}>
+                <button type="submit" className="btn btn-danger btn-sm">Удалить</button>
+              </form>
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
