@@ -28,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
     const item = await first(
       `SELECT id, slug, name, price, quantity, active, category, description,
-              COALESCE(main_image, image_url) AS main_image,
+              main_image, image_url, images,
               sizes, colors, updated_at
          FROM products
         WHERE id=? OR slug=?`,

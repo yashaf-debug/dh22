@@ -17,7 +17,6 @@ export default function ProductForm({ token, initial, onSaved }) {
   const [form, setForm] = useState(initial || { active: true, quantity: 0 });
   const [sizes, setSizes] = useState(initial?.sizes ? String(initial.sizes) : "[]");
   const [colors, setColors] = useState(initial?.colors ? String(initial.colors) : "[]");
-  const [preview, setPreview] = useState(initial?.main_image || "");
 
   function set(k, v) {
     setForm((s) => ({ ...s, [k]: v }));
@@ -31,7 +30,6 @@ export default function ProductForm({ token, initial, onSaved }) {
       throw new Error(data?.error || 'upload failed');
     }
     set('main_image', data.url); // /r2/<key>
-    setPreview(data.url); // покажем через resolveImageUrl()
   }
   async function submit() {
     const payload = {
@@ -82,7 +80,7 @@ export default function ProductForm({ token, initial, onSaved }) {
 
       <div className="grid gap-3 md:grid-cols-2">
         <label className="flex flex-col">Основное фото URL
-          <input className="border px-2 py-1" value={form.main_image || ""} onChange={(e) => { set("main_image", e.target.value); setPreview(e.target.value); }} />
+          <input className="border px-2 py-1" value={form.main_image || ""} onChange={(e) => set("main_image", e.target.value)} />
         </label>
         <div className="flex items-center gap-2">
           <input type="file" onChange={async (e)=>{
@@ -92,11 +90,11 @@ export default function ProductForm({ token, initial, onSaved }) {
           }} />
         </div>
       </div>
-      {preview ? (
+      {form.main_image ? (
         <img
-          src={resolveImageUrl(preview, 'width=600,quality=82')}
+          src={resolveImageUrl(form.main_image, 'width=600,quality=82')}
           alt="preview"
-          className="h-24 border mt-2"
+          className="h-24 w-auto border mt-2 object-contain"
         />
       ) : null}
 
