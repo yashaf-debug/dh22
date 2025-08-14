@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import CityAutocomplete from "@/app/components/CityAutocomplete";
 import CdekMapPicker from "@/app/components/CdekMapPicker";
 import { rub } from "../lib/money";
-import { toR2Url } from '@/lib/r2';
+import { r2Url } from '@/lib/r2';
 import { evBeginCheckout, evSelectPVZ, evPaymentMethod } from "../lib/metrics";
 import TurnstileWidget from "@/components/TurnstileWidget";
 
@@ -271,7 +271,7 @@ export default function CheckoutPage() {
             <div key={idx} className="flex items-center gap-3 border-b pb-3">
               <div className="w-16 h-20">
                 {(() => {
-                  const src = toR2Url(i.image || i.image_url) || '/images/placeholder.png';
+                  const src = r2Url(i.image || i.image_url) || '/images/placeholder.png';
                   return <img src={src} alt={i.name} width={80} height={80} />;
                 })()}
               </div>

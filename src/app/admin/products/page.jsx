@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { authHeaders } from "../_lib";
-import { toR2Url } from '@/lib/r2';
+import { r2Url } from '@/lib/r2';
 import { createNewProduct } from './actions';
 
 export default function AdminProductsList({ searchParams }) {
@@ -37,7 +37,7 @@ export default function AdminProductsList({ searchParams }) {
               <div key={p.id} className="py-3 flex items-center gap-4">
                 <div className="w-12 h-12">
                   {(() => {
-                    const src = toR2Url(p.main_image || p.image_url) || '/images/placeholder.png';
+                    const src = r2Url(p.main_image || p.image_url) || '/images/placeholder.png';
                     return (
                       <img
                         src={src}
