@@ -1,4 +1,5 @@
-import CfImage from "@/app/components/CfImage";
+import Image from "next/image";
+import { cfLoader } from "@/app/lib/cfImage";
 import { first } from "@/app/lib/db";
 import ProductClient from "./ProductClient";
 
@@ -20,13 +21,14 @@ export default async function ProductPage({ params }: { params:{slug:string} }) 
   return (
     <div className="container mx-auto px-4 py-10 grid md:grid-cols-2 gap-8">
       <div>
-        <CfImage
+        <Image
           src={product.image || "/placeholder.png"}
           alt={product.name}
           width={900}
           height={1200}
           sizes="(max-width:768px) 100vw, 50vw"
           className="w-full h-auto object-cover border"
+          loader={cfLoader as any}
         />
       </div>
       <ProductClient
