@@ -24,10 +24,9 @@ export default async function Home() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {products.map(p => {
           const fallback = firstFromJsonArray(p.images ?? undefined);
-          const src = resolveImageUrl(p.main_image ?? fallback);
           return (
             <Link key={p.id} className="card" href={`/product/${p.slug}`}>
-              <img src={src} alt={p.name} width={300} height={400} loading="lazy" className="w-full h-auto object-cover border" />
+              <img src={resolveImageUrl(p.main_image ?? fallback)} alt={p.name} width={300} height={400} loading="lazy" className="w-full h-auto object-cover border" />
               <div className="text-sm">{p.name}</div>
               <div className="text-sm opacity-80">{formatPriceRubKopecks(p.price, p.currency)}</div>
             </Link>
