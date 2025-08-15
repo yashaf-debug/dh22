@@ -73,13 +73,11 @@ export default function Footer() {
 
           {/* Колонка: Промо-карточка (опционально — статичное изображение/баннер) */}
           <div className="hidden lg:block">
-            <div className="rounded-[24px] bg-neutral-800/60 p-2">
               <img
                 src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/DH22_inst.png"
                 alt=""
                 className="aspect-[3/4] w-full rounded-[20px] object-cover"
               />
-            </div>
           </div>
         </div>
 
