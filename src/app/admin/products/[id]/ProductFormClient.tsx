@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { adminFetch } from "@/lib/adminFetch";
+export const runtime = 'edge';
 
 const CATEGORIES = {
   "Женская одежда": ["Юбки", "Жакеты", "Платья", "Футболки"],
