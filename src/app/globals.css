@@ -1,11 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root { --bg:#fff; --fg:#111; }
-html,body { background:var(--bg); color:var(--fg); }
+:root{
+  --accent:#7B61FF;
+}
+
+html { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+.wordmark { font-family: Oswald, Inter, ui-sans-serif, system-ui; text-transform: uppercase; letter-spacing: -0.03em; }
+.text-accent { color: var(--accent); }
+.bg-accent { background-color: var(--accent); }
+.border-accent { border-color: var(--accent); }
+
+/* Базовая ч/б палитра */
+body { color: #111; background:#fff; }
+
+/* Удобный контейнер */
+.page-wrap { @apply mx-auto max-w-[1400px] px-4 md:px-6; }
+
+/* Скругления по стилю */
+.rounded-dh22 { border-radius: 28px; }
+
+/* legacy styles */
 a { text-underline-offset:2px; }
-.container { max-width:1200px; }
 .btn { @apply px-4 py-2 border border-black rounded-none text-sm tracking-wide; }
 .btn-primary { @apply bg-black text-white; }
 .card { @apply flex flex-col gap-2; }
@@ -27,3 +46,4 @@ article.prose ol { padding-left: 1.25rem; margin: 0.5rem 0; }
 }
 
 .grid-product-thumb { aspect-ratio: 4/5; }
+

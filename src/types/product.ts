@@ -13,6 +13,7 @@ export type Product = {
   description: string | null;
   price: number;
   main_image: string | null;
+  is_bestseller?: number;
   gallery?: string[];
   variants?: ProductVariant[];
 };
