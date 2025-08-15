@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createDraftProduct } from "@/lib/adminMutations";
+export const runtime = 'edge';
 
 function getToken(req: Request) {
   const u = new URL(req.url);
