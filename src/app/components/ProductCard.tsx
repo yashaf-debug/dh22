@@ -14,7 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <Image src={src} alt={product.name} width={900} height={1200} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
       <div className="px-4 pb-6 pt-4 text-center">
         <div className="text-sm uppercase tracking-wider text-neutral-700">{product.name}</div>
-        <div className="mt-1 text-[15px] font-semibold">{rub(product.price)}</div>
+        <div className="mt-1 text-[15px] font-semibold">{rub((product as any).price ?? (product as any).price_cents)}</div>
       </div>
     </Link>
   );
