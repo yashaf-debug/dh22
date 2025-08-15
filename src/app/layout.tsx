@@ -2,25 +2,25 @@ import "./globals.css";
 import Link from "next/link";
 import Script from "next/script";
 import type { ReactNode } from "react";
-import StickyHeader from "@/components/StickyHeader";
+import Header from "@/components/layout/Header";
 
 export const metadata = {
   metadataBase: new URL('https://dh22.ru'),
-  title: { default: 'DH22 — женская одежда и аксессуары', template: '%s — DH22' },
-  description: 'DH22 — женская одежда и аксессуары. Новинки каждую неделю.',
+  title: { default: 'DH22 — одежда и аксессуары', template: '%s — DH22' },
+  description: 'DH22 — одежда и аксессуары. Новинки каждую неделю.',
   alternates: { canonical: 'https://dh22.ru' },
   openGraph: {
     type: 'website',
     url: 'https://dh22.ru',
     siteName: 'DH22',
-    title: 'DH22 — женская одежда и аксессуары',
-    description: 'Женская одежда, аксессуары и новинки каждую неделю.',
+    title: 'DH22 — одежда и аксессуары',
+    description: 'Одежда, аксессуары и новинки каждую неделю.',
   },
   twitter: {
     card: 'summary_large_image',
     site: '@dh22',
-    title: 'DH22 — женская одежда и аксессуары',
-    description: 'Женская одежда, аксессуары и новинки каждую неделю.',
+    title: 'DH22 — одежда и аксессуары',
+    description: 'Одежда, аксессуары и новинки каждую неделю.',
   },
 };
 
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru">
       <body>
-        <StickyHeader />
+        <Header />
         <main className="page-wrap pt-24 pb-24">{children}</main>
         <footer className="border-t border-black/10 mt-16">
             <div className="page-wrap py-10 text-sm flex flex-col md:flex-row gap-4 justify-between">

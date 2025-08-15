@@ -21,7 +21,7 @@ export async function getClothes(limit = 12) {
   const rows = await query<any>(`
     SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
     FROM products p
-    WHERE ${/* категория у вас русская */""} (category='Женская одежда')
+    WHERE ${/* категория у вас русская */""} (category IN ('Одежда','Женская одежда'))
     ${ORDER}
     LIMIT ${limit}
   `);
@@ -43,7 +43,7 @@ export async function getNew(limit = 12) {
   const rows = await query<any>(`
     SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
     FROM products p
-    WHERE is_new = 1
+    WHERE is_new = 1 OR is_new = '1'
     ${ORDER}
     LIMIT ${limit}
   `);
