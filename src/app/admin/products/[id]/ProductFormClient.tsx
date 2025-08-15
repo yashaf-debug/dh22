@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { adminFetch } from "@/lib/adminFetch";
 
 const CATS: Record<string, string[]> = {
-  "Женская одежда": ["Платья","Футболки","Юбки","Жакеты"],
+  "Одежда": ["Платья","Футболки","Юбки","Жакеты"],
   "Аксессуары": ["Сумки","Ремни","Украшения"],
 };
 
@@ -19,7 +19,9 @@ export default function ProductFormClient({ product, variants: initialVariants }
   const [currency, setCurrency] = useState(product?.currency ?? "RUB");
   const [active, setActive] = useState(Boolean(product?.active ?? 1));
   const [isNew, setIsNew] = useState(Boolean(product?.is_new ?? 0));
-  const [category, setCategory] = useState(product?.category ?? "");
+  const [category, setCategory] = useState(
+    product?.category === "Женская одежда" ? "Одежда" : (product?.category ?? "")
+  );
   const [subcategory, setSubcategory] = useState(product?.subcategory ?? "");
 
   const [mainImage, setMainImage] = useState(product?.main_image ?? "");

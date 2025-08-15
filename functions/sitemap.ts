@@ -11,6 +11,8 @@ export const onRequest: PagesFunction<Env> = async (ctx) => {
     `${base}/new`,
     `${base}/womens`,
     `${base}/accessories`,
+    `${base}/catalog/clothes`,
+    `${base}/catalog/accessories`,
   ];
 
   const items = (results || []) as Array<{slug:string, updated_at?:string}>;

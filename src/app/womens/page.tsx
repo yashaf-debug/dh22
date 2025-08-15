@@ -6,8 +6,8 @@ export const revalidate = 3600;
 
 export async function generateMetadata() {
   const url = 'https://dh22.ru/womens';
-  const title = 'Женская одежда — DH22';
-  const desc = 'Женская одежда DH22';
+  const title = 'Одежда — DH22';
+  const desc = 'Одежда DH22';
   return {
     title,
     description: desc,
@@ -19,7 +19,7 @@ export async function generateMetadata() {
 
 export default async function Women() {
   const rows = await all(
-    "SELECT id,slug,name,price,main_image,image_url,images_json FROM products WHERE category='Женская одежда' AND active=1 AND quantity>0 ORDER BY id DESC LIMIT 20"
+    "SELECT id,slug,name,price,main_image,image_url,images_json FROM products WHERE category IN ('Одежда','Женская одежда') AND active=1 AND quantity>0 ORDER BY id DESC LIMIT 20"
   );
   const items = rows.map((p: any) => ({
     ...p,
@@ -27,7 +27,7 @@ export default async function Women() {
   }));
   return (
     <div className="page-wrap py-10">
-      <h1 className="mt-2 text-5xl font-black uppercase tracking-tight text-accent">Женская одежда</h1>
+      <h1 className="mt-2 text-5xl font-black uppercase tracking-tight text-accent">Одежда</h1>
       <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} />
