@@ -8,6 +8,6 @@ export async function getProductBySlug(slug: string) {
   if (!p) return null;
   return {
     ...p,
-    images: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
+    gallery: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
   };
 }

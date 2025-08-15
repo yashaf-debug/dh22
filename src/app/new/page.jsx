@@ -8,7 +8,7 @@ export default async function NewArrivals() {
   );
   const items = rows.map((p) => ({
     ...p,
-    images: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
+    gallery: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
   }));
   return (
     <div className="container mx-auto px-4 py-10">

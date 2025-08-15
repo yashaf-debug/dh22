@@ -2,18 +2,11 @@
 import Link from 'next/link';
 import { r2Url } from '@/lib/r2';
 import { rub } from '@/app/lib/money';
-
-type Product = {
-  slug: string;
-  name: string;
-  price: number;
-  main_image?: string | null;
-  images?: string[] | null;
-};
+import type { Product } from '@/types/product';
 
 export default function ProductCard({ product }: { product: Product }) {
-  const images: string[] = Array.isArray(product.images) ? product.images : [];
-  const primary = images[0] || product.main_image || '';
+  const images: string[] = Array.isArray(product.gallery) ? product.gallery : [];
+  const primary = product.main_image || images[0] || '';
   const src = r2Url(primary) || '/images/placeholder.png';
   return (
     <Link href={`/product/${product.slug}`} className="card">

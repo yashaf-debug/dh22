@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     );
     const items = rows.map(r => ({
       ...r,
-      images: (() => { try { return JSON.parse(r.images_json ?? '[]'); } catch { return []; } })(),
+      gallery: (() => { try { return JSON.parse(r.images_json ?? '[]'); } catch { return []; } })(),
     }));
     return ok({ items });
   } catch (e: any) {
