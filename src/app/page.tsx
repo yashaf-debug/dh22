@@ -198,3 +198,21 @@ function Instagram() {
     </section>
   );
 }
+ return (
+    <div className="grid gap-16">
+      <Hero />
+      <Bestsellers products={latest} />
+      <AllItemsBanner />
+      <CategorySplit />
+      <ClothesGrid items={clothes} />
+      <NewsletterCTA />
+      <BrandBlock />
+      <Instagram />
+      <QuickNav />
+      <CategoryTiles />
+      {/* @ts-expect-error Async Server Component */}
+      <ClothesSection />
+      <InstagramStripStatic />
+    </div>
+  );
+}
