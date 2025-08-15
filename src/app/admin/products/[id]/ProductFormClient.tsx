@@ -19,6 +19,7 @@ export default function ProductFormClient({ product, variants: initialVariants }
   const [currency, setCurrency] = useState(product?.currency ?? "RUB");
   const [active, setActive] = useState(Boolean(product?.active ?? 1));
   const [isNew, setIsNew] = useState(Boolean(product?.is_new ?? 0));
+  const [isBestseller, setIsBestseller] = useState(Boolean(product?.is_bestseller ?? 0));
   const [category, setCategory] = useState(
     product?.category === "Женская одежда" ? "Одежда" : (product?.category ?? "")
   );
@@ -98,6 +99,7 @@ export default function ProductFormClient({ product, variants: initialVariants }
       fd.set("currency", currency);
       fd.set("active", active ? "1" : "0");
       fd.set("is_new", isNew ? "1" : "0");
+      fd.set("is_bestseller", isBestseller ? "1" : "0");
       fd.set("category", category);
       fd.set("subcategory", subcategory);
       fd.set("main_image", mainImage);
@@ -179,6 +181,10 @@ export default function ProductFormClient({ product, variants: initialVariants }
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={isNew} onChange={e => setIsNew(e.target.checked)} />
               <span>Новинка</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={isBestseller} onChange={e => setIsBestseller(e.target.checked)} />
+              <span>Бестселлер</span>
             </label>
           </div>
         </div>

@@ -25,7 +25,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const fields = [
-    "name","slug","description","price","currency","active","is_new",
+    "name","slug","description","price","currency","active","is_new","is_bestseller",
     "category","subcategory","main_image","image_url",
     "images_json","sizes_json","colors_json","quantity"
   ] as const;
