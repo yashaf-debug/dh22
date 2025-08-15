@@ -36,13 +36,11 @@ function Bestsellers({ products }: { products: any[] }) {
         {products.map((p) => (
           <a key={p.id} href={`/product/${p.slug}`} className="min-w-[420px] max-w-[420px] [scroll-snap-align:start]">
             <div className="aspect-[4/5] overflow-hidden rounded-dh22 bg-neutral-100">
-              <Image src={p.cover_url || "/placeholder.svg"} alt={p.title} width={840} height={1050} className="h-full w-full object-cover" />
+              <img src={p.cover_url || "/placeholder.svg"} alt={p.title} className="h-full w-full object-cover" />
             </div>
             <div className="mt-4 text-center">
               <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
               <div className="mt-1 text-[15px] font-semibold">{fmt(p.price_cents)}</div>
-              {p.is_sale ? <div className="mt-1 text-[12px] font-bold uppercase text-accent">Sale</div> : null}
-              {p.is_soldout ? <div className="mt-1 text-[12px] font-bold uppercase text-accent/80">Sold Out</div> : null}
             </div>
           </a>
         ))}
@@ -89,7 +87,7 @@ function ClothesGrid({ items }: { items: any[] }) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {items.map((p) => (
           <a key={p.id} href={`/product/${p.slug}`} className="group overflow-hidden rounded-dh22 bg-neutral-100">
-            <Image src={p.cover_url || "/placeholder.svg"} alt={p.title} width={900} height={1200} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
+            <img src={p.cover_url || "/placeholder.svg"} alt={p.title} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
             <div className="px-4 pb-6 pt-4 text-center">
               <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
               <div className="mt-1 text-[15px] font-semibold">{fmt(p.price_cents)}</div>
@@ -155,12 +153,12 @@ function Instagram() {
 }
 
 export default async function Page() {
-  const [bestsellers, clothes] = await Promise.all([
+  const [bestsellers, clothesRaw] = await Promise.all([
     getBestsellersSafe(12),
     getClothesSafe(12),
   ]);
 
-  const clothesData = clothes.length ? clothes : await getLatest(12);
+  const clothes = clothesRaw.length ? clothesRaw : await getLatest(12);
 
   return (
     <div className="grid gap-16">
@@ -168,7 +166,7 @@ export default async function Page() {
       <Bestsellers products={bestsellers} />
       <AllItemsBanner />
       <CategorySplit />
-      <ClothesGrid items={clothesData} />
+      <ClothesGrid items={clothes} />
       <NewsletterCTA />
       <BrandBlock />
       <Instagram />
