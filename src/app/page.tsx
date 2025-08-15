@@ -198,9 +198,17 @@ function Instagram() {
     </section>
   );
 }
- return (
+export default async function Page() {
+  const [latest, clothesRaw] = await Promise.all([
+    getLatest(12),
+    getClothes(12),
+  ]);
+
+  const clothes = clothesRaw.length ? clothesRaw : latest;
+  
+  return (
     <div className="grid gap-16">
-      <Hero />
+    <Hero />
       <Bestsellers products={latest} />
       <AllItemsBanner />
       <CategorySplit />
@@ -209,10 +217,7 @@ function Instagram() {
       <BrandBlock />
       <Instagram />
       <QuickNav />
-      <CategoryTiles />
-      {/* @ts-expect-error Async Server Component */}
-      <ClothesSection />
-      <InstagramStripStatic />
-    </div>
+        </div>
   );
 }
+  
