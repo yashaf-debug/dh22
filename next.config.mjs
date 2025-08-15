@@ -18,10 +18,6 @@ const nextConfig = {
   async redirects() {
     return [];
   },
-  async rewrites() {
-    const base = process.env.NEXT_PUBLIC_CF_IMAGES_BASE;
-    return base ? [{ source: '/i/:id', destination: `${base}/:id/public` }] : [];
-  },
 };
 
 export default withSentryConfig(nextConfig, {
