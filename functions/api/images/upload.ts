@@ -1,46 +1,40 @@
-// functions/api/images/upload.ts
-// Cloudflare Pages Functions
+// functions/api/images/upload.ts — Pages Functions
 export interface Env {
-  DH22_IMAGES: R2Bucket; // binding есть в проекте
-  NEXT_PUBLIC_R2_PUBLIC_BASE: string; // https://pub-....r2.dev
+  DH22_IMAGES: R2Bucket;                   // binding к бакету с картинками
+  NEXT_PUBLIC_R2_PUBLIC_BASE: string;      // https://pub-....r2.dev (без завершающего /)
 }
 
-function randomKey(originalName?: string) {
+// Утилита генерации ключа
+function r2Key(name?: string) {
   const ts = Date.now();
-  const rand = Math.random().toString(36).slice(2, 8);
-  const clean = (originalName || "file").replace(/[^a-z0-9._-]/gi, "_").toLowerCase();
-  return `${ts}-${rand}-${clean}`;
+  const rnd = Math.random().toString(36).slice(2, 8);
+  const clean = (name || "file").replace(/[^a-z0-9._-]/gi, "_").toLowerCase();
+  return `${ts}-${rnd}-${clean}`;
 }
 
-export const onRequestPost: PagesFunction<Env> = async (ctx) => {
+export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const { request, env } = ctx;
     const form = await request.formData();
     const file = form.get("file");
-
     if (!(file instanceof File)) {
       return new Response(JSON.stringify({ ok: false, error: "No file" }), { status: 400 });
     }
 
-    // ключ для хранения в R2
-    const key = randomKey(file.name);
-
-    // заливаем поток в R2
+    const key = r2Key(file.name);
     await env.DH22_IMAGES.put(key, file.stream(), {
       httpMetadata: { contentType: file.type || "application/octet-stream" },
     });
 
-    // путь, который храним в D1 (как вы договорились)
-    const path = `/r2/${key}`;
-    // полный публичный URL для превью
-    const url = `${env.NEXT_PUBLIC_R2_PUBLIC_BASE.replace(/\/$/, "")}/${key}`;
-
-    return new Response(JSON.stringify({ ok: true, key, path, url }), {
-      headers: { "content-type": "application/json" },
-    });
+    const base = env.NEXT_PUBLIC_R2_PUBLIC_BASE.replace(/\/$/, "");
+    // path — что кладём в D1; url — абсолютный для превью
+    return new Response(JSON.stringify({
+      ok: true,
+      key,
+      path: `/r2/${key}`,
+      url: `${base}/${key}`,
+    }), { headers: { "content-type": "application/json" } });
   } catch (e: any) {
     console.error("R2 upload error:", e);
     return new Response(JSON.stringify({ ok: false, error: String(e) }), { status: 500 });
   }
 };
-

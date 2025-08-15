@@ -134,7 +134,11 @@ export default function CheckoutPage() {
   return (
     <>
       <div className="container mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 flex flex-col gap-4">
+        <form
+          id="checkout-form"
+          onSubmit={(e) => { e.preventDefault(); submit(); }}
+          className="md:col-span-2 flex flex-col gap-4"
+        >
           <h1 className="text-2xl">Оформление заказа</h1>
 
           <section className="flex flex-col gap-2">
@@ -257,13 +261,13 @@ export default function CheckoutPage() {
             </label>
           </div>
 
-  <div className="mt-4">
-        <TurnstileWidget onVerify={setCfToken} />
-      </div>
-      <button className="btn btn-primary w-48" disabled={loading || !cfToken} onClick={submit}>
+          <div className="mt-4">
+            <TurnstileWidget onVerify={setCfToken} />
+          </div>
+          <button type="submit" className="btn btn-primary w-48" disabled={loading}>
             {loading ? "Создаём..." : "Перейти к оплате"}
           </button>
-        </div>
+        </form>
 
         <aside className="flex flex-col gap-3">
           <h2 className="text-lg">Ваш заказ</h2>
