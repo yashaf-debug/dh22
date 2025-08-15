@@ -12,7 +12,7 @@ export const runtime = "edge";
 function Hero() {
   return (
     <section id="hero" className="relative h-[90vh] min-h-[640px] overflow-hidden rounded-dh22">
-      <Image src="/hero.jpg" alt="Hero" fill priority className="object-cover" />
+      <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/hero.jpg" alt="Hero" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-black/10" />
       <div className="absolute inset-0 flex items-center justify-center">
         <h1 className="sr-only">DH22 — New Collection</h1>
