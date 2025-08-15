@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { r2Url } from '@/lib/r2';
 
 interface Product {
@@ -25,10 +25,12 @@ export default function AdminProductForm({ product }: { product: Product }) {
     sizes: product.sizes || '[]',
     colors: product.colors || '[]',
   });
-  const [imagesText, setImagesText] = useState(
-    Array.isArray(product.images) ? product.images.join("\n") : ""
+  const [gallery, setGallery] = useState<string[]>(
+    Array.isArray(product.images) && product.images.length ? product.images : []
   );
   const [file, setFile] = useState<File | null>(null);
+  const [variants, setVariants] = useState<any[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleUpload(file: File) {
     const fd = new FormData();
@@ -42,11 +44,52 @@ export default function AdminProductForm({ product }: { product: Product }) {
     setForm(prev => ({ ...prev, main_image: data.path }));
   }
 
+  async function handleUploadGallery(idx: number, file: File) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/images/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!data.ok) {
+      alert(data.error || 'upload failed');
+      return;
+    }
+    setGallery(prev => {
+      const next = prev.slice();
+      next[idx] = data.path;
+      return next;
+    });
+  }
+
+  useEffect(() => {
+    async function loadVariants() {
+      const res = await fetch(`/api/admin/products/${product.id}/variants`);
+      const data = await res.json();
+      setVariants(Array.isArray(data.variants) ? data.variants : []);
+    }
+    loadVariants();
+  }, [product.id]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    try {
+      await fetch(`/api/admin/products/${product.id}/variants`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ variants }),
+      });
+    } catch (err) {
+      console.error('Failed to save variants', err);
+    }
+    formRef.current?.submit();
+  }
+
   return (
     <form
+      ref={formRef}
       method="post"
       action={`/api/admin/products/${product.id}/update`}
       className="space-y-3"
+      onSubmit={handleSubmit}
     >
       <label className="field">
         <span>Название</span>
@@ -106,26 +149,80 @@ export default function AdminProductForm({ product }: { product: Product }) {
           style={{ width: 160, height: 160, objectFit: 'cover' }}
         />
       )}
-      <label className="field">
-        <span>Галерея (по одному URL на строку)</span>
-        <textarea
-          value={imagesText}
-          onChange={e => setImagesText(e.target.value)}
-          rows={6}
-          className="border px-3 py-2 w-full"
-        />
-      </label>
-      <input type="hidden" name="images_json" value={JSON.stringify(normalizeImages(imagesText))} />
-      {(() => {
-        const preview = normalizeImages(imagesText);
-        return preview.length > 0 ? (
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, 120px)',gap:12}}>
-            {preview.map((p,i)=>(
-              <img key={i} src={r2Url(p)} alt={`img-${i}`} style={{width:120,height:120,objectFit:'cover',border:'1px solid #eee'}} />
-            ))}
+      <div className="space-y-2">
+        <div className="font-medium">Галерея</div>
+        {gallery.map((url, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            <input
+              value={url}
+              onChange={e => {
+                const val = e.target.value;
+                setGallery(g => g.map((u,i)=> i===idx? val : u));
+              }}
+              className="border px-3 py-2 w-full"
+            />
+            {url && <img src={r2Url(url)} alt="prev" style={{width:60,height:60,objectFit:'cover'}} />}
+            <input type="file" accept="image/*" onChange={e => e.target.files && handleUploadGallery(idx, e.target.files[0])} />
+            <button type="button" onClick={() => setGallery(g => g.filter((_,i)=>i!==idx))}>🗑</button>
           </div>
-        ) : null;
-      })()}
+        ))}
+        <button type="button" className="btn" onClick={() => setGallery(g => [...g, ''])}>+ Добавить</button>
+      </div>
+      <input type="hidden" name="images_json" value={JSON.stringify(gallery.filter(Boolean))} />
+      <div className="space-y-2">
+        <div className="font-medium">Варианты</div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className="text-left">Цвет</th>
+              <th className="text-left">Размер</th>
+              <th className="text-left">Остаток</th>
+              <th className="text-left">SKU</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {variants.map((v, idx) => (
+              <tr key={idx} className="border-t">
+                <td>
+                  <input
+                    value={v.color || ''}
+                    onChange={e => setVariants(vars => vars.map((x,i)=> i===idx? { ...x, color: e.target.value }: x))}
+                    className="border px-2 py-1"
+                  />
+                </td>
+                <td>
+                  <input
+                    value={v.size || ''}
+                    onChange={e => setVariants(vars => vars.map((x,i)=> i===idx? { ...x, size: e.target.value }: x))}
+                    className="border px-2 py-1"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min={0}
+                    value={v.stock || 0}
+                    onChange={e => setVariants(vars => vars.map((x,i)=> i===idx? { ...x, stock: Number(e.target.value) }: x))}
+                    className="border px-2 py-1 w-24"
+                  />
+                </td>
+                <td>
+                  <input
+                    value={v.sku || ''}
+                    onChange={e => setVariants(vars => vars.map((x,i)=> i===idx? { ...x, sku: e.target.value }: x))}
+                    className="border px-2 py-1"
+                  />
+                </td>
+                <td>
+                  <button type="button" onClick={() => setVariants(vars => vars.filter((_,i)=>i!==idx))}>🗑</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button type="button" className="btn" onClick={() => setVariants(v => [...v, { color:'', size:'', stock:0, sku:'' }])}>+ добавить вариант</button>
+      </div>
       <label className="field">
         <span>Размеры (JSON)</span>
         <input
@@ -149,11 +246,4 @@ export default function AdminProductForm({ product }: { product: Product }) {
       </button>
     </form>
   );
-}
-
-function normalizeImages(text: string) {
-  return text
-    .split(/\r?\n/)
-    .map(s => s.trim())
-    .filter(Boolean);
 }

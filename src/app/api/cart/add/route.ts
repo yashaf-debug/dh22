@@ -2,7 +2,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 
-type CartItem = { slug: string; price: number; qty: number; color?: string|null; size?: string|null; };
+type CartItem = { slug: string; price: number; qty: number; color?: string|null; size?: string|null; variantId?: number; };
 
 function readCart(cookieHeader?: string): CartItem[] {
   const m = (cookieHeader || '').match(/(?:^|;\s*)cart=([^;]+)/);
@@ -14,9 +14,10 @@ export async function POST(req: Request) {
   const body = await req.json() as CartItem;
   const cart = readCart(req.headers.get('cookie') || '');
 
-  const idx = cart.findIndex(i => i.slug === body.slug && i.color === (body.color||null) && i.size === (body.size||null));
-  if (idx >= 0) cart[idx].qty += Math.max(1, Number(body.qty||1));
-  else cart.push({ slug: body.slug, price: body.price, qty: Math.max(1, Number(body.qty||1)), color: body.color||null, size: body.size||null });
+  const qty = Math.max(1, Number(body.qty||1));
+  const idx = cart.findIndex(i => i.variantId === body.variantId);
+  if (idx >= 0) cart[idx].qty += qty;
+  else cart.push({ slug: body.slug, price: body.price, qty, color: body.color||null, size: body.size||null, variantId: body.variantId });
 
   const res = NextResponse.json({ ok: true, cart });
   res.headers.set('Set-Cookie', `cart=${encodeURIComponent(JSON.stringify(cart))}; Path=/; Max-Age=2592000; SameSite=Lax`);

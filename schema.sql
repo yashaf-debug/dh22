@@ -26,6 +26,16 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 
+CREATE TABLE IF NOT EXISTS product_variants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  color TEXT,
+  size TEXT,
+  stock INTEGER NOT NULL DEFAULT 0,
+  sku TEXT,
+  UNIQUE(product_id, color, size)
+);
+
 CREATE TABLE IF NOT EXISTS cities (
   code INTEGER PRIMARY KEY,              -- city_code из СДЭК
   city TEXT NOT NULL,
