@@ -1,12 +1,177 @@
+import Image from "next/image";
+import { getLatest, getClothes } from "@/lib/queries";
+import QuickNav from "@/components/QuickNav";
+import { fmtRub } from "@/lib/normalize";
 import CategoryTiles from "@/components/home/CategoryTiles";
 import ClothesSection from "@/components/home/ClothesSection";
 import InstagramStripStatic from "@/components/home/InstagramStripStatic";
 
 export const runtime = 'edge';
 
+function Hero() {
+  return (
+    <section id="hero" className="relative h-[90vh] min-h-[640px] overflow-hidden rounded-dh22">
+      <Image src="/hero.jpg" alt="Hero" fill priority className="object-cover" />
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <h1 className="sr-only">DH22 — New Collection</h1>
+      </div>
+      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 text-center">
+        <div className="text-4xl font-extrabold uppercase tracking-widest text-accent">
+          New Collection
+        </div>
+        <a href="/womens" className="mt-4 inline-block rounded-full bg-accent px-7 py-3 text-sm font-bold uppercase tracking-wider text-white">
+          Смотреть раздел
+        </a>
+      </div>
+    </section>
+  );
+}
+
+function Bestsellers({ products }: { products: any[] }) {
+  return (
+    <section id="bestsellers" className="scroll-mt-20">
+      <h2 className="mb-8 mt-16 text-6xl font-black uppercase tracking-tight text-accent">Bestsellers</h2>
+      <div className="flex gap-10 overflow-x-auto scroll-smooth px-1 pb-6 [scroll-snap-type:x_mandatory]">
+        {products.map((p) => (
+          <a key={p.id} href={`/product/${p.slug}`} className="min-w-[420px] max-w-[420px] [scroll-snap-align:start]">
+            <div className="aspect-[4/5] overflow-hidden rounded-dh22 bg-neutral-100">
+              <img src={p.cover_url || "/placeholder.svg"} alt={p.title} className="h-full w-full object-cover" />
+            </div>
+            <div className="mt-4 text-center">
+              <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
+              <div className="mt-1 text-[15px] font-semibold">{fmtRub(p.price_cents)}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AllItemsBanner() {
+  return (
+    <section id="all" className="relative overflow-hidden rounded-dh22">
+      <Image src="/all-items.jpg" alt="All items" width={2400} height={1200} className="h-[50vh] w-full object-cover" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="rounded-xl bg-white/20 px-6 py-2 text-5xl font-extrabold uppercase tracking-widest text-white backdrop-blur">All items</span>
+      </div>
+    </section>
+  );
+}
+
+function CategorySplit() {
+  const cards = [
+    { href: "/womens?cat=bikini", label: "Bikini", img: "/cat-1.jpg" },
+    { href: "/womens?cat=one-piece", label: "One-piece", img: "/cat-2.jpg" },
+  ];
+  return (
+    <section id="cats" className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      {cards.map((c) => (
+        <a key={c.href} href={c.href} className="group relative overflow-hidden rounded-dh22">
+          <Image src={c.img} alt={c.label} width={1600} height={1200} className="h-[72vh] w-full object-cover transition group-hover:scale-[1.02]" />
+          <div className="absolute inset-0 bg-black/10" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="rounded-xl bg-white/20 px-6 py-2 text-5xl font-extrabold uppercase tracking-widest text-white backdrop-blur">{c.label}</span>
+          </div>
+        </a>
+      ))}
+    </section>
+  );
+}
+
+function ClothesGrid({ items }: { items: any[] }) {
+  return (
+    <section id="clothes" className="scroll-mt-20">
+      <h2 className="mb-8 mt-16 text-6xl font-black uppercase tracking-tight text-accent">Clothes</h2>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {items.map((p) => (
+          <a key={p.id} href={`/product/${p.slug}`} className="group overflow-hidden rounded-dh22 bg-neutral-100">
+            <img src={p.cover_url || "/placeholder.svg"} alt={p.title} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
+            <div className="px-4 pb-6 pt-4 text-center">
+              <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
+              <div className="mt-1 text-[15px] font-semibold">{fmtRub(p.price_cents)}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function NewsletterCTA() {
+  return (
+    <section id="sale10" className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+      <div className="overflow-hidden rounded-dh22">
+        <Image src="/cta-left.jpg" alt="DH22" width={1400} height={1200} className="h-full w-full object-cover" />
+      </div>
+      <div className="relative overflow-hidden rounded-dh22 bg-gradient-to-b from-accent to-[#4E35CE] p-10 text-white">
+        <div className="mx-auto max-w-md text-center">
+          <h3 className="text-4xl font-extrabold uppercase leading-tight tracking-wider">Воспользуйтесь скидкой 10% на первый заказ</h3>
+          <p className="mt-4 text-sm opacity-90">Подпишитесь на нашу рассылку и мы отправим вам персональный промокод</p>
+          <form className="mt-6 flex items-center gap-3">
+            <input type="email" placeholder="Электронная почта" className="h-12 w-full min-w-0 flex-1 rounded-xl border border-white/30 bg-white/10 px-4 text-white placeholder-white/70 outline-none backdrop-blur" />
+            <button className="h-12 shrink-0 rounded-xl bg-white px-5 text-sm font-bold uppercase tracking-wider text-accent">Отправить</button>
+          </form>
+          <p className="mt-3 text-[11px] opacity-70">Нажимая на кнопку, вы соглашаетесь с политикой конфиденциальности и обработкой персональных данных</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BrandBlock() {
+  return (
+    <section id="brand" className="relative overflow-hidden rounded-dh22">
+      <Image src="/brand.jpg" alt="About brand" width={2400} height={1600} className="h-[70vh] w-full object-cover grayscale" />
+      <div className="absolute right-10 top-10 max-w-md rounded-2xl bg-white/70 p-6 backdrop-blur">
+        <div className="text-3xl font-bold text-accent">DH22</div>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-800">
+          Наш бренд воплощает сдержанную элегантность и техническую точность посадки. Минимализм, чёткие линии и качественные ткани.
+        </p>
+        <a href="/about" className="mt-4 inline-block rounded-xl bg-accent px-5 py-3 text-sm font-bold uppercase tracking-wider text-white">Подробнее о бренде</a>
+      </div>
+    </section>
+  );
+}
+
+function Instagram() {
+  const imgs = ["/ig1.jpg","/ig2.jpg","/ig3.jpg","/ig4.jpg","/ig5.jpg","/ig6.jpg"];
+  return (
+    <section id="insta" className="scroll-mt-20">
+      <h2 className="mb-8 mt-16 text-center text-6xl font-black uppercase tracking-tight text-accent">Follow us</h2>
+      <p className="mb-6 text-center font-semibold text-neutral-500">@dh22.official</p>
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
+        {imgs.map((src, i) => (
+          <a key={i} href="#" className="group overflow-hidden rounded-dh22">
+            <Image src={src} alt="" width={600} height={800} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default async function Page() {
+  const [latest, clothesRaw] = await Promise.all([
+    getLatest(12),
+    getClothes(12),
+  ]);
+
+  const clothes = clothesRaw.length ? clothesRaw : latest;
+
 export default function Page() {
   return (
     <div className="grid gap-16">
+      <Hero />
+      <Bestsellers products={latest} />
+      <AllItemsBanner />
+      <CategorySplit />
+      <ClothesGrid items={clothes} />
+      <NewsletterCTA />
+      <BrandBlock />
+      <Instagram />
+      <QuickNav />
       <CategoryTiles />
       {/* @ts-expect-error Async Server Component */}
       <ClothesSection />
