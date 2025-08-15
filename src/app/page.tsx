@@ -1,8 +1,8 @@
 import Image from "next/image";
-import { getBestsellersSafe, getClothesSafe, getLatest } from "@/lib/queries";
+import { getLatest, getClothes } from "@/lib/queries";
 import QuickNav from "@/components/QuickNav";
+import { fmtRub } from "@/lib/normalize";
 
-const fmt = (cents: number) => (cents / 100).toLocaleString("ru-RU") + " ₽";
 
 export const runtime = "edge";
 
@@ -40,7 +40,7 @@ function Bestsellers({ products }: { products: any[] }) {
             </div>
             <div className="mt-4 text-center">
               <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
-              <div className="mt-1 text-[15px] font-semibold">{fmt(p.price_cents)}</div>
+              <div className="mt-1 text-[15px] font-semibold">{fmtRub(p.price_cents)}</div>
             </div>
           </a>
         ))}
@@ -90,7 +90,7 @@ function ClothesGrid({ items }: { items: any[] }) {
             <img src={p.cover_url || "/placeholder.svg"} alt={p.title} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
             <div className="px-4 pb-6 pt-4 text-center">
               <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
-              <div className="mt-1 text-[15px] font-semibold">{fmt(p.price_cents)}</div>
+              <div className="mt-1 text-[15px] font-semibold">{fmtRub(p.price_cents)}</div>
             </div>
           </a>
         ))}
@@ -153,17 +153,17 @@ function Instagram() {
 }
 
 export default async function Page() {
-  const [bestsellers, clothesRaw] = await Promise.all([
-    getBestsellersSafe(12),
-    getClothesSafe(12),
+  const [latest, clothesRaw] = await Promise.all([
+    getLatest(12),
+    getClothes(12),
   ]);
 
-  const clothes = clothesRaw.length ? clothesRaw : await getLatest(12);
+  const clothes = clothesRaw.length ? clothesRaw : latest;
 
   return (
     <div className="grid gap-16">
       <Hero />
-      <Bestsellers products={bestsellers} />
+      <Bestsellers products={latest} />
       <AllItemsBanner />
       <CategorySplit />
       <ClothesGrid items={clothes} />
