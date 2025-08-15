@@ -2,9 +2,7 @@ import Image from "next/image";
 import { getLatest, getClothes } from "@/lib/queries";
 import QuickNav from "@/components/QuickNav";
 import { fmtRub } from "@/lib/normalize";
-import CategoryTiles from "@/components/home/CategoryTiles";
-import ClothesSection from "@/components/home/ClothesSection";
-import InstagramStripStatic from "@/components/home/InstagramStripStatic";
+
 
 export const runtime = "edge";
 
