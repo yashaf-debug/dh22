@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { listProductsAdmin } from "@/lib/adminQueries";
+import DeleteProductButton from "@/components/admin/DeleteProductButton";
 
-const fmt = (c) => (Number(c||0)/100).toLocaleString("ru-RU")+" ₽";
-
-export const runtime = "edge";
+const fmt = (c) => (Number(c || 0) / 100).toLocaleString("ru-RU") + " ₽";
 
 export default async function AdminProductsPage({ searchParams }) {
   const t = searchParams?.t ?? "";
@@ -35,14 +34,14 @@ export default async function AdminProductsPage({ searchParams }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Link href={{ pathname:`/admin/products/${p.id}`, query: t ? { t } : {} }} className="rounded border px-3 py-1 text-sm">
+              <Link
+                href={{ pathname: `/admin/products/${p.id}`, query: t ? { t } : {} }}
+                className="rounded border px-3 py-1 text-sm"
+              >
                 Открыть
               </Link>
-              <form action={`/api/admin/products/${p.id}${t?`?t=${t}`:""}`} method="POST"
-                    onSubmit={(e)=>{ if(!confirm("Удалить товар?")) e.preventDefault(); }}>
-                <input type="hidden" name="_method" value="DELETE" />
-                <button className="rounded border px-3 py-1 text-sm text-red-600">Удалить</button>
-              </form>
+              {/* удаление — клиентский компонент */}
+              <DeleteProductButton id={p.id} t={t} />
             </div>
           </li>
         ))}
