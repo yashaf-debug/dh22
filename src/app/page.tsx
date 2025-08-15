@@ -59,7 +59,7 @@ function Bestsellers({ products }: { products: any[] }) {
 function AllItemsBanner() {
   return (
     <section id="all" className="relative overflow-hidden rounded-dh22">
-      <Image src="/all-items.jpg" alt="Новинки" width={2400} height={1200} className="h-[50vh] w-full object-cover" />
+      <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" alt="Новинки" width={2400} height={1200} className="h-[50vh] w-full object-cover" />
       <a
         href="/new"
         className="absolute inset-0 flex items-center justify-center"
@@ -76,8 +76,8 @@ function AllItemsBanner() {
 /* ================== CATEGORY SPLIT ================== */
 function CategorySplit() {
   const cards = [
-    { href: "/catalog/clothes", label: "Одежда", img: "/cat-1.jpg" },
-    { href: "/catalog/accessories", label: "Аксессуары", img: "/cat-2.jpg" },
+    { href: "/catalog/clothes", label: "Одежда", img: "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" },
+    { href: "/catalog/accessories", label: "Аксессуары", img: "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" },
   ];
   return (
     <section id="cats" className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -131,7 +131,7 @@ function NewsletterCTA() {
   return (
     <section id="sale10" className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
       <div className="overflow-hidden rounded-dh22">
-        <Image src="/cta-left.jpg" alt="DH22" width={1400} height={1200} className="h-full w-full object-cover" />
+        <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/all-items.jpg" alt="DH22" width={1400} height={1200} className="h-full w-full object-cover" />
       </div>
       <div className="relative overflow-hidden rounded-dh22 bg-gradient-to-b from-accent to-[#4E35CE] p-10 text-white">
         <div className="mx-auto max-w-md text-center">
@@ -164,7 +164,7 @@ function NewsletterCTA() {
 function BrandBlock() {
   return (
     <section id="brand" className="relative overflow-hidden rounded-dh22">
-      <Image src="/brand.jpg" alt="About brand" width={2400} height={1600} className="h-[70vh] w-full object-cover grayscale" />
+      <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" alt="About brand" width={2400} height={1600} className="h-[70vh] w-full object-cover grayscale" />
       <div className="absolute right-10 top-10 max-w-md rounded-2xl bg-white/70 p-6 backdrop-blur">
         <div className="text-3xl font-bold text-accent">DH22</div>
         <p className="mt-3 text-sm leading-relaxed text-neutral-800">
