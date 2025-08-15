@@ -198,27 +198,3 @@ function Instagram() {
     </section>
   );
 }
-
-/* ============== ЕДИНСТВЕННАЯ export default ФУНКЦИЯ ============== */
-export default async function Page() {
-  const [latest, clothesRaw] = await Promise.all([getLatest(12), getClothes(12)]);
-  const clothes = clothesRaw.length ? clothesRaw : latest;
-
-  return (
-    <div className="grid gap-16">
-      <Hero />
-      <Bestsellers products={latest} />
-      <AllItemsBanner />
-      <CategorySplit />
-      <ClothesGrid items={clothes} />
-      <NewsletterCTA />
-      <BrandBlock />
-      <Instagram />
-      <QuickNav />
-      <CategoryTiles />
-      {/* @ts-expect-error Async Server Component */}
-      <ClothesSection />
-      <InstagramStripStatic />
-    </div>
-  );
-}
