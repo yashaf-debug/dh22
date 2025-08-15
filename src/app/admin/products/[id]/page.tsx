@@ -1,28 +1,12 @@
-import { queryAll } from '@/lib/db';
-import AdminProductForm from './AdminProductForm';
+import ProductFormClient from "./ProductFormClient";
+import { getProductById } from "@/lib/adminQueries";
 
-export const runtime = 'edge';
-
-export default async function EditProduct({ params }: { params: { id: string } }) {
-  const rows = await queryAll<any>(`SELECT * FROM products WHERE id=? LIMIT 1`, params.id);
-  if (!rows.length) {
-    return <div className="container mx-auto px-4 py-8">Not found</div>;
-  }
-  const p = rows[0];
-  const gallery = (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })();
-  const variants = await queryAll<any>(
-    `SELECT id, color, size, sku, stock FROM product_variants WHERE product_id=? ORDER BY id`,
-    p.id
-  );
-  const product = { ...p, gallery, variants };
-
+export default async function Page({ params, searchParams }) {
+  const product = await getProductById(Number(params.id));
   return (
-    <div className="container mx-auto px-4 py-8 space-y-4">
-      <h1 className="text-2xl font-semibold mb-6">
-        Правка товара — {product.name || 'Без названия'} <span className="text-neutral-400">#{product.id}</span>
-      </h1>
-      <AdminProductForm product={product} />
-
+    <div>
+      <h1 className="mb-6 text-3xl font-semibold">{product?.name || "Товар"}</h1>
+      <ProductFormClient product={product} />
     </div>
   );
 }
