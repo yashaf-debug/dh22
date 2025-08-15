@@ -2,27 +2,41 @@ import Image from "next/image";
 import { getLatest, getClothes } from "@/lib/queries";
 import QuickNav from "@/components/QuickNav";
 import { fmtRub } from "@/lib/normalize";
-
+// Если используете доп. секции — оставьте их импорт/рендер позже
+// import CategoryTiles from "@/components/home/CategoryTiles";
+// import ClothesSection from "@/components/home/ClothesSection";
+// import InstagramStripStatic from "@/components/home/InstagramStripStatic";
 
 export const runtime = "edge";
 
-/* =================== HERO =================== */
+/* =================== HERO (адаптив) =================== */
 function Hero() {
   return (
-    <section id="hero" className="relative h-[90vh] min-h-[640px] overflow-hidden rounded-dh22">
-      <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/hero.jpg" alt="Hero" fill priority className="object-cover" />
+    <section
+      id="hero"
+      className="relative overflow-hidden rounded-dh22
+                 h-[64vh] min-h-[480px] sm:h-[72vh] md:h-[86vh]"
+    >
+      <Image
+        src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/hero.jpg"
+        alt="Hero"
+        fill
+        priority
+        className="object-cover"
+        sizes="100vw"
+      />
       <div className="absolute inset-0 bg-black/10" />
       <div className="absolute inset-0 flex items-center justify-center">
         <h1 className="sr-only">DH22 — New Collection</h1>
       </div>
-      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 text-center">
-        <div className="text-4xl font-extrabold uppercase tracking-widest text-accent">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center sm:bottom-10 md:bottom-14">
+        <div className="text-2xl font-extrabold uppercase tracking-widest text-accent sm:text-3xl md:text-4xl">
           New Collection
         </div>
-        {/* Ведём в раздел новинок */}
         <a
           href="/new"
-          className="mt-4 inline-block rounded-full bg-accent px-7 py-3 text-sm font-bold uppercase tracking-wider text-white"
+          className="mt-3 inline-block rounded-full bg-accent px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white
+                     sm:mt-4 sm:px-7 sm:py-3 sm:text-sm"
         >
           Смотреть раздел
         </a>
@@ -31,20 +45,38 @@ function Hero() {
   );
 }
 
-/* ================= BESTSELLERS ================ */
+/* ================ BESTSELLERS (моб. карусель) ================ */
 function Bestsellers({ products }: { products: any[] }) {
   return (
     <section id="bestsellers" className="scroll-mt-20">
-      <h2 className="mb-8 mt-16 text-6xl font-black uppercase tracking-tight text-accent">Bestsellers</h2>
-      <div className="flex gap-10 overflow-x-auto scroll-smooth px-1 pb-6 [scroll-snap-type:x_mandatory]">
+      <h2 className="mb-6 mt-12 text-3xl font-black uppercase tracking-tight text-accent sm:mb-8 sm:mt-16 sm:text-5xl md:text-6xl">
+        Bestsellers
+      </h2>
+
+      <div className="flex gap-4 overflow-x-auto scroll-smooth px-1 pb-4 sm:gap-8 sm:pb-6 [scroll-snap-type:x_mandatory]">
         {products.map((p) => (
-          <a key={p.id} href={`/product/${p.slug}`} className="min-w-[420px] max-w-[420px] [scroll-snap-align:start]">
+          <a
+            key={p.id}
+            href={`/product/${p.slug}`}
+            className="min-w-[72vw] max-w-[72vw] sm:min-w-[360px] sm:max-w-[360px] lg:min-w-[420px] lg:max-w-[420px]
+                       [scroll-snap-align:start]"
+          >
             <div className="aspect-[4/5] overflow-hidden rounded-dh22 bg-neutral-100">
-              <img src={p.cover_url || "/placeholder.svg"} alt={p.title} className="h-full w-full object-cover" />
+              {/* Здесь обычный <img> — так быстрее в скролле */}
+              <img
+                src={p.cover_url || "/placeholder.svg"}
+                alt={p.title}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
             </div>
-            <div className="mt-4 text-center">
-              <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
-              <div className="mt-1 text-[15px] font-semibold">{fmtRub(p.price_cents)}</div>
+            <div className="mt-3 text-center sm:mt-4">
+              <div className="text-[12px] uppercase tracking-wider text-neutral-700 sm:text-sm">
+                {p.title}
+              </div>
+              <div className="mt-1 text-[14px] font-semibold sm:text-[15px]">
+                {fmtRub(p.price_cents)}
+              </div>
             </div>
           </a>
         ))}
@@ -57,13 +89,21 @@ function Bestsellers({ products }: { products: any[] }) {
 function AllItemsBanner() {
   return (
     <section id="all" className="relative overflow-hidden rounded-dh22">
-      <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" alt="Новинки" width={2400} height={1200} className="h-[50vh] w-full object-cover" />
+      <Image
+        src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg"
+        alt="Новинки"
+        width={2400}
+        height={1200}
+        className="h-[40vh] w-full object-cover sm:h-[50vh]"
+        sizes="(max-width: 640px) 100vw, 100vw"
+      />
       <a
         href="/new"
         className="absolute inset-0 flex items-center justify-center"
         aria-label="Перейти в Новинки"
       >
-        <span className="rounded-xl bg-white/20 px-6 py-2 text-5xl font-extrabold uppercase tracking-widest text-white backdrop-blur">
+        <span className="rounded-xl bg-black/20 px-4 py-2 text-3xl font-extrabold uppercase tracking-widest text-white backdrop-blur
+                         sm:px-6 sm:py-2 sm:text-5xl">
           Новинки
         </span>
       </a>
@@ -71,14 +111,22 @@ function AllItemsBanner() {
   );
 }
 
-/* ================== CATEGORY SPLIT ================== */
+/* ================== CATEGORY SPLIT (адаптив) ================== */
 function CategorySplit() {
   const cards = [
-    { href: "/catalog/clothes", label: "Одежда", img: "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" },
-    { href: "/catalog/accessories", label: "Аксессуары", img: "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" },
+    {
+      href: "/catalog/clothes",
+      label: "Одежда",
+      img: "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg",
+    },
+    {
+      href: "/catalog/accessories",
+      label: "Аксессуары",
+      img: "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg",
+    },
   ];
   return (
-    <section id="cats" className="grid grid-cols-1 gap-6 md:grid-cols-2">
+    <section id="cats" className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
       {cards.map((c) => (
         <a key={c.href} href={c.href} className="group relative overflow-hidden rounded-dh22">
           <Image
@@ -86,11 +134,13 @@ function CategorySplit() {
             alt={c.label}
             width={1600}
             height={1200}
-            className="h-[72vh] w-full object-cover transition group-hover:scale-[1.02]"
+            className="h-[56vh] w-full object-cover transition group-hover:scale-[1.02] sm:h-[64vh] md:h-[72vh]"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
           <div className="absolute inset-0 bg-black/10" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="rounded-xl bg-white/20 px-6 py-2 text-5xl font-extrabold uppercase tracking-widest text-white backdrop-blur">
+          <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-6">
+            <span className="rounded-xl bg-white/20 px-4 py-2 text-3xl font-extrabold uppercase tracking-widest text-white backdrop-blur
+                             sm:px-6 sm:py-2 sm:text-5xl">
               {c.label}
             </span>
           </div>
@@ -100,22 +150,33 @@ function CategorySplit() {
   );
 }
 
-/* ================== CLOTHES GRID ================== */
+/* ================== CLOTHES GRID (адаптив) ================== */
 function ClothesGrid({ items }: { items: any[] }) {
   return (
     <section id="clothes" className="scroll-mt-20">
-      <h2 className="mb-8 mt-16 text-6xl font-black uppercase tracking-tight text-accent">Clothes</h2>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <h2 className="mb-6 mt-12 text-3xl font-black uppercase tracking-tight text-accent sm:mb-8 sm:mt-16 sm:text-5xl md:text-6xl">
+        Clothes
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
         {items.map((p) => (
-          <a key={p.id} href={`/product/${p.slug}`} className="group overflow-hidden rounded-dh22 bg-neutral-100">
+          <a
+            key={p.id}
+            href={`/product/${p.slug}`}
+            className="group overflow-hidden rounded-dh22 bg-neutral-100"
+          >
             <img
               src={p.cover_url || "/placeholder.svg"}
               alt={p.title}
+              loading="lazy"
               className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]"
             />
-            <div className="px-4 pb-6 pt-4 text-center">
-              <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
-              <div className="mt-1 text-[15px] font-semibold">{fmtRub(p.price_cents)}</div>
+            <div className="px-2 pb-4 pt-3 text-center sm:px-4 sm:pb-6 sm:pt-4">
+              <div className="text-[12px] uppercase tracking-wider text-neutral-700 sm:text-sm">
+                {p.title}
+              </div>
+              <div className="mt-1 text-[13px] font-semibold sm:text-[15px]">
+                {fmtRub(p.price_cents)}
+              </div>
             </div>
           </a>
         ))}
@@ -124,32 +185,41 @@ function ClothesGrid({ items }: { items: any[] }) {
   );
 }
 
-/* ================== CTA -10% ================== */
+/* ================== CTA -10% (адаптив) ================== */
 function NewsletterCTA() {
   return (
-    <section id="sale10" className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+    <section id="sale10" className="grid grid-cols-1 items-stretch gap-4 sm:gap-6 md:grid-cols-2">
       <div className="overflow-hidden rounded-dh22">
-        <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/all-items.jpg" alt="DH22" width={1400} height={1200} className="h-full w-full object-cover" />
+        <Image
+          src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/all-items.jpg"
+          alt="DH22"
+          width={1400}
+          height={1200}
+          className="h-full w-full object-cover"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
       </div>
-      <div className="relative overflow-hidden rounded-dh22 bg-gradient-to-b from-accent to-[#4E35CE] p-10 text-white">
+      <div className="relative overflow-hidden rounded-dh22 bg-gradient-to-b from-accent to-[#4E35CE] p-6 text-white sm:p-10">
         <div className="mx-auto max-w-md text-center">
-          <h3 className="text-4xl font-extrabold uppercase leading-tight tracking-wider">
+          <h3 className="text-2xl font-extrabold uppercase leading-tight tracking-wider sm:text-4xl">
             Воспользуйтесь скидкой 10% на первый заказ
           </h3>
-          <p className="mt-4 text-sm opacity-90">
+          <p className="mt-3 text-sm opacity-90 sm:mt-4">
             Подпишитесь на нашу рассылку и мы отправим вам персональный промокод
           </p>
-          <form className="mt-6 flex items-center gap-3">
+          <form className="mt-4 flex items-center gap-2 sm:mt-6 sm:gap-3">
             <input
               type="email"
               placeholder="Электронная почта"
-              className="h-12 w-full min-w-0 flex-1 rounded-xl border border-white/30 bg-white/10 px-4 text-white placeholder-white/70 outline-none backdrop-blur"
+              className="h-11 w-full min-w-0 flex-1 rounded-xl border border-white/30 bg-white/10 px-3 text-sm text-white placeholder-white/70 outline-none backdrop-blur
+                         sm:h-12 sm:px-4 sm:text-base"
             />
-            <button className="h-12 shrink-0 rounded-xl bg-white px-5 text-sm font-bold uppercase tracking-wider text-accent">
+            <button className="h-11 shrink-0 rounded-xl bg-white px-4 text-xs font-bold uppercase tracking-wider text-accent
+                               sm:h-12 sm:px-5 sm:text-sm">
               Отправить
             </button>
           </form>
-          <p className="mt-3 text-[11px] opacity-70">
+          <p className="mt-3 text-[10px] opacity-70 sm:text-[11px]">
             Нажимая на кнопку, вы соглашаетесь с политикой конфиденциальности и обработкой персональных данных
           </p>
         </div>
@@ -158,19 +228,28 @@ function NewsletterCTA() {
   );
 }
 
-/* ================== BRAND BLOCK ================== */
+/* ================== BRAND BLOCK (адаптив) ================== */
 function BrandBlock() {
   return (
     <section id="brand" className="relative overflow-hidden rounded-dh22">
-      <Image src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg" alt="About brand" width={2400} height={1600} className="h-[70vh] w-full object-cover grayscale" />
-      <div className="absolute right-10 top-10 max-w-md rounded-2xl bg-white/70 p-6 backdrop-blur">
-        <div className="text-3xl font-bold text-accent">DH22</div>
-        <p className="mt-3 text-sm leading-relaxed text-neutral-800">
+      <Image
+        src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg"
+        alt="About brand"
+        width={2400}
+        height={1600}
+        className="h-[54vh] w-full object-cover grayscale sm:h-[62vh] md:h-[70vh]"
+        sizes="100vw"
+      />
+      <div className="absolute right-4 top-4 max-w-[88%] rounded-2xl bg-white/70 p-4 backdrop-blur
+                      sm:right-8 sm:top-8 sm:max-w-md sm:p-6">
+        <div className="text-2xl font-bold text-accent sm:text-3xl">DH22</div>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-800 sm:mt-3">
           Наш бренд воплощает сдержанную элегантность и техническую точность посадки. Минимализм, чёткие линии и качественные ткани.
         </p>
         <a
           href="/about"
-          className="mt-4 inline-block rounded-xl bg-accent px-5 py-3 text-sm font-bold uppercase tracking-wider text-white"
+          className="mt-3 inline-block rounded-xl bg-accent px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white
+                     sm:mt-4 sm:px-5 sm:py-3 sm:text-sm"
         >
           Подробнее о бренде
         </a>
@@ -179,7 +258,7 @@ function BrandBlock() {
   );
 }
 
-/* ================== INSTAGRAM DUMMY ================== */
+/* ================== INSTAGRAM DUMMY (кликабельно) ================== */
 function Instagram() {
   const IG_URL = "https://instagram.com/dh22_am";
   const imgs = [
@@ -193,12 +272,11 @@ function Instagram() {
 
   return (
     <section id="insta" className="scroll-mt-20">
-      <h2 className="mb-8 mt-16 text-center text-6xl font-black uppercase tracking-tight text-accent">
+      <h2 className="mb-4 mt-12 text-center text-3xl font-black uppercase tracking-tight text-accent sm:mb-8 sm:mt-16 sm:text-5xl md:text-6xl">
         Follow us
       </h2>
 
-      {/* Ник — кликабельная ссылка */}
-      <p className="mb-6 text-center font-semibold text-neutral-500">
+      <p className="mb-5 text-center font-semibold text-neutral-500 sm:mb-6">
         <a
           href={IG_URL}
           target="_blank"
@@ -210,7 +288,7 @@ function Instagram() {
         </a>
       </p>
 
-      <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-6">
         {imgs.map((src, i) => (
           <a
             key={i}
@@ -226,6 +304,7 @@ function Instagram() {
               width={600}
               height={800}
               className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]"
+              sizes="(max-width: 640px) 33vw, (max-width: 1024px) 16vw, 16vw"
             />
           </a>
         ))}
@@ -234,17 +313,14 @@ function Instagram() {
   );
 }
 
+/* ================== СТРАНИЦА ================== */
 export default async function Page() {
-  const [latest, clothesRaw] = await Promise.all([
-    getLatest(12),
-    getClothes(12),
-  ]);
-
+  const [latest, clothesRaw] = await Promise.all([getLatest(12), getClothes(12)]);
   const clothes = clothesRaw.length ? clothesRaw : latest;
-  
+
   return (
-    <div className="grid gap-16">
-    <Hero />
+    <div className="mx-auto w-[calc(100%-32px)] max-w-[1400px] space-y-8 py-6 sm:w-[calc(100%-48px)] sm:space-y-12 sm:py-10">
+      <Hero />
       <Bestsellers products={latest} />
       <AllItemsBanner />
       <CategorySplit />
@@ -253,7 +329,11 @@ export default async function Page() {
       <BrandBlock />
       <Instagram />
       <QuickNav />
-        </div>
+      {/* Если нужно — верните дополнительные секции:
+         <CategoryTiles />
+         <ClothesSection />
+         <InstagramStripStatic />
+      */}
+    </div>
   );
 }
-  
