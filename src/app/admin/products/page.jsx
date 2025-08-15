@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listProductsAdmin } from "@/lib/adminQueries";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
+export const runtime = 'edge';
 
 const fmt = (c) => (Number(c || 0) / 100).toLocaleString("ru-RU") + " ₽";
 
