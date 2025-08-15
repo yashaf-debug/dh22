@@ -91,11 +91,11 @@ export default function Footer() {
               <span className="text-neutral-500">Все права защищены</span>
             </div>
             <ul className="flex flex-wrap gap-x-6 gap-y-2">
-              <li><Link href="/delivery" className="hover:text-white:text-white">Доставка</Link></li>
-              <li><Link href="/returns" className="hover:text-white:text-white">Возврат</Link></li>
-              <li><Link href="/privacy" className="hover:text-white:text-white">Политика конфиденциальности</Link></li>
-              <li><Link href="/terms" className="hover:text-white:text-white">Пользовательское соглашение</Link></li>
-              <li><Link href="/offer" className="hover:text-white:text-white">Договор-оферта</Link></li>
+              <li><Link href="/delivery" className="hover:text-white">Доставка</Link></li>
+              <li><Link href="/returns" className="hover:text-white">Возврат</Link></li>
+              <li><Link href="/privacy" className="hover:text-white">Политика конфиденциальности</Link></li>
+              <li><Link href="/terms" className="hover:text-white">Пользовательское соглашение</Link></li>
+              <li><Link href="/offer" className="hover:text-white">Договор-оферта</Link></li>
             </ul>
           </div>
         </div>
