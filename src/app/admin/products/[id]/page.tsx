@@ -1,5 +1,6 @@
 import ProductFormClient from "./ProductFormClient";
 import { getProductById } from "@/lib/adminQueries";
+export const runtime = 'edge';
 
 export default async function Page({ params, searchParams }) {
   const product = await getProductById(Number(params.id));
