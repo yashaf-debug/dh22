@@ -1,8 +1,8 @@
 import "./globals.css";
-import Link from "next/link";
 import Script from "next/script";
 import type { ReactNode } from "react";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export const metadata = {
   metadataBase: new URL('https://dh22.ru'),
@@ -34,25 +34,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang="ru">
-      <body>
+      <body className="antialiased">
         <Header />
         <main className="page-wrap pt-24 pb-24">{children}</main>
-        <footer className="border-t border-black/10 mt-16">
-            <div className="page-wrap py-10 text-sm flex flex-col md:flex-row gap-4 justify-between">
-              <div>© {new Date().getFullYear()} DH22</div>
-              <div className="opacity-70 space-x-3">
-                <Link href="/delivery">Доставка</Link>
-                <span>/</span>
-                <Link href="/returns">Возврат</Link>
-                <span>/</span>
-                <Link href="/privacy">Политика конфиденциальности</Link>
-                <span>/</span>
-                <Link href="/terms">Пользовательское соглашение</Link>
-                <span>/</span>
-                <Link href="/oferta">Договор-оферта</Link>
-              </div>
-            </div>
-        </footer>
+        <Footer />
 
         {/* Yandex.Metrika 103743080 */}
         <script
