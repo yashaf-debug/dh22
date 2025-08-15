@@ -25,6 +25,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
   );
   if (!rows.length) notFound();
   const p = rows[0];
+  const variants = await queryAll<any>(
+    `SELECT id, color, size, stock, sku FROM product_variants WHERE product_id=?`,
+    p.id
+  );
   const product = {
     ...p,
     colors: (() => { try { return JSON.parse(p.colors ?? '[]'); } catch { return []; } })(),
@@ -33,7 +37,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   };
   return (
     <div className="container mx-auto px-4 py-10">
-      <ProductClient product={product} />
+      <ProductClient product={product} variants={variants} />
     </div>
   );
 }

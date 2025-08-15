@@ -48,14 +48,14 @@ export async function POST(req) {
 
     const itemsWithIds = [];
     for (const it of items) {
-      const p = await first("SELECT id, name, quantity FROM products WHERE slug=?", it.slug);
-      if (!p || p.quantity < it.qty) {
+      const v = await first("SELECT product_id, stock FROM product_variants WHERE id=?", it.variantId);
+      if (!v || v.stock < it.qty) {
         return new Response(
-          JSON.stringify({ ok: false, error: "no_stock", detail: { product_id: p?.id, available: p?.quantity || 0 } }),
+          JSON.stringify({ ok: false, error: "no_stock", detail: { variant_id: it.variantId, available: v?.stock || 0 } }),
           { status: 409, headers: { "content-type": "application/json" } }
         );
       }
-      itemsWithIds.push({ ...it, product_id: p.id });
+      itemsWithIds.push({ ...it, product_id: v.product_id, variant_id: it.variantId });
     }
 
     const number = "DH22-" + Date.now().toString(36).toUpperCase();
@@ -84,9 +84,23 @@ export async function POST(req) {
       await run(insertItem, order.id, i.slug, i.name, i.price, i.qty, i.image);
     }
 
+    await run("BEGIN");
     for (const it of itemsWithIds) {
-      await run("UPDATE products SET quantity = quantity - ? WHERE id=?", it.qty, it.product_id);
+      const upd = await run(
+        "UPDATE product_variants SET stock = stock - ? WHERE id=? AND stock >= ?",
+        it.qty,
+        it.variant_id,
+        it.qty
+      );
+      if (!upd?.meta?.changes) {
+        await run("ROLLBACK");
+        return new Response(
+          JSON.stringify({ ok: false, error: "no_stock", detail: { variant_id: it.variant_id } }),
+          { status: 409, headers: { "content-type": "application/json" } }
+        );
+      }
     }
+    await run("COMMIT");
 
     try {
       const createdOrder = await first(byNumber, number);
