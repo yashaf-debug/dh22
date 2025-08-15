@@ -183,21 +183,59 @@ function BrandBlock() {
 
 /* ================== INSTAGRAM DUMMY ================== */
 function Instagram() {
-  const imgs = ["/ig1.jpg", "/ig2.jpg", "/ig3.jpg", "/ig4.jpg", "/ig5.jpg", "/ig6.jpg"];
+  const IG_URL = "https://instagram.com/dh22_am";
+  const imgs = [
+    "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/proxy-5.jpeg",
+    "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/proxy-6.jpeg",
+    "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/proxy-7.jpeg",
+    "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/proxy-8.jpeg",
+    "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/proxy-9.jpeg",
+    "https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/proxy.jpeg",
+  ];
+
   return (
     <section id="insta" className="scroll-mt-20">
-      <h2 className="mb-8 mt-16 text-center text-6xl font-black uppercase tracking-tight text-accent">Follow us</h2>
-      <p className="mb-6 text-center font-semibold text-neutral-500">@dh22.official</p>
+      <h2 className="mb-8 mt-16 text-center text-6xl font-black uppercase tracking-tight text-accent">
+        Follow us
+      </h2>
+
+      {/* Ник — кликабельная ссылка */}
+      <p className="mb-6 text-center font-semibold text-neutral-500">
+        <a
+          href={IG_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-transparent transition hover:text-accent hover:decoration-current"
+          aria-label="Открыть Instagram DH22 (@dh22_am) в новой вкладке"
+        >
+          @dh22_am
+        </a>
+      </p>
+
       <div className="grid grid-cols-2 gap-6 md:grid-cols-6">
         {imgs.map((src, i) => (
-          <a key={i} href="#" className="group overflow-hidden rounded-dh22">
-            <Image src={src} alt="" width={600} height={800} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
+          <a
+            key={i}
+            href={IG_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Открыть Instagram DH22 в новой вкладке"
+            className="group overflow-hidden rounded-dh22 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <Image
+              src={src}
+              alt={`DH22 Instagram ${i + 1}`}
+              width={600}
+              height={800}
+              className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]"
+            />
           </a>
         ))}
       </div>
     </section>
   );
 }
+
 export default async function Page() {
   const [latest, clothesRaw] = await Promise.all([
     getLatest(12),
