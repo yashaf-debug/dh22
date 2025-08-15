@@ -23,7 +23,7 @@ export default async function Women() {
   );
   const items = rows.map((p: any) => ({
     ...p,
-    images: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
+    gallery: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
   }));
   return (
     <div className="container mx-auto px-4 py-10">

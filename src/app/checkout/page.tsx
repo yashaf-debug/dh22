@@ -275,14 +275,19 @@ export default function CheckoutPage() {
             <div key={idx} className="flex items-center gap-3 border-b pb-3">
               <div className="w-16 h-20">
                 {(() => {
-                  const images = Array.isArray(i.images) ? i.images : [];
-                  const primary = images[0] || i.image || i.image_url || '';
+                  const primary =
+                    i.image ||
+                    i.main_image ||
+                    (Array.isArray(i.gallery) ? i.gallery[0] : '') ||
+                    i.image_url ||
+                    '';
                   const src = r2Url(primary) || '/images/placeholder.png';
                   return <img src={src} alt={i.name} width={80} height={80} />;
                 })()}
               </div>
               <div className="flex-1">
                 <div className="text-sm">{i.name}</div>
+                <div className="text-xs opacity-70">{[i.color, i.size].filter(Boolean).join(' · ')}</div>
                 <div className="text-xs opacity-70">× {i.qty}</div>
               </div>
               <div className="text-sm">{rub(i.price * i.qty)}</div>

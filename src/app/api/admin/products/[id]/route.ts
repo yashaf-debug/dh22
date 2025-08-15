@@ -1,87 +1,119 @@
 export const runtime = "edge";
 
 import { NextRequest, NextResponse } from "next/server";
-import { first, run } from "@/app/lib/db";
+import { all, first, run } from "@/app/lib/db";
 
-const getToken = (req: NextRequest) => req.headers.get("authorization")?.split(" ")[1] || "";
 const ok = (x: any = {}) => NextResponse.json({ ok: true, ...x }, { status: 200 });
 const fail = (error: string, detail?: any) =>
   NextResponse.json({ ok: false, error, detail }, { status: 200 });
 
-const toInt = (v: any, d = 0) => (Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : d);
-const toBool = (v: any) =>
-  typeof v === "boolean" ? v : v === 1 || v === "1" || String(v).toLowerCase() === "true";
-const toArr = (v: any) => {
-  if (!v) return [];
+function parseArray(v: any): any[] {
   if (Array.isArray(v)) return v;
-  try { return JSON.parse(String(v)); } catch { return []; }
-};
-const slugify = (s: string) =>
-  (s || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\u0400-\u04ff-]+/gi, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+  if (typeof v === "string" && v) {
+    try { return JSON.parse(v); } catch {}
+  }
+  return [];
+}
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
     const raw = await first(
-      `SELECT id, slug, name, price, quantity, active, category, description,
-              main_image, image_url, images_json,
-              sizes, colors, updated_at
-         FROM products
-        WHERE id=? OR slug=?`,
-      params.id, params.id
+      `SELECT id, slug, name, description, price, main_image, images_json
+         FROM products WHERE id=? OR slug=?`,
+      params.id,
+      params.id
     );
     if (!raw) return fail("not_found");
-    const item = {
-      ...raw,
-      images: (() => { try { return JSON.parse(raw.images_json ?? '[]'); } catch { return []; } })(),
-    };
+    const gallery = (() => {
+      try { return JSON.parse(raw.images_json ?? "[]"); } catch { return []; }
+    })();
+    const variants = await all(
+      `SELECT id, color, size, sku, stock FROM product_variants WHERE product_id=? ORDER BY id`,
+      raw.id
+    );
+    const item = { ...raw, gallery, variants };
     return ok({ item });
   } catch (e: any) {
     return fail("get_product_failed", String(e));
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
+    let body: any;
+    const ct = req.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      body = await req.json();
+    } else {
+      const form = await req.formData();
+      body = Object.fromEntries(form.entries());
+    }
 
-    const b = await req.json();
-    const name        = String(b.name || "").trim();
-    const slug        = slugify(b.slug || name);
-    const price       = toInt(b.price);
-    const quantity    = toInt(b.quantity, 0);
-    const active      = toBool(b.active) ? 1 : 0;
-    const category    = String(b.category || "").trim();
-    const description = String(b.description || "");
-    const sizes       = JSON.stringify(toArr(b.sizes));
-    const colors      = JSON.stringify(toArr(b.colors));
-    const main_image  = String(b.main_image || b.image_url || "").trim();
-    const images_json = typeof b.images_json === 'string' ? b.images_json : JSON.stringify(toArr(b.images));
-    const updated_at  = new Date().toISOString();
+    const name = String(body.name || "").trim();
+    const description = body.description ? String(body.description) : "";
+    const priceRub = Number(body.priceRub ?? body.price_rub ?? body.price ?? 0);
+    const price = Math.round(priceRub * 100);
+    const main_image = String(body.main_image || "").trim();
+    const gallery = parseArray(body.gallery ?? body.gallery_json);
+    const variants = parseArray(body.variants ?? body.variants_json);
 
+    const updated_at = new Date().toISOString();
     await run(
       `UPDATE products
-          SET slug=?, name=?, price=?, quantity=?, active=?,
-              category=?, description=?, sizes=?, colors=?, main_image=?, images_json=?, updated_at=?
+          SET name=?, description=?, price=?, main_image=?, images_json=?, updated_at=?
         WHERE id=?`,
-      slug, name, price, quantity, active,
-      category, description, sizes, colors, main_image, images_json, updated_at,
+      name,
+      description,
+      price,
+      main_image,
+      JSON.stringify(gallery),
+      updated_at,
       params.id
     );
-    const item = await first("SELECT * FROM products WHERE id=?", params.id);
+
+    for (const v of variants) {
+      await run(
+        `INSERT INTO product_variants(product_id,color,size,sku,stock)
+             VALUES(?,?,?,?,?)
+             ON CONFLICT(product_id,color,size) DO UPDATE
+               SET sku=excluded.sku, stock=excluded.stock`,
+        params.id,
+        String(v.color || "").trim(),
+        String(v.size || "").trim(),
+        v.sku ? String(v.sku) : null,
+        Number(v.stock) || 0
+      );
+    }
+
+    await run(
+      `DELETE FROM product_variants
+       WHERE product_id = ? AND (color||'|'||size) NOT IN (${variants.map(() => "?").join(",") || "''"})`,
+      params.id,
+      ...variants.map((v: any) => `${String(v.color || "").trim()}|${String(v.size || "").trim()}`)
+    );
+
+    const raw = await first(
+      `SELECT id, slug, name, description, price, main_image, images_json FROM products WHERE id=?`,
+      params.id
+    );
+    const gallery2 = (() => {
+      try { return JSON.parse(raw.images_json ?? "[]"); } catch { return []; }
+    })();
+    const variants2 = await all(
+      `SELECT id, color, size, sku, stock FROM product_variants WHERE product_id=? ORDER BY id`,
+      params.id
+    );
+    const item = { ...raw, gallery: gallery2, variants: variants2 };
     return ok({ item });
   } catch (e: any) {
     return fail("update_product_failed", String(e));
   }
 }
 
+export const PUT = POST;
+
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
     await run("DELETE FROM products WHERE id=?", params.id);
     return ok();
   } catch (e: any) {
