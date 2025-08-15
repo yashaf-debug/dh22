@@ -18,9 +18,13 @@ export async function generateMetadata() {
 }
 
 export default async function Accessories() {
-  const items = await all(
-    "SELECT id,slug,name,price,main_image,image_url,images FROM products WHERE category='Аксессуары' AND active=1 AND quantity>0 ORDER BY id DESC LIMIT 20"
+  const rows = await all(
+    "SELECT id,slug,name,price,main_image,image_url,images_json FROM products WHERE category='Аксессуары' AND active=1 AND quantity>0 ORDER BY id DESC LIMIT 20"
   );
+  const items = rows.map((p: any) => ({
+    ...p,
+    images: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
+  }));
   return (
     <div className="container mx-auto px-4 py-10">
       <h1 className="text-2xl mb-6">Аксессуары</h1>

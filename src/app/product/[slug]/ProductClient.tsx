@@ -14,9 +14,13 @@ type Product = {
   colors?: string[] | null;
   sizes?: string[] | null;
   main_image?: string | null;
+  images?: string[] | null;
 };
 
 export default function ProductClient({ product }: { product: Product }) {
+  const images: string[] = Array.isArray(product.images) ? product.images : [];
+  const [active, setActive] = useState(0);
+  const pics = images.length ? images : (product.main_image ? [product.main_image] : []);
   const [qty, setQty] = useState(1);
   const [color, setColor] = useState<string | undefined>(product.colors?.[0]);
   const [size, setSize] = useState<string | undefined>(product.sizes?.[0]);
@@ -26,7 +30,7 @@ export default function ProductClient({ product }: { product: Product }) {
       slug: product.slug,
       name: product.name,
       price: product.price,
-      image: product.main_image,
+      image: pics[0],
       qty,
       color: color || null,
       size: size || null,
@@ -49,18 +53,25 @@ export default function ProductClient({ product }: { product: Product }) {
     location.href = '/cart';
   };
 
-  const src = r2Url(product.main_image) || '/images/placeholder.png';
-
   return (
     <div key={product.id} className="grid md:grid-cols-[1fr_1fr] gap-8">
-      <div>
-        <img
-          src={src}
-          alt={`Фото «${product.name}»`}
-          loading="lazy"
-          decoding="async"
-          className="product-img"
-        />
+      <div className="pdp-gallery">
+        <div className="pdp-main">
+          {pics[active] && <img src={r2Url(pics[active])} alt={product.name} className="product-img" />}
+        </div>
+        {pics.length > 1 && (
+          <div className="pdp-thumbs">
+            {pics.map((p, i) => (
+              <button
+                key={i}
+                className={i === active ? 'thumb active' : 'thumb'}
+                onClick={() => setActive(i)}
+              >
+                <img src={r2Url(p)} alt={`thumb ${i + 1}`} />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>

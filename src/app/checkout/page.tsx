@@ -88,7 +88,7 @@ export default function CheckoutPage() {
         items: cart,
         amount: { total: orderTotal },
         payment_method: paymentMethod,
-        cf_turnstile_token: cfToken,
+        "cf-turnstile-response": cfToken,
       };
       const r1 = await fetch("/api/checkout/create", {
         method: "POST",
@@ -275,7 +275,9 @@ export default function CheckoutPage() {
             <div key={idx} className="flex items-center gap-3 border-b pb-3">
               <div className="w-16 h-20">
                 {(() => {
-                  const src = r2Url(i.image || i.image_url) || '/images/placeholder.png';
+                  const images = Array.isArray(i.images) ? i.images : [];
+                  const primary = images[0] || i.image || i.image_url || '';
+                  const src = r2Url(primary) || '/images/placeholder.png';
                   return <img src={src} alt={i.name} width={80} height={80} />;
                 })()}
               </div>

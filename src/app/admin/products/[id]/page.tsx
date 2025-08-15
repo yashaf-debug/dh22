@@ -12,6 +12,7 @@ type Product = {
   main_image?: string | null;
   sizes?: string | null;
   colors?: string | null;
+  images_json?: string | null;
 };
 
 export default async function EditProduct({ params }: { params: { id: string } }) {
@@ -19,7 +20,11 @@ export default async function EditProduct({ params }: { params: { id: string } }
   if (!rows.length) {
     return <div className="container mx-auto px-4 py-8">Not found</div>;
   }
-  const product = rows[0];
+  const p = rows[0];
+  const product = {
+    ...p,
+    images: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-4">

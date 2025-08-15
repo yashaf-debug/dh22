@@ -1,6 +1,6 @@
 DELETE FROM products;
 
-INSERT INTO products (slug,name,price,category,active,quantity,description,main_image,sizes,colors,gallery) VALUES
+INSERT INTO products (slug,name,price,category,active,quantity,description,main_image,sizes,colors,images_json) VALUES
 ('eson-dress','Платье «ESON»',599000,'Женская одежда',1,29,'Плотная ткань / Контрастный шов / Точная посадка','/images/dress-01.svg','["XS","S","M","L"]','["черный","молочный"]','["/images/dress-01.svg"]'),
 ('metro-coat','Пальто «Metro»',1299000,'Женская одежда',1,12,'Плотная ткань / Прямой крой / Минимализм','/images/coat-01.svg','["S","M","L"]','["черный","серый"]','["/images/coat-01.svg"]'),
 ('line-pants','Брюки «Line»',699000,'Женская одежда',1,25,'Мягкая посадка / Средняя талия / Чистые линии','/images/pants-01.svg','["XS","S","M","L"]','["черный"]','["/images/pants-01.svg"]'),

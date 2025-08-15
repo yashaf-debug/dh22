@@ -18,10 +18,13 @@ export async function POST(req) {
   try {
     await ensureOrdersTables();
     const body = await req.json();
-    const token = String(body.cf_turnstile_token || '');
-    const ip = req.headers.get('cf-connecting-ip') || undefined;
-    const ok = await verifyTurnstile(token, ip);
-    if (!ok) return bad('Turnstile failed', 400);
+    const token = body["cf-turnstile-response"] || body.turnstileToken || body.cf_turnstile_token;
+    const ip = req.headers.get('cf-connecting-ip');
+    const vr = await verifyTurnstile(process.env, token, ip);
+    if (!vr.ok) {
+      if (process.env.TURNSTILE_STRICT === "1") return bad('Turnstile failed', 400);
+      console.warn('Turnstile soft-fail:', vr);
+    }
 
     const { customer, items } = body;
     const delivery = body.delivery || {};

@@ -8,7 +8,7 @@ export async function createNewProduct() {
   const slug = `new-${Date.now()}`;
   const stmt = db
     .prepare(
-      `INSERT INTO products (slug, name, price, category, active, quantity, description, main_image, sizes, colors, gallery)
+      `INSERT INTO products (slug, name, price, category, active, quantity, description, main_image, sizes, colors, images_json)
        VALUES (?,'Новый товар',0,'',0,0,'','', '[]','[]','[]')`
     )
     .bind(slug);

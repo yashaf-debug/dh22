@@ -8,10 +8,13 @@ type Product = {
   name: string;
   price: number;
   main_image?: string | null;
+  images?: string[] | null;
 };
 
 export default function ProductCard({ product }: { product: Product }) {
-  const src = r2Url(product.main_image) || '/images/placeholder.png';
+  const images: string[] = Array.isArray(product.images) ? product.images : [];
+  const primary = images[0] || product.main_image || '';
+  const src = r2Url(primary) || '/images/placeholder.png';
   return (
     <Link href={`/product/${product.slug}`} className="card">
       <div style={{ height: 360 }}>

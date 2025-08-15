@@ -1,18 +1,23 @@
-export async function verifyTurnstile(token: string, ip?: string) {
-  if (!token) return false;
+export interface Env {
+  TURNSTILE_SECRET?: string;
+  TURNSTILE_STRICT?: string; // "1" to enforce strict validation
+}
 
-  const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) return false;
+export async function verifyTurnstile(env: Env, token: string | undefined, ip: string | null) {
+  if (!env.TURNSTILE_SECRET) return { ok: true, reason: "no-secret" };
+  if (!token) return { ok: env.TURNSTILE_STRICT !== "1", reason: "no-token" };
 
   const form = new URLSearchParams();
-  form.append('secret', secret);
-  form.append('response', token);
-  if (ip) form.append('remoteip', ip);
+  form.append("secret", env.TURNSTILE_SECRET);
+  form.append("response", token);
+  if (ip) form.append("remoteip", ip);
 
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
+  const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
     body: form,
   });
-  const data = await res.json();
-  return !!data.success;
+  const data = await r.json().catch(() => ({}));
+  const ok = !!data.success;
+  return { ok, reason: ok ? "ok" : "verify-failed", raw: data };
 }
+

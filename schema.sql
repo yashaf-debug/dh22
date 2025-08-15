@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS products (
   image_url TEXT,
   sizes TEXT NOT NULL DEFAULT '[]',   -- JSON
   colors TEXT NOT NULL DEFAULT '[]',  -- JSON
-  gallery TEXT NOT NULL DEFAULT '[]', -- JSON
+  images_json TEXT NOT NULL DEFAULT '[]', -- JSON
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
