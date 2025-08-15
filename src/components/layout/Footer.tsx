@@ -3,18 +3,12 @@ import Link from "next/link";
 
 const year = new Date().getFullYear();
 
-const Section = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div>
-    <div className="mb-4 text-sm font-bold uppercase tracking-[0.12em] text-neutral-900">
+    <div className="mb-4 text-sm font-bold uppercase tracking-[0.12em] text-white/90">
       {title}
     </div>
-    <ul className="space-y-3 text-[15px] leading-6 text-neutral-700">
+    <ul className="space-y-3 text-[15px] leading-6 text-white/80">
       {children}
     </ul>
   </div>
@@ -24,25 +18,30 @@ export default function Footer() {
   return (
     <footer className="relative mt-20 w-full">
       {/* фон: тёмный -> фиолетовый акцент, мягкие углы контейнера */}
-      <div className="relative mx-auto w-[calc(100%-48px)] max-w-[1400px] overflow-hidden rounded-[28px] bg-gradient-to-tr from-neutral-900 via-black to-[#191622]">
+     <div
+  className="
+    relative mx-auto w-[calc(100%-48px)] max-w-[1400px]
+    overflow-hidden rounded-[28px]
+    bg-gradient-to-tr from-[#7B61FF] via-[#6C4EF6] to-[#5C49D9]
+  "
+>
         {/* водяной знак DH22 слева (Oswald/condensed, очень прозрачно) */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 -rotate-90 select-none text-[28vw] leading-none font-extrabold uppercase tracking-[-0.06em] text-white/5"
-          style={{ fontFamily: "Oswald, Inter, system-ui, sans-serif" }}
-        >
-          DH22
-        </span>
+      <span
+    aria-hidden
+    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 -rotate-90 select-none text-[28vw] leading-none font-extrabold uppercase tracking-[-0.06em] text-white/10"
+    style={{ fontFamily: "Oswald, Inter, system-ui, sans-serif" }}
+  >
+    DH22
+  </span>
 
         {/* Контент */}
-        <div className="relative grid gap-10 px-8 py-12 sm:px-10 lg:grid-cols-[1.2fr_1fr_1fr_1fr] lg:gap-16 lg:px-14 lg:py-16">
+       <div className="relative grid gap-10 px-8 py-12 sm:px-10 lg:grid-cols-[1.2fr_1fr_1fr_1fr] lg:gap-16 lg:px-14 lg:py-16">
           {/* Колонка: Каталог */}
           <Section title="Каталог">
             <li><Link href="/new" className="hover:text-[#6C4EF6]">Новинки</Link></li>
             <li><Link href="/catalog/clothes" className="hover:text-[#6C4EF6]">Одежда</Link></li>
             <li><Link href="/catalog/accessories" className="hover:text-[#6C4EF6]">Аксессуары</Link></li>
             <li><Link href="/bestsellers" className="hover:text-[#6C4EF6]">Bestsellers</Link></li>
-            <li><Link href="/sale" className="hover:text-[#6C4EF6]">Sale</Link></li>
           </Section>
 
           {/* Колонка: Покупателям */}
@@ -56,8 +55,8 @@ export default function Footer() {
           {/* Колонка: Контакты */}
           <Section title="Контакты">
             <li>
-              <a href="mailto:hello@dh22.ru" className="hover:text-[#6C4EF6]">
-                hello@dh22.ru
+              <a href="mailto:info@dh22.ru" className="hover:text-[#6C4EF6]">
+                info@dh22.ru
               </a>
             </li>
             <li>
@@ -66,7 +65,7 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href="https://wa.me/79990000000" target="_blank" rel="noreferrer" className="hover:text-[#6C4EF6]">
+              <a href="https://wa.me/79165630633" target="_blank" rel="noreferrer" className="hover:text-[#6C4EF6]">
                 WhatsApp
               </a>
             </li>
@@ -85,7 +84,7 @@ export default function Footer() {
         </div>
 
         {/* Линия + юридический блок */}
-        <div className="relative border-t border-white/10 px-8 py-6 text-xs text-neutral-400 sm:px-10 lg:px-14">
+      <div className="relative border-t border-white/20 px-8 py-6 text-xs text-white/80 sm:px-10 lg:px-14">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-x-4">
               <span>© {year} DH22</span>
