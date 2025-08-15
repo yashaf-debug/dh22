@@ -74,7 +74,10 @@ export default function AdminClient({ token, initialQ, initialStatus }: { token:
       <div className="space-y-2">
         {items.map(o => (
           <div key={o.id} className="border p-3 hover:bg-gray-50">
-            <Link href={`/admin/${encodeURIComponent(o.number)}?t=${encodeURIComponent(token)}`} className="block">
+            <Link
+              href={{ pathname: `/admin/${encodeURIComponent(o.number)}`, query: token ? { t: token } : {} }}
+              className="block"
+            >
               <div className="flex justify-between">
                 <div>
                   <div className="font-medium">#{o.number}</div>

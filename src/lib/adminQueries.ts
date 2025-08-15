@@ -56,3 +56,8 @@ export async function listProductsAdmin(opts: { q?: string; limit?: number; offs
   return rows.map(normalizeProduct);
 }
 
+
+export async function getProductById(id: number) {
+  const rows = await query<any>("SELECT * FROM products WHERE id = ?", [id]);
+  return rows[0] || null;
+}

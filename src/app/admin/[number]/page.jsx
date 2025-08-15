@@ -26,7 +26,7 @@ export default async function AdminOrder({ params, searchParams }) {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div>
-        <Link href={`/admin?t=${encodeURIComponent(token)}`} className="text-blue-600">← назад</Link>
+        <Link href={{ pathname: "/admin", query: token ? { t: token } : {} }} className="text-blue-600">← назад</Link>
       </div>
 
       {!token && <div className="text-red-600">Добавь ?t=ТОКЕН в URL</div>}
