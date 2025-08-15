@@ -65,7 +65,7 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href="https://wa.me/79165630633" target="_blank" rel="noreferrer" className="hover:text-white">
+              <a href="https://wa.me/79995952225" target="_blank" rel="noreferrer" className="hover:text-white">
                 WhatsApp
               </a>
             </li>
@@ -75,7 +75,7 @@ export default function Footer() {
           <div className="hidden lg:block">
             <div className="rounded-[24px] bg-neutral-800/60 p-2">
               <img
-                src="/images/footer-card.jpg"
+                src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/DH22_inst.png"
                 alt=""
                 className="aspect-[3/4] w-full rounded-[20px] object-cover"
               />
