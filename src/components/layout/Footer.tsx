@@ -38,34 +38,34 @@ export default function Footer() {
        <div className="relative grid gap-10 px-8 py-12 sm:px-10 lg:grid-cols-[1.2fr_1fr_1fr_1fr] lg:gap-16 lg:px-14 lg:py-16">
           {/* Колонка: Каталог */}
           <Section title="Каталог">
-            <li><Link href="/new" className="hover:text-[#6C4EF6]">Новинки</Link></li>
-            <li><Link href="/catalog/clothes" className="hover:text-[#6C4EF6]">Одежда</Link></li>
-            <li><Link href="/catalog/accessories" className="hover:text-[#6C4EF6]">Аксессуары</Link></li>
-            <li><Link href="/bestsellers" className="hover:text-[#6C4EF6]">Bestsellers</Link></li>
+            <li><Link href="/new" className="hover:text-white">Новинки</Link></li>
+            <li><Link href="/catalog/clothes" className="hover:text-white">Одежда</Link></li>
+            <li><Link href="/catalog/accessories" className="hover:text-white">Аксессуары</Link></li>
+            <li><Link href="/bestsellers" className="hover:text-white">Bestsellers</Link></li>
           </Section>
 
           {/* Колонка: Покупателям */}
           <Section title="Покупателям">
-            <li><Link href="/about" className="hover:text-[#6C4EF6]">О бренде</Link></li>
-            <li><Link href="/info" className="hover:text-[#6C4EF6]">Информация</Link></li>
-            <li><Link href="/delivery" className="hover:text-[#6C4EF6]">Оплата и доставка</Link></li>
-            <li><Link href="/gift-card" className="hover:text-[#6C4EF6]">Gift Card</Link></li>
+            <li><Link href="/about" className="hover:text-white">О бренде</Link></li>
+            <li><Link href="/info" className="hover:text-white">Информация</Link></li>
+            <li><Link href="/delivery" className="hover:text-white">Оплата и доставка</Link></li>
+            <li><Link href="/gift-card" className="hover:text-white">Gift Card</Link></li>
           </Section>
 
           {/* Колонка: Контакты */}
           <Section title="Контакты">
             <li>
-              <a href="mailto:info@dh22.ru" className="hover:text-[#6C4EF6]">
+              <a href="mailto:info@dh22.ru" className="hover:text-white">
                 info@dh22.ru
               </a>
             </li>
             <li>
-              <a href="https://instagram.com/dh22_am" target="_blank" rel="noreferrer" className="hover:text-[#6C4EF6]">
+              <a href="https://instagram.com/dh22_am" target="_blank" rel="noreferrer" className="hover:text-white">
                 Instagram @dh22_am
               </a>
             </li>
             <li>
-              <a href="https://wa.me/79165630633" target="_blank" rel="noreferrer" className="hover:text-[#6C4EF6]">
+              <a href="https://wa.me/79165630633" target="_blank" rel="noreferrer" className="hover:text-white">
                 WhatsApp
               </a>
             </li>
@@ -91,11 +91,11 @@ export default function Footer() {
               <span className="text-neutral-500">Все права защищены</span>
             </div>
             <ul className="flex flex-wrap gap-x-6 gap-y-2">
-              <li><Link href="/delivery" className="hover:text-[#6C4EF6]">Доставка</Link></li>
-              <li><Link href="/returns" className="hover:text-[#6C4EF6]">Возврат</Link></li>
-              <li><Link href="/privacy" className="hover:text-[#6C4EF6]">Политика конфиденциальности</Link></li>
-              <li><Link href="/terms" className="hover:text-[#6C4EF6]">Пользовательское соглашение</Link></li>
-              <li><Link href="/offer" className="hover:text-[#6C4EF6]">Договор-оферта</Link></li>
+              <li><Link href="/delivery" className="hover:text-white:text-white">Доставка</Link></li>
+              <li><Link href="/returns" className="hover:text-white:text-white">Возврат</Link></li>
+              <li><Link href="/privacy" className="hover:text-white:text-white">Политика конфиденциальности</Link></li>
+              <li><Link href="/terms" className="hover:text-white:text-white">Пользовательское соглашение</Link></li>
+              <li><Link href="/offer" className="hover:text-white:text-white">Договор-оферта</Link></li>
             </ul>
           </div>
         </div>
