@@ -1,6 +1,8 @@
 import Image from "next/image";
-import { getBestsellers, getClothes } from "@/lib/queries";
+import { getBestsellersSafe, getClothesSafe, getLatest } from "@/lib/queries";
 import QuickNav from "@/components/QuickNav";
+
+const fmt = (cents: number) => (cents / 100).toLocaleString("ru-RU") + " ₽";
 
 export const runtime = "edge";
 
@@ -38,7 +40,7 @@ function Bestsellers({ products }: { products: any[] }) {
             </div>
             <div className="mt-4 text-center">
               <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
-              <div className="mt-1 text-[15px] font-semibold">{(p.price/100).toLocaleString("ru-RU")} ₽</div>
+              <div className="mt-1 text-[15px] font-semibold">{fmt(p.price_cents)}</div>
               {p.is_sale ? <div className="mt-1 text-[12px] font-bold uppercase text-accent">Sale</div> : null}
               {p.is_soldout ? <div className="mt-1 text-[12px] font-bold uppercase text-accent/80">Sold Out</div> : null}
             </div>
@@ -90,7 +92,7 @@ function ClothesGrid({ items }: { items: any[] }) {
             <Image src={p.cover_url || "/placeholder.svg"} alt={p.title} width={900} height={1200} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
             <div className="px-4 pb-6 pt-4 text-center">
               <div className="text-sm uppercase tracking-wider text-neutral-700">{p.title}</div>
-              <div className="mt-1 text-[15px] font-semibold">{(p.price/100).toLocaleString("ru-RU")} ₽</div>
+              <div className="mt-1 text-[15px] font-semibold">{fmt(p.price_cents)}</div>
             </div>
           </a>
         ))}
@@ -153,14 +155,20 @@ function Instagram() {
 }
 
 export default async function Page() {
-  const [bestsellers, clothes] = await Promise.all([getBestsellers(), getClothes()]);
+  const [bestsellers, clothes] = await Promise.all([
+    getBestsellersSafe(12),
+    getClothesSafe(12),
+  ]);
+
+  const clothesData = clothes.length ? clothes : await getLatest(12);
+
   return (
     <div className="grid gap-16">
       <Hero />
       <Bestsellers products={bestsellers} />
       <AllItemsBanner />
       <CategorySplit />
-      <ClothesGrid items={clothes} />
+      <ClothesGrid items={clothesData} />
       <NewsletterCTA />
       <BrandBlock />
       <Instagram />
