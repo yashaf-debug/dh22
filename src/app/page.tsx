@@ -12,8 +12,7 @@ function Hero() {
       <Image src="/hero.jpg" alt="Hero" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-black/10" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <h1 className="wordmark pointer-events-none select-none text-[20vw] leading-none font-black text-accent mix-blend-multiply">
-        </h1>
+        <h1 className="sr-only">DH22 — New Collection</h1>
       </div>
       <div className="absolute bottom-14 left-1/2 -translate-x-1/2 text-center">
         <div className="text-4xl font-extrabold uppercase tracking-widest text-accent">
