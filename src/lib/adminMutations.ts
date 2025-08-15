@@ -47,6 +47,7 @@ export async function createDraftProduct() {
     description: "",
     active: 0,
     is_new: 0,
+    is_bestseller: 0,
     category: "",         // ВАЖНО: строка, т.к. у вас NOT NULL
     subcategory: "",
     main_image: "",
