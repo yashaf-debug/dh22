@@ -1,42 +1,52 @@
 import { query } from "@/lib/d1";
-import { hasColumn } from "@/lib/schema";
-import { normalize } from "@/lib/normalize";
+import { tableCols } from "@/lib/schema";
+import { normalizeProduct } from "@/lib/normalize";
 
-function orderByFresh() {
-  return "ORDER BY COALESCE(updated_at, created_at) DESC";
-}
+const ORDER = "ORDER BY COALESCE(updated_at, created_at, id) DESC";
 
 export async function getLatest(limit = 12) {
-  const rows = await query<any>(`SELECT * FROM products ${orderByFresh()} LIMIT ${limit}`);
-  return rows.map(normalize);
+  const cols = await tableCols("products");
+  const where = cols.has("active") ? "WHERE active = 1" : "";
+  const rows = await query<any>(`
+    SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
+    FROM products p
+    ${where}
+    ${ORDER}
+    LIMIT ${limit}
+  `);
+  return rows.map(normalizeProduct);
 }
 
-export async function getBestsellersSafe(limit = 12) {
-  // Берём до 100 и фильтруем по доступным признакам
-  const rows = await query<any>(`SELECT * FROM products ${orderByFresh()} LIMIT 100`);
-  const norm = rows.map(normalize);
-
-  const withFlag = (await hasColumn("products", "is_bestseller"))
-    ? norm.filter(p => p.is_bestseller === 1)
-    : [];
-
-  const viaTags = norm.filter(p => {
-    const t = String(p.tags).toLowerCase();
-    return t.includes("bestseller") || t.includes("хит") || t.includes("hit");
-  });
-
-  const list = (withFlag.length ? withFlag : viaTags.length ? viaTags : norm);
-  return list.slice(0, limit);
+export async function getClothes(limit = 12) {
+  const rows = await query<any>(`
+    SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
+    FROM products p
+    WHERE ${/* категория у вас русская */""} (category='Женская одежда')
+    ${ORDER}
+    LIMIT ${limit}
+  `);
+  return rows.map(normalizeProduct);
 }
 
-export async function getClothesSafe(limit = 12) {
-  const byCategory = (await hasColumn("products", "category"))
-    ? "category='clothes'"
-    : (await hasColumn("products", "category_slug"))
-      ? "category_slug='clothes'"
-      : null;
-
-  const where = byCategory ? `WHERE ${byCategory}` : "";
-  const rows = await query<any>(`SELECT * FROM products ${where} ${orderByFresh()} LIMIT ${limit}`);
-  return rows.map(normalize);
+export async function getAccessories(limit = 12) {
+  const rows = await query<any>(`
+    SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
+    FROM products p
+    WHERE category='Аксессуары'
+    ${ORDER}
+    LIMIT ${limit}
+  `);
+  return rows.map(normalizeProduct);
 }
+
+export async function getNew(limit = 12) {
+  const rows = await query<any>(`
+    SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
+    FROM products p
+    WHERE is_new = 1
+    ${ORDER}
+    LIMIT ${limit}
+  `);
+  return rows.map(normalizeProduct);
+}
+

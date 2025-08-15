@@ -1,25 +1,21 @@
 import { query } from "@/lib/d1";
 
-type SchemaCache = Record<string, Set<string>>;
-let cache: SchemaCache | null = null;
+type Cache = Record<string, Set<string>>;
+let cache: Cache | null = null;
 
-export async function ensureSchema(): Promise<SchemaCache> {
-  if (cache) return cache;
-  cache = {};
-  // при необходимости добавьте и другие таблицы
-  const tables = ["products"];
-  for (const t of tables) {
+export async function tableCols(table: string): Promise<Set<string>> {
+  if (!cache) cache = {};
+  if (!cache[table]) {
     try {
-      const rows = await query<any>(`PRAGMA table_info(${t});`);
-      cache[t] = new Set(rows.map((r: any) => r.name));
+      const rows = await query<any>(`PRAGMA table_info(${table});`);
+      cache[table] = new Set(rows.map((r: any) => r.name));
     } catch {
-      cache[t] = new Set(); // безопасный дефолт
+      cache[table] = new Set();
     }
   }
-  return cache!;
+  return cache[table]!;
+}
+export async function hasCol(table: string, col: string) {
+  return (await tableCols(table)).has(col);
 }
 
-export async function hasColumn(table: string, col: string) {
-  const s = await ensureSchema();
-  return s[table]?.has(col) ?? false;
-}

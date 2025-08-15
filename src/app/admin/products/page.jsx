@@ -1,71 +1,48 @@
-"use client";
-export const runtime = 'edge';
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { authHeaders } from "../_lib";
-import { r2Url } from '@/lib/r2';
-import { createNewProduct } from './actions';
+import { listProductsAdmin } from "@/lib/adminQueries";
+import { fmtRub } from "@/lib/normalize";
 
-export default function AdminProductsList({ searchParams }) {
-  const t = searchParams?.t || "";
-  const [q, setQ] = useState(searchParams?.q || "");
-  const [items, setItems] = useState([]);
+export const runtime = "edge";
 
-  async function load() {
-    const r = await fetch(`/api/admin/products?q=${encodeURIComponent(q)}`, { cache: "no-store", headers: authHeaders(t) });
-    const j = await r.json();
-    setItems(j?.items || []);
-  }
+export default async function AdminProductsPage({ searchParams }) {
+  const q = searchParams?.q ?? "";
+  const items = await listProductsAdmin({ q, limit: 100 });
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line
-  }, []);
   return (
-    <div className="container mx-auto px-4 py-8 space-y-4">
-      <h1 className="text-2xl">Товары</h1>
-      <div className="flex gap-2">
-        <input className="border px-2 py-1" placeholder="поиск…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button className="border px-3" onClick={load}>Искать</button>
-        <form action={createNewProduct}>
-          <button className="btn btn-sm" type="submit">+ Новый</button>
-        </form>
-      </div>
-      <div className="divide-y">
-          {items.map((p) => {
-            return (
-              <div key={p.id} className="py-3 flex items-center gap-4">
-                <div className="w-12 h-12">
-                  {(() => {
-                    const src = r2Url(p.main_image || p.image_url) || '/images/placeholder.png';
-                    return (
-                      <img
-                        src={src}
-                        alt={p.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="product-thumb"
-                      />
-                    );
-                  })()}
+    <div className="p-6">
+      <nav className="mb-6 text-lg font-semibold">
+        <Link href="/admin/orders" className="mr-4 hover:underline">Заказы</Link>
+        <span className="opacity-60">Каталог</span>
+      </nav>
+
+      <h1 className="mb-4 text-3xl font-semibold">Товары</h1>
+
+      <form method="GET" className="mb-6 flex gap-3">
+        <input name="q" defaultValue={q} placeholder="поиск..." className="h-10 w-[280px] rounded border px-3" />
+        <button className="h-10 rounded border px-4">Искать</button>
+        <Link href="/admin/products/new" className="flex h-10 items-center rounded border px-4">+ Новый</Link>
+      </form>
+
+      {items.length === 0 ? (
+        <div className="text-sm text-neutral-500">Ничего не найдено.</div>
+      ) : (
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {items.map(p => (
+            <li key={p.id} className="flex items-center gap-4 rounded border p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.cover_url} alt="" className="h-16 w-16 rounded object-cover" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium">{p.title}</div>
+                <div className="text-sm opacity-70">{fmtRub(p.price_cents)}</div>
+                <div className="text-xs opacity-60">
+                  {p.category}{p.subcategory ? ` / ${p.subcategory}` : ""} · Остаток: {p.stock_total}
                 </div>
-                <div className="flex-1">
-                  <div className="font-medium">{p.name}{p.is_bestseller ? <span className="ml-2 rounded bg-accent px-1 text-[10px] uppercase tracking-wider text-white">Bestseller</span> : null}</div>
-                  <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
-                </div>
-                <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(t)}`}>Править</Link>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={async () => {
-                    if (!confirm('Удалить товар?')) return;
-                    await fetch(`/api/admin/products/${p.id}`, { method:'DELETE', headers: authHeaders(t) });
-                    load();
-                  }}
-                >Удалить</button>
               </div>
-            );
-          })}
-      </div>
+              <Link href={`/admin/products/${p.id}`} className="rounded border px-3 py-1 text-sm">Открыть</Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
