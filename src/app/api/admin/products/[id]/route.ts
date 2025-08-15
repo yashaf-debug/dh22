@@ -18,7 +18,7 @@ function parseArray(v: any): any[] {
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const raw = await first(
-      `SELECT id, slug, name, description, price, main_image, images_json
+      `SELECT id, slug, name, description, price, main_image, images_json, is_bestseller
          FROM products WHERE id=? OR slug=?`,
       params.id,
       params.id
@@ -56,11 +56,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const main_image = String(body.main_image || "").trim();
     const gallery = parseArray(body.gallery ?? body.gallery_json);
     const variants = parseArray(body.variants ?? body.variants_json);
+    const is_bestseller = body.is_bestseller ? 1 : 0;
 
     const updated_at = new Date().toISOString();
     await run(
       `UPDATE products
-          SET name=?, description=?, price=?, main_image=?, images_json=?, updated_at=?
+          SET name=?, description=?, price=?, main_image=?, images_json=?, updated_at=?, is_bestseller=?
         WHERE id=?`,
       name,
       description,
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       main_image,
       JSON.stringify(gallery),
       updated_at,
+      is_bestseller,
       params.id
     );
 
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     );
 
     const raw = await first(
-      `SELECT id, slug, name, description, price, main_image, images_json FROM products WHERE id=?`,
+      `SELECT id, slug, name, description, price, main_image, images_json, is_bestseller FROM products WHERE id=?`,
       params.id
     );
     const gallery2 = (() => {

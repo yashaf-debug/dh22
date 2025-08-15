@@ -50,7 +50,7 @@ export default function AdminProductsList({ searchParams }) {
                   })()}
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium">{p.name}</div>
+                  <div className="font-medium">{p.name}{p.is_bestseller ? <span className="ml-2 rounded bg-accent px-1 text-[10px] uppercase tracking-wider text-white">Bestseller</span> : null}</div>
                   <div className="text-sm opacity-70">{p.slug} • {p.category || "—"} • {p.active ? "активен" : "скрыт"} • остаток {p.quantity}</div>
                 </div>
                 <Link className="border px-3 py-1" href={`/admin/products/${p.id}?t=${encodeURIComponent(t)}`}>Править</Link>

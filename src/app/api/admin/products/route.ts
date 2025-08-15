@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
     const rows = await all(
       `SELECT id, slug, name, price, quantity, active,
               main_image, image_url, images_json,
-              category, updated_at
-         FROM products
+              category, updated_at, is_bestseller
+        FROM products
         WHERE (? = '' OR name LIKE '%'||?||'%' OR slug LIKE '%'||?||'%')
         ORDER BY id DESC
         LIMIT 200`,

@@ -14,6 +14,7 @@ export default function AdminProductForm({ product }: Props) {
   const [gallery, setGallery] = useState<string[]>(Array.isArray(product.gallery) ? product.gallery : []);
   const [variants, setVariants] = useState<ProductVariant[]>(Array.isArray(product.variants) ? product.variants : []);
   const [file, setFile] = useState<File | null>(null);
+  const [isBestseller, setIsBestseller] = useState(product?.is_bestseller === 1);
 
   async function handleUpload(file: File) {
     const fd = new FormData();
@@ -55,6 +56,7 @@ export default function AdminProductForm({ product }: Props) {
     fd.set('description', description);
     fd.set('main_image', mainImage);
     fd.set('priceRub', String(priceRub));
+    fd.set('is_bestseller', isBestseller ? '1' : '0');
     fd.set('gallery_json', JSON.stringify(galleryUrls));
     fd.set('variants_json', JSON.stringify(variantsPayload));
     const res = await fetch(`/api/admin/products/${product.id}`, {
@@ -97,6 +99,10 @@ export default function AdminProductForm({ product }: Props) {
           onChange={e => setPriceRub(Number(e.target.value))}
           className="border px-3 py-2 w-full"
         />
+      </label>
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={isBestseller} onChange={e => setIsBestseller(e.target.checked)} />
+        <span>Bestseller</span>
       </label>
       <label className="field">
         <span>Основное фото URL</span>

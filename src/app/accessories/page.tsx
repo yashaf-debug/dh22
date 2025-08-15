@@ -26,9 +26,9 @@ export default async function Accessories() {
     gallery: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
   }));
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h1 className="text-2xl mb-6">Аксессуары</h1>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="page-wrap py-10">
+      <h1 className="mt-2 text-5xl font-black uppercase tracking-tight text-accent">Аксессуары</h1>
+      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} />
         ))}
