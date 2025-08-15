@@ -1,11 +1,12 @@
 export const runtime = 'edge';
 import * as Sentry from '@sentry/nextjs';
-import { run, first, all } from "@/app/lib/db";
-import { insertOrder, insertItem, byNumber } from "@/app/lib/sql";
+import { first, all } from "@/app/lib/db";
+import { byNumber } from "@/app/lib/sql";
 import { ensureOrdersTables } from "@/app/lib/init";
 import { notifyOrderCreated } from "@/app/lib/notify";
 import { verifyTurnstile } from '@/lib/turnstile';
 import { logEvent } from '@/lib/logs';
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 function bad(msg, code=400){
   return new Response(
@@ -46,72 +47,87 @@ export async function POST(req) {
     const amount_total = items_total + delivery_price;
     if (amount_total <= 0) return bad("Сумма заказа некорректна");
 
-    const itemsWithIds = [];
+    const variantIds = items.map(i => i.variantId);
+    if (!variantIds.length) return bad("Пустая корзина");
+    const placeholders = variantIds.map(() => '?').join(',');
+    const db = getRequestContext().env.DH22_DB;
+    const stocksRes = await db
+      .prepare(`SELECT id, product_id, stock FROM product_variants WHERE id IN (${placeholders})`)
+      .bind(...variantIds)
+      .all();
+    const stockMap = new Map(stocksRes.results.map(r => [r.id, r]));
     for (const it of items) {
-      const v = await first("SELECT product_id, stock FROM product_variants WHERE id=?", it.variantId);
-      if (!v || v.stock < it.qty) {
+      const info = stockMap.get(it.variantId);
+      if (!info || info.stock < it.qty) {
         return new Response(
-          JSON.stringify({ ok: false, error: "no_stock", detail: { variant_id: it.variantId, available: v?.stock || 0 } }),
-          { status: 409, headers: { "content-type": "application/json" } }
+          JSON.stringify({ ok: false, error: "no_stock", detail: { variant_id: it.variantId, available: info?.stock || 0 } }),
+          { status: 400, headers: { "content-type": "application/json" } }
         );
       }
-      itemsWithIds.push({ ...it, product_id: v.product_id, variant_id: it.variantId });
     }
 
     const number = "DH22-" + Date.now().toString(36).toUpperCase();
-    await run(
-      insertOrder,
-      number,
-      initialStatus,
-      customer.name,
-      customer.phone,
-      customer.email,
-      method,
-      method,
-      delivery_city,
-      delivery_address,
-      delivery_pvz_code,
-      delivery_pvz_name,
-      delivery_price,
-      delivery_eta,
-      amount_total,
-      body.notes || "",
-      payment_method
+    const stmts = [];
+    stmts.push(
+      db
+        .prepare(
+          `INSERT INTO orders (number, status, customer_name, customer_phone, customer_email, delivery_method, delivery_type, delivery_city,
+                                delivery_address, delivery_pvz_code, delivery_pvz_name, delivery_price, delivery_eta, amount_total, currency, notes, payment_method)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RUB', ?, ?)`
+        )
+        .bind(
+          number,
+          initialStatus,
+          customer.name,
+          customer.phone,
+          customer.email,
+          method,
+          method,
+          delivery_city,
+          delivery_address,
+          delivery_pvz_code,
+          delivery_pvz_name,
+          delivery_price,
+          delivery_eta,
+          amount_total,
+          body.notes || "",
+          payment_method
+        )
     );
 
-    const order = await first(byNumber, number);
-    for (const i of items) {
-      await run(insertItem, order.id, i.slug, i.name, i.price, i.qty, i.image);
+    for (const it of items) {
+      stmts.push(
+        db
+          .prepare(
+            `INSERT INTO order_items (order_id, slug, name, price, qty, image)
+             VALUES (last_insert_rowid(), ?, ?, ?, ?, ?)`
+          )
+          .bind(it.slug, it.name, it.price, it.qty, it.image)
+      );
+
+      stmts.push(
+        db
+          .prepare(
+            `UPDATE product_variants SET stock = stock - ? WHERE id = ? AND stock >= ?`
+          )
+          .bind(it.qty, it.variantId, it.qty)
+      );
     }
 
-    await run("BEGIN");
-    for (const it of itemsWithIds) {
-      const upd = await run(
-        "UPDATE product_variants SET stock = stock - ? WHERE id=? AND stock >= ?",
-        it.qty,
-        it.variant_id,
-        it.qty
-      );
-      if (!upd?.meta?.changes) {
-        await run("ROLLBACK");
-        return new Response(
-          JSON.stringify({ ok: false, error: "no_stock", detail: { variant_id: it.variant_id } }),
-          { status: 409, headers: { "content-type": "application/json" } }
-        );
-      }
-    }
-    await run("COMMIT");
+    stmts.push(db.prepare(`SELECT last_insert_rowid() AS id`));
+    const results = await db.batch(stmts);
+    const orderId = results[results.length - 1]?.results?.[0]?.id;
 
     try {
       const createdOrder = await first(byNumber, number);
-      const createdItems = await all("SELECT name, qty, price FROM order_items WHERE order_id=?", createdOrder.id);
+      const createdItems = await all("SELECT name, qty, price FROM order_items WHERE order_id=?", orderId);
       await notifyOrderCreated(createdOrder, createdItems);
     } catch {}
 
-    await logEvent('info','checkout','order-created',{ orderId: order.id, orderNumber: number, total: amount_total });
+    await logEvent('info','checkout','order-created',{ orderId, orderNumber: number, total: amount_total });
 
     return new Response(
-      JSON.stringify({ ok: true, orderNumber: number, orderId: order.id }),
+      JSON.stringify({ ok: true, orderNumber: number, orderId }),
       { headers: { "content-type": "application/json" } }
     );
   } catch (e) {
