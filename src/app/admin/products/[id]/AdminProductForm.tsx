@@ -12,6 +12,7 @@ interface Product {
   main_image?: string | null;
   sizes?: string | null;
   colors?: string | null;
+  images?: string[] | null;
 }
 
 export default function AdminProductForm({ product }: { product: Product }) {
@@ -24,6 +25,9 @@ export default function AdminProductForm({ product }: { product: Product }) {
     sizes: product.sizes || '[]',
     colors: product.colors || '[]',
   });
+  const [imagesText, setImagesText] = useState(
+    Array.isArray(product.images) ? product.images.join("\n") : ""
+  );
   const [file, setFile] = useState<File | null>(null);
 
   async function handleUpload(file: File) {
@@ -103,6 +107,26 @@ export default function AdminProductForm({ product }: { product: Product }) {
         />
       )}
       <label className="field">
+        <span>Галерея (по одному URL на строку)</span>
+        <textarea
+          value={imagesText}
+          onChange={e => setImagesText(e.target.value)}
+          rows={6}
+          className="border px-3 py-2 w-full"
+        />
+      </label>
+      <input type="hidden" name="images_json" value={JSON.stringify(normalizeImages(imagesText))} />
+      {(() => {
+        const preview = normalizeImages(imagesText);
+        return preview.length > 0 ? (
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, 120px)',gap:12}}>
+            {preview.map((p,i)=>(
+              <img key={i} src={r2Url(p)} alt={`img-${i}`} style={{width:120,height:120,objectFit:'cover',border:'1px solid #eee'}} />
+            ))}
+          </div>
+        ) : null;
+      })()}
+      <label className="field">
         <span>Размеры (JSON)</span>
         <input
           name="sizes"
@@ -125,4 +149,11 @@ export default function AdminProductForm({ product }: { product: Product }) {
       </button>
     </form>
   );
+}
+
+function normalizeImages(text: string) {
+  return text
+    .split(/\r?\n/)
+    .map(s => s.trim())
+    .filter(Boolean);
 }

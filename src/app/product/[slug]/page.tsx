@@ -15,11 +15,12 @@ type Product = {
   colors?: string | null;
   sizes?: string | null;
   main_image?: string | null;
+  images_json?: string | null;
 };
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const rows = await queryAll<Product>(
-    `SELECT id, slug, name, price, description, colors, sizes, main_image FROM products WHERE slug=? LIMIT 1`,
+    `SELECT id, slug, name, price, description, colors, sizes, main_image, images_json FROM products WHERE slug=? LIMIT 1`,
     params.slug
   );
   if (!rows.length) notFound();
@@ -28,6 +29,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
     ...p,
     colors: (() => { try { return JSON.parse(p.colors ?? '[]'); } catch { return []; } })(),
     sizes: (() => { try { return JSON.parse(p.sizes ?? '[]'); } catch { return []; } })(),
+    images: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
   };
   return (
     <div className="container mx-auto px-4 py-10">

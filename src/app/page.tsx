@@ -8,14 +8,19 @@ export const dynamic = 'force-dynamic';
 
 type Product = {
   id: number; slug: string; name: string; price: number; currency: string;
-  main_image?: string | null; images?: string | null; active: number; is_new?: number;
+  main_image?: string | null; images_json?: string | null; images?: string[];
+  active: number; is_new?: number;
 };
 
 export default async function Home() {
-  const products = await queryAll<Product>(
-    `SELECT id, slug, name, price, currency, main_image, images, active, is_new
+  const rows = await queryAll<Product>(
+    `SELECT id, slug, name, price, currency, main_image, images_json, active, is_new
      FROM products WHERE active=1 ORDER BY is_new DESC, id DESC LIMIT 12`
   );
+  const products = rows.map(p => ({
+    ...p,
+    images: (() => { try { return JSON.parse(p.images_json ?? '[]'); } catch { return []; } })(),
+  }));
   return (
     <section className="container mx-auto px-4 py-10">
       <div className="mb-8">
@@ -24,13 +29,13 @@ export default async function Home() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {products.map(p => {
-          let fallback: string | undefined;
-          try { fallback = JSON.parse(p.images ?? '[]')[0]; } catch {}
+          const images: string[] = Array.isArray(p.images) ? p.images : [];
+          const primary = images[0] || p.main_image || "";
           return (
             <Link key={p.id} className="card" href={`/product/${p.slug}`}>
               <div style={{ height: 360 }}>
                 {(() => {
-                  const src = r2Url(p.main_image ?? fallback) || '/images/placeholder.png';
+                  const src = r2Url(primary) || '/images/placeholder.png';
                   return (
                     <img
                       src={src}

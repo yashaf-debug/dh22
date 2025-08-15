@@ -11,6 +11,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const price = parseInt(String(form.get('price') || '0'), 10) || 0;
   const stock = parseInt(String(form.get('stock') || '0'), 10) || 0;
   const main_image = String(form.get('main_image') || '').trim();
+  const images_json = String(form.get('images_json') || '[]');
 
   // принимаем как строки, но если это валидный JSON — сохраняем как JSON
   const colorsRaw = String(form.get('colors') || '[]').trim() || '[]';
@@ -23,10 +24,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   await db
     .prepare(
       `UPDATE products
-       SET name=?, description=?, price=?, stock=?, main_image=?, colors=?, sizes=?
+       SET name=?, description=?, price=?, stock=?, main_image=?, colors=?, sizes=?, images_json=?
        WHERE id=?`
     )
-    .bind(name, description, price, stock, main_image, colors, sizes, id)
+    .bind(name, description, price, stock, main_image, colors, sizes, images_json, id)
     .run();
 
   return Response.redirect(new URL(`/admin/products/${id}?saved=1`, req.url), 302);

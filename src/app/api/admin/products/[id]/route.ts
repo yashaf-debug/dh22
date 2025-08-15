@@ -26,15 +26,19 @@ const slugify = (s: string) =>
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
-    const item = await first(
+    const raw = await first(
       `SELECT id, slug, name, price, quantity, active, category, description,
-              main_image, image_url, images,
+              main_image, image_url, images_json,
               sizes, colors, updated_at
          FROM products
         WHERE id=? OR slug=?`,
       params.id, params.id
     );
-    if (!item) return fail("not_found");
+    if (!raw) return fail("not_found");
+    const item = {
+      ...raw,
+      images: (() => { try { return JSON.parse(raw.images_json ?? '[]'); } catch { return []; } })(),
+    };
     return ok({ item });
   } catch (e: any) {
     return fail("get_product_failed", String(e));
@@ -56,15 +60,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const sizes       = JSON.stringify(toArr(b.sizes));
     const colors      = JSON.stringify(toArr(b.colors));
     const main_image  = String(b.main_image || b.image_url || "").trim();
+    const images_json = typeof b.images_json === 'string' ? b.images_json : JSON.stringify(toArr(b.images));
     const updated_at  = new Date().toISOString();
 
     await run(
       `UPDATE products
           SET slug=?, name=?, price=?, quantity=?, active=?,
-              category=?, description=?, sizes=?, colors=?, main_image=?, updated_at=?
+              category=?, description=?, sizes=?, colors=?, main_image=?, images_json=?, updated_at=?
         WHERE id=?`,
       slug, name, price, quantity, active,
-      category, description, sizes, colors, main_image, updated_at,
+      category, description, sizes, colors, main_image, images_json, updated_at,
       params.id
     );
     const item = await first("SELECT * FROM products WHERE id=?", params.id);

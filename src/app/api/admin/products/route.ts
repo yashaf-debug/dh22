@@ -30,9 +30,9 @@ export async function GET(req: NextRequest) {
   try {
     if (getToken(req) !== process.env.ADMIN_TOKEN) return fail("unauthorized");
     const q = (new URL(req.url).searchParams.get("q") || "").trim();
-    const items = await all(
+    const rows = await all(
       `SELECT id, slug, name, price, quantity, active,
-              main_image, image_url, images,
+              main_image, image_url, images_json,
               category, updated_at
          FROM products
         WHERE (? = '' OR name LIKE '%'||?||'%' OR slug LIKE '%'||?||'%')
@@ -40,6 +40,10 @@ export async function GET(req: NextRequest) {
         LIMIT 200`,
       q, q, q
     );
+    const items = rows.map(r => ({
+      ...r,
+      images: (() => { try { return JSON.parse(r.images_json ?? '[]'); } catch { return []; } })(),
+    }));
     return ok({ items });
   } catch (e: any) {
     return fail("get_products_failed", String(e));
@@ -60,6 +64,7 @@ export async function POST(req: NextRequest) {
     const sizes       = JSON.stringify(toArr(b.sizes));
     const colors      = JSON.stringify(toArr(b.colors));
     const main_image  = String(b.main_image || b.image_url || "").trim();
+    const images_json = typeof b.images_json === 'string' ? b.images_json : JSON.stringify(toArr(b.images));
     const baseSlug    = slugify(b.slug || name) || `item-${Date.now()}`;
 
     // делаем slug уникальным
@@ -73,10 +78,10 @@ export async function POST(req: NextRequest) {
     const updated_at = new Date().toISOString();
     await run(
       `INSERT INTO products (slug, name, price, quantity, active, category, description,
-                             sizes, colors, main_image, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                             sizes, colors, main_image, images_json, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       slug, name, price, quantity, active, category, description,
-      sizes, colors, main_image, updated_at
+      sizes, colors, main_image, images_json, updated_at
     );
 
     const item = await first("SELECT * FROM products WHERE slug=?", slug);
