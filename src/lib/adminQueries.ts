@@ -58,6 +58,11 @@ export async function listProductsAdmin(opts: { q?: string; limit?: number; offs
 
 
 export async function getProductById(id: number) {
-  const rows = await query<any>("SELECT * FROM products WHERE id = ?", [id]);
-  return rows[0] || null;
+  const [p] = await query<any>("SELECT * FROM products WHERE id = ?", [id]);
+  if (!p) return null;
+  const variants = await query<any>(
+    "SELECT id, color, size, stock, sku FROM product_variants WHERE product_id = ? ORDER BY id",
+    [id]
+  );
+  return { product: p, variants };
 }

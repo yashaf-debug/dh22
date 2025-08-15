@@ -62,7 +62,7 @@ export default function ProductClient({ product }: { product: Product }) {
   return (
     <div>
       <h1 className="text-3xl font-medium">{product.name}</h1>
-      <div className="text-xl mt-2">{rub(product.price)}</div>
+      <div className="text-xl mt-2">{rub((product as any).price ?? (product as any).price_cents)}</div>
       {product.description && <p className="opacity-80 mt-4">{product.description}</p>}
 
       {filteredColors.length ? (
