@@ -1,6 +1,6 @@
 import "./globals.css";
 import Script from "next/script";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import RootLayoutClient from "./RootLayoutClient";
@@ -36,11 +36,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru">
       <body className="antialiased">
-        <RootLayoutClient>
-          <Header />
-          <main className="page-wrap pt-24 pb-24">{children}</main>
-          <Footer />
-        </RootLayoutClient>
+        <Suspense fallback={null}>
+          <RootLayoutClient>
+            <Header />
+            <main className="page-wrap pt-24 pb-24">{children}</main>
+            <Footer />
+          </RootLayoutClient>
+        </Suspense>
 
         {/* Yandex.Metrika 103743080 */}
         <script
