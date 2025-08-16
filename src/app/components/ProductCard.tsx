@@ -4,13 +4,15 @@ import Image from "next/image";
 import { r2Url } from "@/lib/r2";
 import { rub } from "@/app/lib/money";
 import type { Product } from "@/types/product";
+import FavHeart from "@/components/favorites/FavHeart";
 
 export default function ProductCard({ product }: { product: Product }) {
   const images: string[] = Array.isArray(product.gallery) ? product.gallery : [];
   const primary = product.main_image || images[0] || "";
   const src = r2Url(primary) || "/placeholder.svg";
   return (
-    <Link href={`/product/${product.slug}`} className="group overflow-hidden rounded-dh22 bg-neutral-100">
+    <Link href={`/product/${product.slug}`} className="group relative overflow-hidden rounded-dh22 bg-neutral-100">
+      <FavHeart id={product.id} className="absolute right-3 top-3" />
       <Image src={src} alt={product.name} width={900} height={1200} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
       <div className="px-4 pb-6 pt-4 text-center">
         <div className="text-sm uppercase tracking-wider text-neutral-700">{product.name}</div>
