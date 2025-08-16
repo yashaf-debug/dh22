@@ -15,7 +15,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     product.images = ["/images/placeholder.png"];
   }
   return (
-    <main className="mx-auto w-[calc(100%-48px)] max-w-[1400px] py-6">
+    <main className="mx-auto w-[calc(100%-48px)] max-w-[1400px] pt-6 pb-24 md:pb-6">
       <ProductClient product={product} />
       <Recommended items={bestsellers} />
     </main>
