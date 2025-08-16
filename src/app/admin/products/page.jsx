@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { listProductsAdmin } from "@/lib/adminQueries";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
+import { fmtRub } from "@/lib/normalize";
 export const runtime = 'edge';
-
-const fmt = (c) => (Number(c || 0) / 100).toLocaleString("ru-RU") + " ₽";
 
 export default async function AdminProductsPage({ searchParams }) {
   const t = searchParams?.t ?? "";
@@ -29,7 +28,7 @@ export default async function AdminProductsPage({ searchParams }) {
             <img src={p.cover_url} alt="" className="h-16 w-16 rounded object-cover" />
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{p.title}</div>
-              <div className="text-sm opacity-70">{fmt(p.price_cents)}</div>
+              <div className="text-sm opacity-70">{fmtRub(p.price_cents)}</div>
               <div className="text-xs opacity-60">
                 {p.category}{p.subcategory ? ` / ${p.subcategory}` : ""} · Остаток: {p.stock_total}
               </div>

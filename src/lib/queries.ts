@@ -13,6 +13,46 @@ export async function getVariants(productId: number) {
   return q(`SELECT * FROM product_variants WHERE product_id = ? ORDER BY id`, [productId]);
 }
 
+export async function getProductFull(slug: string) {
+  const rows = await q<any>(
+    `SELECT id, slug, name, description, price, care_text, main_image, image_url, images_json
+     FROM products WHERE slug = ? LIMIT 1`,
+    [slug]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  const variants = await q<any>(
+    `SELECT id, product_id, color, size, stock, sku FROM product_variants WHERE product_id = ?`,
+    [row.id]
+  );
+  const images: string[] = [];
+  if (row.main_image) images.push(row.main_image);
+  if (row.image_url) images.push(row.image_url);
+  try {
+    const arr = JSON.parse(row.images_json || "[]");
+    for (const u of arr) if (u) images.push(u);
+  } catch {}
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    price: Number(row.price ?? 0),
+    care: row.care_text,
+    images: images.filter(Boolean),
+    variants,
+  } as {
+    id: number;
+    slug: string;
+    name: string;
+    description?: string;
+    price: number;
+    care?: string;
+    images: string[];
+    variants: any[];
+  };
+}
+
 export async function getBestsellers(limit = 8) {
   return q(
     `SELECT id, slug, name as title, price as price_cents, main_image as cover_url
