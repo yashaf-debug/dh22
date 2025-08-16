@@ -273,7 +273,7 @@ export default function InfoPage() {
         {tab === "returns" && <Returns />}
         {tab === "contacts" && <Contacts />}
       </div>
-
+        <Footer />
     </main>
   );
 }
