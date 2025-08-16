@@ -57,6 +57,12 @@ export default function ProductClient({ product }: { product: Product }) {
       // опционально обработаем ответ сервера
       if (res.ok) {
         const data = await res.json();
+        try {
+          localStorage.setItem("dh22_cart", JSON.stringify(data.cart));
+        } catch (err) {
+          console.error("Failed to save cart", err);
+        }
+        alert("Товар добавлен в корзину");
         console.log("Cart updated", data);
       }
     } finally {
