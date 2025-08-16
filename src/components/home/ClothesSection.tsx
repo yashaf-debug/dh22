@@ -1,6 +1,6 @@
 import { query } from "@/lib/d1";
 import Link from "next/link";
-const fmt = (c:number)=> (Number(c||0)/100).toLocaleString("ru-RU")+" ₽";
+import { fmtRub } from "@/lib/normalize";
 
 export default async function ClothesSection() {
   const items = await query<any>(
@@ -20,7 +20,7 @@ export default async function ClothesSection() {
             <Link href={`/product/${p.slug}`}>
               <img src={p.main_image || p.image_url} alt="" className="mb-4 aspect-[4/5] w-full rounded-[20px] object-cover" />
               <div className="text-sm opacity-70">{p.name}</div>
-              <div className="text-lg font-semibold">{fmt(p.price)}</div>
+              <div className="text-lg font-semibold">{fmtRub(p.price)}</div>
             </Link>
           </li>
         ))}

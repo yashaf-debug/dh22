@@ -43,6 +43,12 @@ export function normalizeProduct(p: Raw) {
   };
 }
 
-export const fmtRub = (cents: number) =>
-  (Number(cents || 0) / 100).toLocaleString("ru-RU") + " ₽";
+export function fmtRub(cents: number) {
+  const rub = Math.round((cents ?? 0) / 100);
+  return new Intl.NumberFormat("ru-RU", {
+    style: "currency",
+    currency: "RUB",
+    maximumFractionDigits: 0,
+  }).format(rub);
+}
 
