@@ -5,6 +5,8 @@ import Image from "next/image";
 import ProductTabs from "@/components/product/ProductTabs";
 import { fmtRub } from "@/lib/normalize";
 import FavHeart from "@/components/favorites/FavHeart";
+import { useCart } from '@/store/cart';
+import { useUI } from '@/store/ui';
 
 type Variant = { id: number; color: string; size: string; stock: number; sku?: string };
 type Product = {
@@ -27,7 +29,6 @@ export default function ProductClient({ product }: { product: Product }) {
   const [color, setColor] = React.useState<string>(colors[0] ?? "");
   const [size, setSize]   = React.useState<string>(sizes[0] ?? "");
   const [qty, setQty]     = React.useState<number>(1);
-  const [adding, setAdding] = React.useState(false);
 
   // текущий вариант
   const variant = React.useMemo(
@@ -35,52 +36,34 @@ export default function ProductClient({ product }: { product: Product }) {
     [product.variants, color, size]
   );
 
+  
+
   const inStock = (variant?.stock ?? 0) > 0;
   const canAdd  = Boolean(variant?.id) && inStock && qty > 0;
 
-  async function handleAdd() {
-    if (!canAdd || !variant) return;
-    try {
-      setAdding(true);
-      // подставьте ваш роут корзины/мутацию
-      const res = await fetch("/api/cart/add", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          slug: product.slug,
-          price: product.price,
-          qty,
-          color,
-          size,
-          variantId: variant.id,
-          name: product.name,
-          image: product.images[0] || "",
-        }),
-      });
-      // опционально обработаем ответ сервера
-      if (res.ok) {
-        const data = await res.json();
-        try {
-          localStorage.setItem("dh22_cart", JSON.stringify(data.cart));
-          window.dispatchEvent(new Event('cart_updated'));
-        } catch (err) {
-          console.error("Failed to save cart", err);
-        }
-        alert("Товар добавлен в корзину");
-        console.log("Cart updated", data);
-      }
-    } finally {
-      setAdding(false);
-    }
-  }
-
+  const add = useCart((s) => s.add);
+  const openCart = useUI((s) => s.openCart);
   const AddButton = ({ className = "" }) => (
     <button
-      onClick={handleAdd}
-      disabled={!canAdd || adding}
+      onClick={() => {
+        if (!canAdd || !variant) return;
+        add({
+          id: product.id,
+          slug: product.slug,
+          title: product.name,
+          price_cents: product.price,
+          cover_url: product.images[0] || '',
+          color: color || null,
+          size: size || null,
+          stock: variant.stock ?? null,
+          qty,
+        });
+        openCart();
+      }}
+      disabled={!canAdd}
       className={`h-11 rounded-xl text-sm font-bold uppercase tracking-wider ${canAdd ? "bg-accent text-white hover:brightness-95" : "bg-neutral-200 text-neutral-500"} ${className}`}
     >
-      {adding ? "Добавление..." : "Добавить в корзину"}
+      Добавить в корзину
     </button>
   );
 
