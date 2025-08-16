@@ -62,6 +62,7 @@ export default function ProductClient({ product }: { product: Product }) {
         const data = await res.json();
         try {
           localStorage.setItem("dh22_cart", JSON.stringify(data.cart));
+          window.dispatchEvent(new Event('cart_updated'));
         } catch (err) {
           console.error("Failed to save cart", err);
         }
@@ -105,7 +106,7 @@ export default function ProductClient({ product }: { product: Product }) {
         {/* ---------- САЙДБАР: прилипает при скролле страницы ---------- */}
         <aside className="md:sticky md:top-24">
           <div className="relative rounded-dh22 border border-neutral-200 bg-white p-5 shadow-sm">
-            <FavHeart id={product.id} className="absolute right-4 top-4" />
+            <FavHeart item={{ id: product.id, slug: product.slug, title: product.name, price_cents: product.price, cover_url: product.images[0] || '' }} className="absolute right-4 top-4" />
             <div className="mb-1 text-2xl font-extrabold uppercase tracking-tight">
               {product.name}
             </div>
