@@ -1,40 +1,99 @@
-'use client';
-import { useFavorites } from '@/store/favorites';
-import { useCart } from '@/store/cart';
-import { useUI } from '@/store/ui';
+"use client";
 
-function Pill({children, onClick}:{children:React.ReactNode; onClick:()=>void}) {
+type ChipProps = {
+  href: string;
+  count?: number;
+  label: string;
+  title: string;
+  icon: "heart" | "cart";
+  onClick?: () => void;
+};
+
+const ACCENT = "#7B61FF";
+
+function Chip({ href, count = 0, label, title, icon, onClick }: ChipProps) {
   return (
-    <button
+    <a
+      href={href}
+      title={title}
       onClick={onClick}
-      className="flex items-center gap-2 rounded-full border bg-white/90 px-4 py-2 text-sm font-semibold shadow-sm backdrop-blur hover:bg-white"
+      className="relative inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 shadow-sm md:hidden"
+      aria-label={label}
     >
-      {children}
-    </button>
+      {icon === "heart" ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="none"
+            stroke={ACCENT}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"
+          />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+          <path
+            fill="none"
+            stroke={ACCENT}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 6h15l-1.5 9h-12zM6 6l-1-3H2M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+          />
+        </svg>
+      )}
+      <span className="text-[15px] font-semibold">{label}</span>
+      <span className="ml-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-black/80 px-2 text-xs font-bold text-white">
+        {count}
+      </span>
+    </a>
   );
 }
 
-export function FavoritesButton() {
-  const count = useFavorites((s) => s.count);
-  const open = useUI((s) => s.openFavs);
+export default function HeaderButtons({
+  favCount = 0,
+  cartCount = 0,
+}: {
+  favCount?: number;
+  cartCount?: number;
+}) {
   return (
-    <Pill onClick={open}>
-      <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.5C11.59 5.01 13.26 4 15 4 17.5 4 19.5 6 19.5 8.5c0 3.78-3.4 6.86-8.05 11.54L12 21.35z"/></svg>
-      Избранное
-      <span className="rounded-full bg-neutral-900 px-2 py-[2px] text-xs text-white">{count()}</span>
-    </Pill>
-  );
-}
+    <div className="flex items-center gap-3">
+      <Chip
+        href="/#favorites"
+        count={favCount}
+        label="Избранное"
+        title="Избранное"
+        icon="heart"
+      />
+      <Chip
+        href="/cart"
+        count={cartCount}
+        label="Корзина"
+        title="Корзина"
+        icon="cart"
+      />
 
-export function CartButton() {
-  const qty = useCart((s) => s.count());
-  const open = useUI((s) => s.openCart);
-  return (
-    <Pill onClick={open}>
-      <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current"><path d="M7 4h-2l-1 2h-2v2h2l3.6 7.59-1.35 2.44c-.16.28-.25.61-.25.95 0 1.1.9 2 2 2h12v-2h-11.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.62h6.74c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1h-14.31l-.94-2zm3 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm8 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-      Корзина
-      <span className="rounded-full bg-neutral-900 px-2 py-[2px] text-xs text-white">{qty}</span>
-    </Pill>
+      <a
+        href="/#favorites"
+        className="hidden md:inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 shadow-sm"
+      >
+        <span className="text-[15px] font-semibold">Избранное</span>
+        <span className="ml-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-black/80 px-2 text-xs font-bold text-white">
+          {favCount}
+        </span>
+      </a>
+      <a
+        href="/cart"
+        className="hidden md:inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 shadow-sm"
+      >
+        <span className="text-[15px] font-semibold">Корзина</span>
+        <span className="ml-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-black/80 px-2 text-xs font-bold text-white">
+          {cartCount}
+        </span>
+      </a>
+    </div>
   );
 }
 

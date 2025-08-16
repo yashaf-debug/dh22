@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const NAV = [
   { href: "/new", label: "Новинки" },
+  { href: "/bestsellers", label: "Bestsellers" },
   { href: "/catalog/clothes", label: "Одежда" },
   { href: "/catalog/accessories", label: "Аксессуары" },
   { href: "/info", label: "Информация" },
