@@ -53,12 +53,12 @@ export async function getProductFull(slug: string) {
   };
 }
 
-export async function getBestsellers(limit = 8) {
+export async function getBestsellers(limit = 48) {
   return q(
     `SELECT id, slug, name as title, price as price_cents, main_image as cover_url
      FROM products
      WHERE active = 1 AND is_bestseller = 1
-     ORDER BY updated_at DESC
+     ORDER BY id DESC
      LIMIT ?`,
     [limit]
   );

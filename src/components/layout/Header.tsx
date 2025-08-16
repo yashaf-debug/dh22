@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Nav from "@/components/layout/Nav";
-import { FavoritesButton, CartButton } from "./HeaderButtons";
+import HeaderButtons from "@/components/layout/HeaderButtons";
 
 const navItems = [
   { href: "/new", label: "Новинки" },
+  { href: "/bestsellers", label: "Bestsellers" },
   { href: "/catalog/clothes", label: "Одежда" },
   { href: "/catalog/accessories", label: "Аксессуары" },
   { href: "/info", label: "Информация" },
@@ -23,6 +24,9 @@ export default function Header() {
     };
   }, [open]);
 
+  const favCount = typeof window !== "undefined" ? Number(localStorage.getItem("fav_count") || 0) : 0;
+  const cartCount = typeof window !== "undefined" ? Number(localStorage.getItem("cart_count") || 0) : 0;
+
   return (
     <header
       className="sticky z-40 mx-auto w-[calc(100%-48px)] max-w-[1400px]"
@@ -37,10 +41,7 @@ export default function Header() {
             <Link href="/" className="wordmark text-lg font-semibold tracking-widest">
               DH22
             </Link>
-            <div className="flex items-center gap-2">
-              <FavoritesButton />
-              <CartButton />
-            </div>
+            <HeaderButtons favCount={favCount} cartCount={cartCount} />
           </div>
         </div>
       </div>
@@ -65,10 +66,7 @@ export default function Header() {
             </Link>
 
             {/* RIGHT: fav + cart icons */}
-            <div className="flex items-center gap-2">
-              <FavoritesButton />
-              <CartButton />
-            </div>
+            <HeaderButtons favCount={favCount} cartCount={cartCount} />
           </div>
         </div>
 
