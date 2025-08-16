@@ -7,12 +7,12 @@ import { rub } from "../lib/money";
 import { r2Url } from '@/lib/r2';
 import { evBeginCheckout, evSelectPVZ, evPaymentMethod } from "../lib/metrics";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import { useCart } from '@/store/cart';
 
 type PVZ = { code: string; name: string; address: string };
 
 export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
-  const [cart, setCart] = useState<any[]>([]);
   const [customer, setCustomer] = useState({ name: "", phone: "", email: "" });
   const [city, setCity] = useState("Москва");
   const [cityCode, setCityCode] = useState<number | null>(null);
@@ -21,14 +21,19 @@ export default function CheckoutPage() {
   const [loadingShip, setLoadingShip] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
   const [cfToken, setCfToken] = useState('');
+  const lines = useCart((s) => s.list());
+  const cart = lines.map(({ title, cover_url, price_cents, id, ...rest }) => ({
+    ...rest,
+    variantId: id,
+    name: title,
+    image: cover_url,
+    price: price_cents,
+  }));
 
   useEffect(() => {
-    const raw = localStorage.getItem('dh22_cart');
-    const parsed = raw ? JSON.parse(raw) : [];
-    setCart(parsed);
-      const sum = parsed.reduce((s: number, i: any) => s + i.price * i.qty, 0) / 100;
-      if (parsed.length) evBeginCheckout(sum);
-  }, []);
+    const sum = cart.reduce((s: number, i: any) => s + i.price * i.qty, 0) / 100;
+    if (cart.length) evBeginCheckout(sum);
+  }, [cart]);
 
   const itemsTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const weight = cart.reduce((s, i) => s + (i.weight_g || 500) * i.qty, 0);
