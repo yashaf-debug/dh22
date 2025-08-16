@@ -3,7 +3,7 @@ import Script from "next/script";
 import type { ReactNode } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import FavoritesSheet from "@/components/favorites/FavoritesSheet";
+import RootLayoutClient from "./RootLayoutClient";
 
 export const metadata = {
   metadataBase: new URL('https://dh22.ru'),
@@ -36,11 +36,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru">
       <body className="antialiased">
-        <Header />
-        <main className="page-wrap pt-24 pb-24">{children}</main>
-        <Footer />
-        {/* Глобальный слайдер избранного */}
-        <FavoritesSheet />
+        <RootLayoutClient>
+          <Header />
+          <main className="page-wrap pt-24 pb-24">{children}</main>
+          <Footer />
+        </RootLayoutClient>
 
         {/* Yandex.Metrika 103743080 */}
         <script

@@ -19,6 +19,7 @@ export default function SuccessPage({ searchParams }) {
     if (!number) return;
 
     localStorage.removeItem("dh22_cart");
+    window.dispatchEvent(new Event('cart_updated'));
     let t;
     const tick = async () => {
       try {

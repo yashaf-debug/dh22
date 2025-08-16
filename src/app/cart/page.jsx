@@ -31,6 +31,7 @@ export default function CartPage() {
     setCart(next);
     try {
       localStorage.setItem('dh22_cart', JSON.stringify(next));
+      window.dispatchEvent(new Event('cart_updated'));
     } catch (err) {
       console.error('Failed to update cart in storage', err);
     }
@@ -40,6 +41,7 @@ export default function CartPage() {
     setCart([]);
     try {
       localStorage.removeItem('dh22_cart');
+      window.dispatchEvent(new Event('cart_updated'));
     } catch (err) {
       console.error('Failed to clear cart from storage', err);
     }

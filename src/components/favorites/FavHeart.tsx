@@ -1,37 +1,27 @@
 "use client";
-import * as React from "react";
-import { isFav, toggleFav, subscribeFavs } from "@/lib/favorites";
+import { useFavorites, type FavItem } from '@/store/favorites';
 
 export default function FavHeart({
-  id,
+  item,
   size = 22,
   className = "",
-}: { id: number; size?: number; className?: string }) {
-  const [active, setActive] = React.useState(false);
-
-  React.useEffect(() => {
-    setActive(isFav(id));
-    return subscribeFavs(() => setActive(isFav(id)));
-  }, [id]);
+}: { item: FavItem; size?: number; className?: string }) {
+  const toggle = useFavorites((s) => s.toggle);
+  const isFav = useFavorites((s) => s.has(item.id));
 
   return (
     <button
-      type="button"
-      onClick={() => toggleFav(id)}
-      aria-label={active ? "Убрать из избранного" : "Добавить в избранное"}
-      className={`rounded-full bg-white/90 p-2 shadow transition hover:bg-white ${className}`}
+      onClick={(e) => { e.preventDefault(); toggle(item); }}
+      aria-label={isFav ? 'Убрать из избранного' : 'Добавить в избранное'}
+      className={`absolute right-3 top-3 z-10 rounded-full bg-white/90 p-2 shadow transition ${isFav ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} ${className}`}
     >
       <svg
         width={size}
         height={size}
         viewBox="0 0 24 24"
-        fill={active ? "#7B61FF" : "none"}
-        stroke={active ? "#7B61FF" : "#111"}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        className={isFav ? 'fill-[#7B61FF] text-[#7B61FF]' : 'text-neutral-800'}
       >
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.5C11.59 5.01 13.26 4 15 4 17.5 4 19.5 6 19.5 8.5c0 3.78-3.4 6.86-8.05 11.54L12 21.35z"/>
       </svg>
     </button>
   );
