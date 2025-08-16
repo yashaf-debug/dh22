@@ -68,13 +68,33 @@ export default function Header() {
               DH22
             </Link>
 
-            <div className="flex items-center gap-4 text-sm">
-              <Link href="/favorites" className="opacity-80">
-                Избранное (0)
-              </Link>
-              <Link href="/cart" className="opacity-80">
-                Корзина (0)
-              </Link>
+            {/* RIGHT: fav + cart icons */}
+            <div className="flex items-center gap-2">
+              <a
+                href="/favorites"
+                aria-label="Избранное"
+                className="relative grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-black/5"
+              >
+                {/* Heart icon */}
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#7B61FF]" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
+                </svg>
+                <span className="sr-only">Избранное</span>
+              </a>
+
+              <a
+                href="/cart"
+                aria-label="Корзина"
+                className="relative grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-black/5"
+              >
+                {/* Cart icon */}
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#7B61FF]" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <circle cx="9" cy="21" r="1.7" />
+                  <circle cx="17" cy="21" r="1.7" />
+                  <path d="M3 3h2l2.2 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6l1.3-7.2H6.2" />
+                </svg>
+                <span className="sr-only">Корзина</span>
+              </a>
             </div>
           </div>
         </div>
