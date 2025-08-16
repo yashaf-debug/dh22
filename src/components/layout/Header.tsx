@@ -10,7 +10,6 @@ const navItems = [
   { href: "/catalog/accessories", label: "Аксессуары" },
   { href: "/info", label: "Информация" },
   { href: "/about", label: "О бренде" },
-  { href: "/gift-card", label: "Gift Card" },
 ];
 
 export default function Header() {

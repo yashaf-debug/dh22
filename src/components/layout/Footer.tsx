@@ -49,7 +49,6 @@ export default function Footer() {
             <li><Link href="/about" className="hover:text-white">О бренде</Link></li>
             <li><Link href="/info" className="hover:text-white">Информация</Link></li>
             <li><Link href="/delivery" className="hover:text-white">Оплата и доставка</Link></li>
-            <li><Link href="/gift-card" className="hover:text-white">Gift Card</Link></li>
           </Section>
 
           {/* Колонка: Контакты */}
