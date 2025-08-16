@@ -53,6 +53,8 @@ export default function ProductClient({ product }: { product: Product }) {
           color,
           size,
           variantId: variant.id,
+          name: product.name,
+          image: product.images[0] || "",
         }),
       });
       // опционально обработаем ответ сервера

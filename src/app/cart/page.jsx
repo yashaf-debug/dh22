@@ -56,13 +56,7 @@ export default function CartPage() {
               <div key={idx} className="flex items-center gap-4 border-b pb-4">
                 <div className="w-24 h-32">
                   {(() => {
-                    const primary =
-                      i.image ||
-                      i.main_image ||
-                      (Array.isArray(i.gallery) ? i.gallery[0] : '') ||
-                      i.image_url ||
-                      '';
-                    const src = r2Url(primary) || '/images/placeholder.png';
+                    const src = r2Url(i.image) || '/images/placeholder.png';
                     return <img src={src} alt={i.name} width={80} height={80} />;
                   })()}
                 </div>
