@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Nav from "@/components/layout/Nav";
+import FavBadge from "@/components/favorites/FavBadge";
 
 const navItems = [
   { href: "/new", label: "Новинки" },
@@ -37,9 +38,7 @@ export default function Header() {
               DH22
             </Link>
             <nav className="flex gap-6">
-              <Link href="/favorites" className="hover:opacity-70">
-                Избранное (0)
-              </Link>
+              <FavBadge />
               <Link href="/cart" className="hover:opacity-70">
                 Корзина (0)
               </Link>
@@ -70,7 +69,7 @@ export default function Header() {
             {/* RIGHT: fav + cart icons */}
             <div className="flex items-center gap-2">
               <a
-                href="/favorites"
+                href="/#favorites"
                 aria-label="Избранное"
                 className="relative grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-black/5"
               >

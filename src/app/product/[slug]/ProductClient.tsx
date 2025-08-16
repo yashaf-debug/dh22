@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import ProductTabs from "@/components/product/ProductTabs";
 import { fmtRub } from "@/lib/normalize";
+import FavHeart from "@/components/favorites/FavHeart";
 
 type Variant = { id: number; color: string; size: string; stock: number; sku?: string };
 type Product = {
@@ -101,7 +102,8 @@ export default function ProductClient({ product }: { product: Product }) {
 
         {/* ---------- САЙДБАР: прилипает при скролле страницы ---------- */}
         <aside className="md:sticky md:top-24">
-          <div className="rounded-dh22 border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="relative rounded-dh22 border border-neutral-200 bg-white p-5 shadow-sm">
+            <FavHeart id={product.id} className="absolute right-4 top-4" />
             <div className="mb-1 text-2xl font-extrabold uppercase tracking-tight">
               {product.name}
             </div>
