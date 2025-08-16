@@ -3,6 +3,26 @@ import { tableCols } from "@/lib/schema";
 import { normalizeProduct } from "@/lib/normalize";
 
 const ORDER = "ORDER BY COALESCE(updated_at, created_at, id) DESC";
+const q = query;
+
+export async function getProductBySlug(slug: string) {
+  return q(`SELECT * FROM products WHERE slug = ? AND active = 1 LIMIT 1`, [slug]);
+}
+
+export async function getVariants(productId: number) {
+  return q(`SELECT * FROM product_variants WHERE product_id = ? ORDER BY id`, [productId]);
+}
+
+export async function getBestsellers(limit = 8) {
+  return q(
+    `SELECT id, slug, name as title, price as price_cents, main_image as cover_url
+     FROM products
+     WHERE active = 1 AND is_bestseller = 1
+     ORDER BY updated_at DESC
+     LIMIT ?`,
+    [limit]
+  );
+}
 
 // --- slug -> русское название в БД
 const CATEGORY_MAP: Record<string, string> = {
@@ -60,19 +80,6 @@ export async function getNew(limit = 12) {
     ${ORDER}
     LIMIT ${limit}
   `);
-  return rows.map(normalizeProduct);
-}
-
-export async function getBestsellers(limit = 12) {
-  const rows = await query<any>(
-    `
-    SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
-    FROM products p
-    WHERE active = 1 AND is_bestseller = 1
-    ${ORDER}
-    LIMIT ${limit}
-    `
-  );
   return rows.map(normalizeProduct);
 }
 

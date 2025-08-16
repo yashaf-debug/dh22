@@ -45,6 +45,7 @@ export async function createDraftProduct() {
     price: 0,
     currency: "RUB",
     description: "",
+    care_text: "",
     active: 0,
     is_new: 0,
     is_bestseller: 0,

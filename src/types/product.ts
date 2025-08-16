@@ -11,6 +11,7 @@ export type Product = {
   slug: string;
   name: string;
   description: string | null;
+  care_text?: string | null;
   price: number;
   main_image: string | null;
   is_bestseller?: number;

@@ -13,8 +13,10 @@ CREATE TABLE IF NOT EXISTS products (
   price INTEGER NOT NULL,
   category TEXT,
   active INTEGER NOT NULL DEFAULT 1,
+  is_bestseller INTEGER NOT NULL DEFAULT 0,
   quantity INTEGER NOT NULL DEFAULT 0,
   description TEXT NOT NULL DEFAULT '',
+  care_text TEXT,
   main_image TEXT,
   image_url TEXT,
   sizes TEXT NOT NULL DEFAULT '[]',   -- JSON

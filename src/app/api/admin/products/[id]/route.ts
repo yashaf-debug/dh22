@@ -25,7 +25,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const fields = [
-    "name","slug","description","price","currency","active","is_new","is_bestseller",
+    "name","slug","description","care_text","price","currency","active","is_new","is_bestseller",
     "category","subcategory","main_image","image_url",
     "images_json","sizes_json","colors_json","quantity"
   ] as const;
@@ -33,11 +33,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const sets: string[] = [];
   const paramsArr: any[] = [];
   for (const f of fields) {
-    const val = form.get(f);
-    if (val !== null && val !== undefined && val !== "") {
-      sets.push(`${f} = ?`);
-      paramsArr.push(f.endsWith("_json") ? String(val) : val);
+    let val: any = form.get(f);
+    if (val === null || val === undefined) continue;
+    if (f === "active" || f === "is_new" || f === "is_bestseller") {
+      val = val ? 1 : 0;
     }
+    sets.push(`${f} = ?`);
+    paramsArr.push(f.endsWith("_json") ? String(val) : val);
   }
   if (sets.length) {
     sets.push("updated_at = CURRENT_TIMESTAMP");
