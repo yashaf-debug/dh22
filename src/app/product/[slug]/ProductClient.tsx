@@ -42,16 +42,23 @@ export default function ProductClient({ product }: { product: Product }) {
     try {
       setAdding(true);
       // подставьте ваш роут корзины/мутацию
-      await fetch("/api/cart", {
+      const res = await fetch("/api/cart/add", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          productId: product.id,
-          variantId: variant.id,
+          slug: product.slug,
+          price: product.price,
           qty,
+          color,
+          size,
+          variantId: variant.id,
         }),
       });
-      // здесь можно дернуть ваш стор/тост
+      // опционально обработаем ответ сервера
+      if (res.ok) {
+        const data = await res.json();
+        console.log("Cart updated", data);
+      }
     } finally {
       setAdding(false);
     }
