@@ -15,6 +15,7 @@ export default function ProductFormClient({ product, variants: initialVariants }
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
+  const [careText, setCareText] = useState(product?.care_text ?? "");
   const [priceRub, setPriceRub] = useState(() => Number(product?.price ?? 0) / 100);
   const [currency, setCurrency] = useState(product?.currency ?? "RUB");
   const [active, setActive] = useState(Boolean(product?.active ?? 1));
@@ -95,6 +96,7 @@ export default function ProductFormClient({ product, variants: initialVariants }
       fd.set("name", name);
       fd.set("slug", slug);
       fd.set("description", description);
+      fd.set("care_text", careText);
       fd.set("price", String(Math.round(Number(priceRub || 0) * 100)));
       fd.set("currency", currency);
       fd.set("active", active ? "1" : "0");
@@ -187,6 +189,13 @@ export default function ProductFormClient({ product, variants: initialVariants }
               <span>Бестселлер</span>
             </label>
           </div>
+          <label className="block text-sm font-medium mt-6">Состав и уход</label>
+          <textarea
+            value={careText}
+            onChange={e => setCareText(e.target.value)}
+            placeholder="Например: 80% вискоза, 20% шёлк. Деликатная стирка при 30°, не отбеливать, сушить горизонтально."
+            className="mt-2 w-full rounded border p-3 h-40"
+          />
         </div>
 
         <div className="space-y-4">
