@@ -14,6 +14,7 @@ export type CartLine = {
   size?: string | null;
   qty: number;
   stock?: number | null;       // если передаёте остаток — ограничим qty
+  weight_g?: number;           // вес варианта в граммах
 };
 
 type State = {
@@ -48,6 +49,7 @@ export const useCart = create<State>()(
         const line: CartLine = {
           key,
           ...raw,
+          weight_g: raw.weight_g ?? existing?.weight_g,
           qty: nextQty,
         };
 
