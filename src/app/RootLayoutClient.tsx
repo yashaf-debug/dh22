@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import FavoritesSheet from '@/components/overlays/FavoritesSheet';
 import CartSheet from '@/components/overlays/CartSheet';
+import CookieBanner from '@/components/CookieBanner';
 import { useUI } from '@/store/ui';
 
 export default function RootLayoutClient({ children }:{ children:React.ReactNode }) {
@@ -25,6 +26,7 @@ export default function RootLayoutClient({ children }:{ children:React.ReactNode
       {children}
       <FavoritesSheet />
       <CartSheet />
+      <CookieBanner />
     </>
   );
 }
