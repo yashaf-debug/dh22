@@ -21,8 +21,8 @@ export default function Header() {
     };
   }, [open]);
 
-  const favCount = typeof window !== "undefined" ? Number(localStorage.getItem("fav_count") || 0) : 0;
-  const cartCount = typeof window !== "undefined" ? Number(localStorage.getItem("cart_count") || 0) : 0;
+  const favCount =
+    typeof window !== "undefined" ? Number(localStorage.getItem("fav_count") || 0) : 0;
 
   return (
     <header
@@ -38,7 +38,7 @@ export default function Header() {
             <Link href="/" className="wordmark text-lg font-semibold tracking-widest">
               DH22
             </Link>
-            <HeaderButtons favCount={favCount} cartCount={cartCount} />
+            <HeaderButtons favCount={favCount} />
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function Header() {
             </Link>
 
             {/* RIGHT: fav + cart icons */}
-            <HeaderButtons favCount={favCount} cartCount={cartCount} />
+            <HeaderButtons favCount={favCount} />
           </div>
         </div>
 
