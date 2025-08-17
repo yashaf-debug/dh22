@@ -1,11 +1,13 @@
 "use client";
 
+import { useUI } from "@/store/ui";
+
 type ChipProps = {
   href: string;
   label: string;
   title: string;
   icon: "heart" | "cart";
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 
 const ACCENT = "#7B61FF";
@@ -53,13 +55,19 @@ export default function HeaderButtons({
   favCount?: number;
   cartCount?: number;
 }) {
+  const { openFavs } = useUI();
+  const onFavsClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
+    e.preventDefault();
+    openFavs();
+  };
   return (
     <div className="flex items-center gap-3">
       <Chip
-        href="/#favorites"
+        href="#"
         label="Избранное"
         title="Избранное"
         icon="heart"
+        onClick={onFavsClick}
       />
       <Chip
         href="/cart"
@@ -69,8 +77,9 @@ export default function HeaderButtons({
       />
 
       <a
-        href="/#favorites"
+        href="#"
         className="hidden md:inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 shadow-sm"
+        onClick={onFavsClick}
       >
         <span className="text-[15px] font-semibold">Избранное</span>
         <span className="ml-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-black/80 px-2 text-xs font-bold text-white">
