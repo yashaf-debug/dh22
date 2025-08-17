@@ -61,10 +61,8 @@ export default function HeaderButtons() {
   };
 
   const onCartClick: React.MouseEventHandler<HTMLAnchorElement> = e => {
-    if (cartItemCount === 0) {
-      e.preventDefault();
-      openCart();
-    }
+    e.preventDefault();
+    openCart();
   };
 
   return (
@@ -77,7 +75,7 @@ export default function HeaderButtons() {
         onClick={onFavsClick}
       />
       <Chip
-        href="/cart"
+        href="#"
         label="Корзина"
         title="Корзина"
         icon="cart"
@@ -95,7 +93,7 @@ export default function HeaderButtons() {
         </span>
       </a>
       <a
-        href="/cart"
+        href="#"
         className="hidden md:inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 shadow-sm"
         onClick={onCartClick}
       >
