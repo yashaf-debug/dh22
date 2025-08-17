@@ -21,9 +21,6 @@ export default function Header() {
     };
   }, [open]);
 
-  const favCount = typeof window !== "undefined" ? Number(localStorage.getItem("fav_count") || 0) : 0;
-  const cartCount = typeof window !== "undefined" ? Number(localStorage.getItem("cart_count") || 0) : 0;
-
   return (
     <header
       className="sticky z-40 mx-auto w-[calc(100%-48px)] max-w-[1400px]"
@@ -38,7 +35,7 @@ export default function Header() {
             <Link href="/" className="wordmark text-lg font-semibold tracking-widest">
               DH22
             </Link>
-            <HeaderButtons favCount={favCount} cartCount={cartCount} />
+            <HeaderButtons />
           </div>
         </div>
       </div>
@@ -63,7 +60,7 @@ export default function Header() {
             </Link>
 
             {/* RIGHT: fav + cart icons */}
-            <HeaderButtons favCount={favCount} cartCount={cartCount} />
+            <HeaderButtons />
           </div>
         </div>
 
