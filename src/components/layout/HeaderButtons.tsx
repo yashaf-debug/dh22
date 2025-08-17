@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useUI } from "@/store/ui";
 import { useFavorites } from "@/store/favorites";
@@ -51,13 +51,22 @@ function Chip({ href, label, title, icon, onClick }: ChipProps) {
 }
 
 export default function HeaderButtons() {
-  const favCount = useFavorites((s) => s.count());
-  const cartCount = useCart((s) => s.count());
-  const { openFavs } = useUI();
-  const onFavsClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
+  const favCount = useFavorites(s => s.count());
+  const cartItemCount = useCart(s => s.count());
+  const { openFavs, openCart } = useUI();
+
+  const onFavsClick: React.MouseEventHandler<HTMLAnchorElement> = e => {
     e.preventDefault();
     openFavs();
   };
+
+  const onCartClick: React.MouseEventHandler<HTMLAnchorElement> = e => {
+    if (cartItemCount === 0) {
+      e.preventDefault();
+      openCart();
+    }
+  };
+
   return (
     <div className="flex items-center gap-3">
       <Chip
@@ -72,6 +81,7 @@ export default function HeaderButtons() {
         label="Корзина"
         title="Корзина"
         icon="cart"
+        onClick={onCartClick}
       />
 
       <a
@@ -87,10 +97,11 @@ export default function HeaderButtons() {
       <a
         href="/cart"
         className="hidden md:inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 shadow-sm"
+        onClick={onCartClick}
       >
         <span className="text-[15px] font-semibold">Корзина</span>
         <span className="ml-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-black/80 px-2 text-xs font-bold text-white">
-          {cartCount}
+          {cartItemCount}
         </span>
       </a>
     </div>
