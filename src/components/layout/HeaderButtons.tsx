@@ -1,6 +1,8 @@
 "use client";
 
 import { useUI } from "@/store/ui";
+import { useFavorites } from "@/store/favorites";
+import { useCart } from "@/store/cart";
 
 type ChipProps = {
   href: string;
@@ -48,13 +50,9 @@ function Chip({ href, label, title, icon, onClick }: ChipProps) {
   );
 }
 
-export default function HeaderButtons({
-  favCount = 0,
-  cartCount = 0,
-}: {
-  favCount?: number;
-  cartCount?: number;
-}) {
+export default function HeaderButtons() {
+  const favCount = useFavorites((s) => s.count());
+  const cartCount = useCart((s) => s.count());
   const { openFavs } = useUI();
   const onFavsClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
     e.preventDefault();
