@@ -6,10 +6,7 @@ import Nav from "@/components/layout/Nav";
 import HeaderButtons from "@/components/layout/HeaderButtons";
 
 const navItems = [
-  { href: "/new", label: "Новинки" },
-  { href: "/bestsellers", label: "Bestsellers" },
   { href: "/catalog/clothes", label: "Одежда" },
-  { href: "/catalog/accessories", label: "Аксессуары" },
   { href: "/info", label: "Информация" },
   { href: "/about", label: "О бренде" },
 ];
