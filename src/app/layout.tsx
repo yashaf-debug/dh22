@@ -4,34 +4,19 @@ import { Suspense, type ReactNode } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import RootLayoutClient from "./RootLayoutClient";
+import {
+  DEFAULT_METADATA,
+  organizationJsonLd,
+  siteNavJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
-export const metadata = {
-  metadataBase: new URL('https://dh22.ru'),
-  title: { default: 'DH22 — одежда и аксессуары', template: '%s — DH22' },
-  description: 'DH22 — одежда и аксессуары. Новинки каждую неделю.',
-  alternates: { canonical: 'https://dh22.ru' },
-  openGraph: {
-    type: 'website',
-    url: 'https://dh22.ru',
-    siteName: 'DH22',
-    title: 'DH22 — одежда и аксессуары',
-    description: 'Одежда, аксессуары и новинки каждую неделю.',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    site: '@dh22',
-    title: 'DH22 — одежда и аксессуары',
-    description: 'Одежда, аксессуары и новинки каждую неделю.',
-  },
-};
+export const metadata = DEFAULT_METADATA;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const orgLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'DH22',
-    url: 'https://dh22.ru',
-  };
+  const orgLd = organizationJsonLd();
+  const webLd = websiteJsonLd();
+  const navLd = siteNavJsonLd();
 
   return (
     <html lang="ru">
@@ -66,6 +51,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Organization JSON-LD */}
         <Script id="org-ld" type="application/ld+json" strategy="afterInteractive">
           {JSON.stringify(orgLd)}
+        </Script>
+        <Script id="website-ld" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify(webLd)}
+        </Script>
+        <Script id="sitenav-ld" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify(navLd)}
         </Script>
       </body>
     </html>
