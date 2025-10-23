@@ -1,13 +1,23 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { getBestsellers, getLatest, getClothes } from "@/lib/queries";
 import QuickNav from "@/components/QuickNav";
 import { fmtRub } from "@/lib/normalize";
+import { SITE, canonical } from "@/lib/seo";
 // Если используете доп. секции — оставьте их импорт/рендер позже
 // import CategoryTiles from "@/components/home/CategoryTiles";
 // import ClothesSection from "@/components/home/ClothesSection";
 // import InstagramStripStatic from "@/components/home/InstagramStripStatic";
 
 export const runtime = "edge";
+
+export const metadata: Metadata = {
+  title: SITE.title,
+  description: SITE.description,
+  alternates: {
+    canonical: canonical(),
+  },
+};
 
 /* =================== HERO (адаптив) =================== */
 function Hero() {
@@ -19,7 +29,7 @@ function Hero() {
     >
       <Image
         src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/hero.jpg"
-        alt="Hero"
+        alt="Геро‑баннер DH22"
         fill
         priority
         className="object-cover"
