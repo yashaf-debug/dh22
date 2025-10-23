@@ -1,4 +1,5 @@
 import "./globals.css";
+import type { Metadata } from "next";
 import Script from "next/script";
 import { Suspense, type ReactNode } from "react";
 import Header from "@/components/layout/Header";
@@ -11,13 +12,9 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 
-export const metadata = DEFAULT_METADATA;
+export const metadata: Metadata = DEFAULT_METADATA;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const orgLd = organizationJsonLd();
-  const webLd = websiteJsonLd();
-  const navLd = siteNavJsonLd();
-
   return (
     <html lang="ru">
       <body className="antialiased">
@@ -50,13 +47,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
         {/* Organization JSON-LD */}
         <Script id="org-ld" type="application/ld+json" strategy="afterInteractive">
-          {JSON.stringify(orgLd)}
+          {JSON.stringify(organizationJsonLd())}
         </Script>
         <Script id="website-ld" type="application/ld+json" strategy="afterInteractive">
-          {JSON.stringify(webLd)}
+          {JSON.stringify(websiteJsonLd())}
         </Script>
         <Script id="sitenav-ld" type="application/ld+json" strategy="afterInteractive">
-          {JSON.stringify(navLd)}
+          {JSON.stringify(siteNavJsonLd())}
         </Script>
       </body>
     </html>
