@@ -112,6 +112,17 @@ export async function getClothes(limit = 12) {
   return rows.map(normalizeProduct);
 }
 
+export async function getAccessories(limit = 12) {
+  const rows = await query<any>(`
+    SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
+    FROM products p
+    WHERE category = 'Аксессуары'
+    ${ORDER}
+    LIMIT ${limit}
+  `);
+  return rows.map(normalizeProduct);
+}
+
 export async function getNew(limit = 12) {
   const rows = await query<any>(`
     SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
