@@ -123,3 +123,14 @@ export async function getNew(limit = 12) {
   return rows.map(normalizeProduct);
 }
 
+type ProductSlugRow = {
+  slug: string;
+  updated_at: string | null;
+};
+
+export async function getAllProductSlugs(): Promise<ProductSlugRow[]> {
+  return q<ProductSlugRow>(
+    `SELECT slug, updated_at FROM products WHERE active = 1 ${ORDER}`,
+  );
+}
+

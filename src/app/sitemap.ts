@@ -1,39 +1,46 @@
 import type { MetadataRoute } from 'next';
-import { all } from '@/app/lib/db';
-export const runtime = 'edge'
-const base =
-  process.env.PUBLIC_BASE_URL ||
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  'https://dh22.ru';
+
+import { getAllProductSlugs } from '@/lib/queries';
+
+export const runtime = 'edge';
+
+const BASE_URL = 'https://dh22.ru';
+
+const STATIC_ROUTES: Array<{
+  path: string;
+  changeFrequency?: MetadataRoute.Sitemap[number]['changeFrequency'];
+  priority?: MetadataRoute.Sitemap[number]['priority'];
+}> = [
+  { path: '/', changeFrequency: 'daily', priority: 0.8 },
+  { path: '/new', changeFrequency: 'daily', priority: 0.7 },
+  { path: '/womens', changeFrequency: 'weekly', priority: 0.7 },
+  { path: '/accessories', changeFrequency: 'weekly', priority: 0.6 },
+  { path: '/catalog/clothes', changeFrequency: 'weekly', priority: 0.7 },
+  { path: '/catalog/accessories', changeFrequency: 'weekly', priority: 0.6 },
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Базовые страницы
-  const items: MetadataRoute.Sitemap = [
-    { url: `${base}/`,        changeFrequency: 'daily',  priority: 0.8 },
-    { url: `${base}/new`,     changeFrequency: 'daily',  priority: 0.7 },
-    { url: `${base}/womens`,  changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${base}/accessories`, changeFrequency: 'weekly', priority: 0.6 },
-    { url: `${base}/catalog/clothes`, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${base}/catalog/accessories`, changeFrequency: 'weekly', priority: 0.6 },
-  ];
+  const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
+    url: `${BASE_URL}${route.path}`,
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
+  }));
 
-  // Активные товары из D1
+  let productEntries: MetadataRoute.Sitemap = [];
+
   try {
-    const rows = (await all(
-      'SELECT slug, updated_at FROM products WHERE active=1'
-    )) as { slug: string; updated_at?: string | null }[];
-
-    for (const r of rows) {
-      items.push({
-        url: `${base}/product/${encodeURIComponent(r.slug)}`,
-        lastModified: r.updated_at ? new Date(r.updated_at) : undefined,
-        changeFrequency: 'weekly',
-        priority: 0.7,
-      });
+    const products = await getAllProductSlugs();
+    productEntries = products.map((product) => ({
+      url: `${BASE_URL}/product/${encodeURIComponent(product.slug)}`,
+      lastModified: product.updated_at ? new Date(product.updated_at) : undefined,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }));
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Не удалось получить список товаров для sitemap', error);
     }
-  } catch {
-    // молча продолжаем — базовых страниц достаточно
   }
 
-  return items;
+  return [...staticEntries, ...productEntries];
 }
