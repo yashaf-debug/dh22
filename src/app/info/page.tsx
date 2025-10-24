@@ -1,5 +1,6 @@
 // src/app/info/page.tsx
 import Image from "next/image";
+import { canonical } from "@/lib/seo";
 import InfoTabs from "./InfoTabs";
 
 export const runtime = "edge";
@@ -7,6 +8,7 @@ export const runtime = "edge";
 export const metadata = {
   title: "Информация — DH22",
   description: "Доставка и оплата, возврат и обмен, контакты DH22",
+  alternates: { canonical: canonical("/info") },
 };
 
 function Hero() {
