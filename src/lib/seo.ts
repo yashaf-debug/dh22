@@ -51,7 +51,7 @@ export const SITE = {
   url: baseUrl,
   locale: "ru_RU",
   title: "DH22 — одежда и аксессуары",
-  description: "DH22 — одежда и аксессуары. Новинки каждую неделю.",
+  description: "DH22 — минимализм, точную посадку и доставка по России без компромиссов.",
   email: "info@dh22.ru",
   instagram: "https://instagram.com/dh22_am",
   whatsapp: "https://wa.me/79995952225",

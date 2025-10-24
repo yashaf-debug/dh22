@@ -3,7 +3,7 @@ export const dynamic = 'force-static';
 export const metadata = {
   title: 'Возврат — DH22',
   description:
-    'Правила и порядок возврата товара в интернет-магазине DH22: Россия, Казахстан/Беларусь и другие страны. Сроки, адрес, контакты.',
+    'Возврат DH22 — минимализм, точную посадку и доставка по России без компромиссов.',
 };
 
 export default function ReturnsPage() {

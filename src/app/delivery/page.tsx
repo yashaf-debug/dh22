@@ -2,7 +2,7 @@ export const dynamic = 'force-static';
 
 export const metadata = {
   title: 'Доставка — DH22',
-  description: 'Условия доставки DH22: по Москве и Санкт-Петербургу, по России, в Казахстан и Беларусь, в другие страны.',
+  description: 'Доставка DH22 — минимализм, точную посадку и доставка по России без компромиссов.',
 };
 
 export default function DeliveryPage() {

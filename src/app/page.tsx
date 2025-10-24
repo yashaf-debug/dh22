@@ -101,7 +101,7 @@ function AllItemsBanner() {
     <section id="all" className="relative overflow-hidden rounded-dh22">
       <Image
         src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg"
-        alt="Новинки"
+        alt="DH22 — раздел Новинки"
         width={2400}
         height={1200}
         className="h-[40vh] w-full object-cover sm:h-[50vh]"
@@ -141,7 +141,7 @@ function CategorySplit() {
         <a key={c.href} href={c.href} className="group relative overflow-hidden rounded-dh22">
           <Image
             src={c.img}
-            alt={c.label}
+            alt={`DH22 — категория ${c.label}`}
             width={1600}
             height={1200}
             className="h-[56vh] w-full object-cover transition group-hover:scale-[1.02] sm:h-[64vh] md:h-[72vh]"
@@ -202,7 +202,7 @@ function NewsletterCTA() {
       <div className="overflow-hidden rounded-dh22">
         <Image
           src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/all-items.jpg"
-          alt="DH22"
+          alt="DH22 — предложение со скидкой 10%"
           width={1400}
           height={1200}
           className="h-full w-full object-cover"
@@ -244,7 +244,7 @@ function BrandBlock() {
     <section id="brand" className="relative overflow-hidden rounded-dh22">
       <Image
         src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/brand.jpg"
-        alt="About brand"
+        alt="DH22 — эстетика бренда"
         width={2400}
         height={1600}
         className="h-[54vh] w-full object-cover grayscale sm:h-[62vh] md:h-[70vh]"

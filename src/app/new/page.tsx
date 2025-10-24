@@ -24,7 +24,11 @@ export default async function NewPage() {
           {items.map((p:any)=>(
             <li key={p.id} className="rounded-[28px] bg-neutral-50 p-4">
               <Link href={`/product/${p.slug}`}>
-                <img src={p.main_image || p.image_url} alt="" className="mb-4 aspect-[4/5] w-full rounded-[20px] object-cover" />
+                <img
+                  src={p.main_image || p.image_url}
+                  alt={p.title || p.name || p.slug}
+                  className="mb-4 aspect-[4/5] w-full rounded-[20px] object-cover"
+                />
                 <div className="text-sm opacity-70">{p.name}</div>
                 <div className="text-lg font-semibold">{fmtRub(p.price)}</div>
               </Link>

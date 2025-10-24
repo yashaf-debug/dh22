@@ -3,7 +3,7 @@ export const dynamic = 'force-static';
 export const metadata = {
   title: 'Публичная оферта — DH22',
   description:
-    'Публичная оферта интернет-магазина DH22: условия продажи товаров, порядок оплаты, доставки и возврата.',
+    'Публичная оферта DH22 — минимализм, точную посадку и доставка по России без компромиссов.',
 };
 
 export default function OfertaPage() {

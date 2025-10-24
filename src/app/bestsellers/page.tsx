@@ -9,7 +9,7 @@ export const runtime = "edge";
 export async function generateMetadata(): Promise<Metadata> {
   const url = canonical("/bestsellers");
   const title = "Bestsellers — DH22";
-  const description = "Хиты продаж DH22";
+  const description = "Bestsellers DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
 
   return {
     title,
@@ -48,7 +48,7 @@ export default async function Page() {
   const jsonLd = collectionJsonLd({
     name: "Bestsellers",
     url: canonical("/bestsellers"),
-    description: "Хиты продаж DH22",
+    description,
     items: items.map((p) => ({
       name: p.name ?? p.title ?? p.slug,
       url: canonical(`/product/${p.slug}`),

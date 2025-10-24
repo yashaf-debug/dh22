@@ -7,7 +7,7 @@ import { getClothes } from "@/lib/queries";
 
 const PATH = "/catalog/clothes";
 const TITLE = "Одежда — DH22";
-const DESCRIPTION = "Одежда DH22";
+const DESCRIPTION = "Одежда DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
 
 export const runtime = "edge";
 export const revalidate = 3600;
