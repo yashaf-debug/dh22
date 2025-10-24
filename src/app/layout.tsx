@@ -4,35 +4,17 @@ import { Suspense, type ReactNode } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import RootLayoutClient from "./RootLayoutClient";
+import type { Metadata } from "next";
+import {
+  DEFAULT_METADATA,
+  organizationJsonLd,
+  websiteJsonLd,
+  siteNavJsonLd,
+} from "@/lib/seo";
 
-export const metadata = {
-  metadataBase: new URL('https://dh22.ru'),
-  title: { default: 'DH22 — одежда и аксессуары', template: '%s — DH22' },
-  description: 'DH22 — одежда и аксессуары. Новинки каждую неделю.',
-  alternates: { canonical: 'https://dh22.ru' },
-  openGraph: {
-    type: 'website',
-    url: 'https://dh22.ru',
-    siteName: 'DH22',
-    title: 'DH22 — одежда и аксессуары',
-    description: 'Одежда, аксессуары и новинки каждую неделю.',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    site: '@dh22',
-    title: 'DH22 — одежда и аксессуары',
-    description: 'Одежда, аксессуары и новинки каждую неделю.',
-  },
-};
+export const metadata: Metadata = DEFAULT_METADATA;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const orgLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'DH22',
-    url: 'https://dh22.ru',
-  };
-
   return (
     <html lang="ru">
       <body className="antialiased">
@@ -63,9 +45,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div><img src="https://mc.yandex.ru/watch/103743080" style={{position:'absolute',left:'-9999px'}} alt="" /></div>
         </noscript>
 
-        {/* Organization JSON-LD */}
-        <Script id="org-ld" type="application/ld+json" strategy="afterInteractive">
-          {JSON.stringify(orgLd)}
+        {/* JSON-LD (Organization/WebSite/Nav) */}
+        <Script id="ld-org" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify(organizationJsonLd())}
+        </Script>
+        <Script id="ld-website" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify(websiteJsonLd())}
+        </Script>
+        <Script id="ld-sitenav" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify(siteNavJsonLd())}
         </Script>
       </body>
     </html>

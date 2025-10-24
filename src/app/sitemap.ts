@@ -1,39 +1,27 @@
-import type { MetadataRoute } from 'next';
-import { all } from '@/app/lib/db';
-export const runtime = 'edge'
-const base =
-  process.env.PUBLIC_BASE_URL ||
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  'https://dh22.ru';
+import type { MetadataRoute } from "next";
+import { canonical } from "@/lib/seo";
+import { getAllProductSlugs } from "@/lib/queries";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Базовые страницы
-  const items: MetadataRoute.Sitemap = [
-    { url: `${base}/`,        changeFrequency: 'daily',  priority: 0.8 },
-    { url: `${base}/new`,     changeFrequency: 'daily',  priority: 0.7 },
-    { url: `${base}/womens`,  changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${base}/accessories`, changeFrequency: 'weekly', priority: 0.6 },
-    { url: `${base}/catalog/clothes`, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${base}/catalog/accessories`, changeFrequency: 'weekly', priority: 0.6 },
-  ];
+  const base = "https://dh22.ru";
 
-  // Активные товары из D1
-  try {
-    const rows = (await all(
-      'SELECT slug, updated_at FROM products WHERE active=1'
-    )) as { slug: string; updated_at?: string | null }[];
+  const staticRoutes = [
+    "", "/new", "/catalog/clothes", "/catalog/accessories",
+    "/bestsellers", "/info", "/about",
+  ].map((p) => ({
+    url: canonical(p || "/"),
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: p === "" ? 1 : 0.8,
+  }));
 
-    for (const r of rows) {
-      items.push({
-        url: `${base}/product/${encodeURIComponent(r.slug)}`,
-        lastModified: r.updated_at ? new Date(r.updated_at) : undefined,
-        changeFrequency: 'weekly',
-        priority: 0.7,
-      });
-    }
-  } catch {
-    // молча продолжаем — базовых страниц достаточно
-  }
+  const products = await getAllProductSlugs();
+  const productRoutes = products.map((p: any) => ({
+    url: `${base}/product/${p.slug}`,
+    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.9,
+  }));
 
-  return items;
+  return [...staticRoutes, ...productRoutes];
 }

@@ -6,7 +6,20 @@ const ORDER = "ORDER BY COALESCE(updated_at, created_at, id) DESC";
 const q = query;
 
 export async function getProductBySlug(slug: string) {
-  return q(`SELECT * FROM products WHERE slug = ? AND active = 1 LIMIT 1`, [slug]);
+  const rows = await q<any>(
+    `SELECT id, slug, name as title, description, price as price_cents, main_image as cover_url,
+            colors, sizes, quantity, sku, currency, updated_at
+     FROM products WHERE slug = ? AND active = 1 LIMIT 1`,
+    [slug]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    ...row,
+    colors: (() => { try { return JSON.parse(row.colors || '[]'); } catch { return []; } })(),
+    sizes: (() => { try { return JSON.parse(row.sizes || '[]'); } catch { return []; } })(),
+    in_stock: (row.quantity ?? 0) > 0,
+  };
 }
 
 export async function getVariants(productId: number) {
@@ -112,6 +125,17 @@ export async function getClothes(limit = 12) {
   return rows.map(normalizeProduct);
 }
 
+export async function getAccessories(limit = 12) {
+  const rows = await query<any>(`
+    SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
+    FROM products p
+    WHERE ${/* категория у вас русская */""} (category IN ('Аксессуары'))
+    ${ORDER}
+    LIMIT ${limit}
+  `);
+  return rows.map(normalizeProduct);
+}
+
 export async function getNew(limit = 12) {
   const rows = await query<any>(`
     SELECT p.*, (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id=p.id) AS variants_stock
@@ -121,5 +145,10 @@ export async function getNew(limit = 12) {
     LIMIT ${limit}
   `);
   return rows.map(normalizeProduct);
+}
+
+// выборка всех активных товаров для sitemap
+export async function getAllProductSlugs() {
+  return q(`SELECT slug, updated_at FROM products WHERE active = 1`);
 }
 
