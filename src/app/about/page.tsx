@@ -17,7 +17,7 @@ function HeroAbout() {
     <section className="relative h-[78vh] min-h-[520px] overflow-hidden rounded-dh22">
       <Image
         src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/all-items.jpg"
-        alt="DH22 — About us"
+        alt="DH22 — о бренде"
         fill
         priority
         className="object-cover"

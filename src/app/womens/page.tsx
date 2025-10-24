@@ -10,7 +10,7 @@ export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
   const url = canonical("/womens");
   const title = "Одежда — DH22";
-  const description = "Одежда DH22";
+  const description = "Одежда DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
   return {
     title,
     description,
@@ -50,7 +50,7 @@ export default async function Women() {
   const jsonLd = collectionJsonLd({
     name: "Одежда",
     url: canonical("/womens"),
-    description: "Одежда DH22",
+    description,
     items: items.map((p: any) => ({
       name: p.name ?? p.slug,
       url: canonical(`/product/${p.slug}`),

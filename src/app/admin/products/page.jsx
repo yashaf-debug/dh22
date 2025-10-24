@@ -25,7 +25,7 @@ export default async function AdminProductsPage({ searchParams }) {
       <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((p) => (
           <li key={p.id} className="flex items-center gap-4 rounded border p-3">
-            <img src={p.cover_url} alt="" className="h-16 w-16 rounded object-cover" />
+            <img src={p.cover_url} alt={p.name || p.slug} className="h-16 w-16 rounded object-cover" />
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{p.title}</div>
               <div className="text-sm opacity-70">{fmtRub(p.price_cents)}</div>

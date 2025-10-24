@@ -10,6 +10,7 @@ export type Product = {
   id: number;
   slug: string;
   name: string;
+  title?: string;
   description: string | null;
   care_text?: string | null;
   price: number;

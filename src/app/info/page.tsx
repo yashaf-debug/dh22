@@ -7,7 +7,7 @@ export const runtime = "edge";
 
 export const metadata = {
   title: "Информация — DH22",
-  description: "Доставка и оплата, возврат и обмен, контакты DH22",
+  description: "Информация DH22 — минимализм, точную посадку и доставка по России без компромиссов.",
   alternates: { canonical: canonical("/info") },
 };
 

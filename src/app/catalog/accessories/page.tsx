@@ -7,7 +7,7 @@ import { getAccessories } from "@/lib/queries";
 
 const PATH = "/catalog/accessories";
 const TITLE = "Аксессуары — DH22";
-const DESCRIPTION = "Аксессуары DH22";
+const DESCRIPTION = "Аксессуары DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
 
 export const runtime = "edge";
 export const revalidate = 3600;
