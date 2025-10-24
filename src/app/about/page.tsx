@@ -1,7 +1,15 @@
 // src/app/about/page.tsx
+import type { Metadata } from "next";
 import Image from "next/image";
+import { canonical } from "@/lib/seo";
 
 export const runtime = "edge";
+
+export const metadata: Metadata = {
+  title: "О нас — DH22",
+  description: "История бренда DH22, ценности и подход к созданию одежды.",
+  alternates: { canonical: canonical("/about") },
+};
 
 /* =============== HERO =============== */
 function HeroAbout() {
