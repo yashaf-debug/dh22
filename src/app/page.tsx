@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import ComingSoon from "@/app/components/ComingSoon";
 import { fmtRub } from "@/lib/normalize";
 import { SITE, canonical } from "@/lib/seo";
 // Если используете доп. секции — оставьте их импорт/рендер позже
