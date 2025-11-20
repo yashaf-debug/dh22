@@ -9,20 +9,16 @@ import { SITE, canonical } from "@/lib/seo";
 
 function ComingSoon() {
   return (
-    <section className="relative overflow-hidden rounded-dh22">
-      <Image
-        src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/Coming-soon.jpg"
-        alt="DH22 — скоро открытие"
-        width={1920}
-        height={1080}
-        className="h-[70vh] w-full object-cover"
-        priority
-      />
-      <div className="absolute inset-0 bg-black/10" />
-      <div className="absolute inset-0 flex items-center justify-center p-4 text-center">
-        <div className="rounded-2xl bg-black/40 px-6 py-4 text-2xl font-extrabold uppercase tracking-widest text-white backdrop-blur">
-          Coming soon
-        </div>
+    <section className="overflow-hidden rounded-dh22">
+      <div className="relative aspect-video w-full">
+        <Image
+          src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/Coming-soon.jpg"
+          alt="DH22 — скоро открытие"
+          fill
+          priority
+          className="object-contain"
+          sizes="100vw"
+        />
       </div>
     </section>
   );
