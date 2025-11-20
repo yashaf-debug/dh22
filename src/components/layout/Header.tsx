@@ -29,10 +29,10 @@ export default function Header() {
       {/* Desktop версия: видна только >= md */}
       <div className="hidden md:block">
         {/* DESKTOP BAR */}
-        <div className="rounded-full border border-black/10 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="rounded-full bg-transparent">
           <div className="flex items-center justify-between px-4 py-3 text-[13px] uppercase tracking-wide">
             <Nav />
-            <Link href="/" className="wordmark text-lg font-semibold tracking-widest">
+            <Link href="/" className="wordmark text-2xl leading-none tracking-[0.08em]">
               DH22
             </Link>
             <HeaderButtons />
@@ -43,7 +43,7 @@ export default function Header() {
       {/* Mobile версия: видна только < md */}
       <div className="md:hidden">
         {/* MOBILE BAR */}
-        <div className="rounded-full bg-white/85 shadow backdrop-blur">
+        <div className="rounded-full bg-transparent">
           <div className="flex items-center justify-between px-4 py-3">
             <button
               aria-label="Открыть меню"
@@ -55,7 +55,7 @@ export default function Header() {
               <span className="mt-1 block h-[2px] w-6 bg-black" />
             </button>
 
-            <Link href="/" className="text-xl font-black tracking-wide">
+            <Link href="/" className="wordmark text-2xl leading-none tracking-[0.08em]">
               DH22
             </Link>
 
@@ -77,7 +77,7 @@ export default function Header() {
               aria-modal="true"
             >
               <div className="mb-8 flex items-center justify-between">
-                <div className="text-3xl font-extrabold">DH22</div>
+                <div className="wordmark text-3xl leading-none tracking-[0.08em]">DH22</div>
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="Закрыть меню"
