@@ -1,12 +1,29 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import ComingSoonBanner from "@/app/components/ComingSoon";
+import ComingSoon from "@/app/components/ComingSoon";
 import { fmtRub } from "@/lib/normalize";
 import { SITE, canonical } from "@/lib/seo";
 // Если используете доп. секции — оставьте их импорт/рендер позже
 // import CategoryTiles from "@/components/home/CategoryTiles";
 // import ClothesSection from "@/components/home/ClothesSection";
 // import InstagramStripStatic from "@/components/home/InstagramStripStatic";
+
+function ComingSoon() {
+  return (
+    <section className="overflow-hidden rounded-dh22">
+      <div className="relative aspect-video w-full">
+        <Image
+          src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/Coming-soon.jpg"
+          alt="DH22 — скоро открытие"
+          fill
+          priority
+          className="object-contain"
+          sizes="100vw"
+        />
+      </div>
+    </section>
+  );
+}
 
 export const runtime = "edge";
 
@@ -326,7 +343,7 @@ function Instagram() {
 export default async function Page() {
   return (
     <div className="mx-auto w-[calc(100%-32px)] max-w-[1400px] space-y-8 py-6 sm:w-[calc(100%-48px)] sm:space-y-12 sm:py-10">
-      <ComingSoonBanner />
+      <ComingSoon />
       <Instagram />
       {/* Если нужно — верните дополнительные секции:
          <CategoryTiles />
