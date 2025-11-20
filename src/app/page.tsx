@@ -1,13 +1,32 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { getBestsellers, getLatest, getClothes } from "@/lib/queries";
-import QuickNav from "@/components/QuickNav";
 import { fmtRub } from "@/lib/normalize";
 import { SITE, canonical } from "@/lib/seo";
 // Если используете доп. секции — оставьте их импорт/рендер позже
 // import CategoryTiles from "@/components/home/CategoryTiles";
 // import ClothesSection from "@/components/home/ClothesSection";
 // import InstagramStripStatic from "@/components/home/InstagramStripStatic";
+
+function ComingSoon() {
+  return (
+    <section className="relative overflow-hidden rounded-dh22">
+      <Image
+        src="https://pub-6ad97d4d0259415a86c3a713bb4c4bc2.r2.dev/Coming-soon.jpg"
+        alt="DH22 — скоро открытие"
+        width={1920}
+        height={1080}
+        className="h-[70vh] w-full object-cover"
+        priority
+      />
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute inset-0 flex items-center justify-center p-4 text-center">
+        <div className="rounded-2xl bg-black/40 px-6 py-4 text-2xl font-extrabold uppercase tracking-widest text-white backdrop-blur">
+          Coming soon
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export const runtime = "edge";
 
@@ -325,24 +344,10 @@ function Instagram() {
 
 /* ================== СТРАНИЦА ================== */
 export default async function Page() {
-const [bestsellers, latest, clothesRaw] = await Promise.all([
-  getBestsellers(12),
-  getLatest(12),
-  getClothes(12),
-]);
-const clothes = clothesRaw.length ? clothesRaw : latest;
-
   return (
     <div className="mx-auto w-[calc(100%-32px)] max-w-[1400px] space-y-8 py-6 sm:w-[calc(100%-48px)] sm:space-y-12 sm:py-10">
-      <Hero />
-      <Bestsellers products={bestsellers.length ? bestsellers : latest} />
-      <AllItemsBanner />
-      <CategorySplit />
-      <ClothesGrid items={clothes} />
-      <NewsletterCTA />
-      <BrandBlock />
+      <ComingSoon />
       <Instagram />
-      <QuickNav />
       {/* Если нужно — верните дополнительные секции:
          <CategoryTiles />
          <ClothesSection />
