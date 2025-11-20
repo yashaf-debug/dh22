@@ -15,14 +15,16 @@ import {
 export const metadata: Metadata = DEFAULT_METADATA;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const SHOW_CHROME = false;
+
   return (
     <html lang="ru">
       <body className="antialiased">
         <Suspense fallback={null}>
           <RootLayoutClient>
-            <Header />
+            {SHOW_CHROME && <Header />}
             <main className="page-wrap pt-24 pb-24">{children}</main>
-            <Footer />
+            {SHOW_CHROME && <Footer />}
           </RootLayoutClient>
         </Suspense>
 

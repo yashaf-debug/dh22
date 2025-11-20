@@ -4,13 +4,17 @@ import ProductCard from "@/app/components/ProductCard";
 import { SITE, canonical, collectionJsonLd } from "@/lib/seo";
 import { all } from "../lib/db";
 
+const PATH = "/womens";
+const TITLE = "Одежда — DH22";
+const DESCRIPTION = "Одежда DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
+
 export const runtime = 'edge';
 export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const url = canonical("/womens");
-  const title = "Одежда — DH22";
-  const description = "Одежда DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
+  const url = canonical(PATH);
+  const title = TITLE;
+  const description = DESCRIPTION;
   return {
     title,
     description,
@@ -49,8 +53,8 @@ export default async function Women() {
   }));
   const jsonLd = collectionJsonLd({
     name: "Одежда",
-    url: canonical("/womens"),
-    description,
+    url: canonical(PATH),
+    description: DESCRIPTION,
     items: items.map((p: any) => ({
       name: p.name ?? p.slug,
       url: canonical(`/product/${p.slug}`),
