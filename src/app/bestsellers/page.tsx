@@ -4,17 +4,21 @@ import Script from "next/script";
 import { SITE, canonical, collectionJsonLd } from "@/lib/seo";
 import { getBestsellers } from "@/lib/queries";
 
+const PATH = "/bestsellers";
+const TITLE = "Bestsellers — DH22";
+const DESCRIPTION = "Bestsellers DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
+
 export const runtime = "edge";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const url = canonical("/bestsellers");
-  const title = "Bestsellers — DH22";
-  const description = "Bestsellers DH22 — минимализм, точную посадку и доставка по России без компромиссов.";
+  const url = canonical(PATH);
+  const title = TITLE;
+  const description = DESCRIPTION;
 
   return {
     title,
     description,
-    alternates: { canonical: canonical("/bestsellers") },
+    alternates: { canonical: canonical(PATH) },
     openGraph: {
       type: "website",
       url,
@@ -47,8 +51,8 @@ export default async function Page() {
   }));
   const jsonLd = collectionJsonLd({
     name: "Bestsellers",
-    url: canonical("/bestsellers"),
-    description,
+    url: canonical(PATH),
+    description: DESCRIPTION,
     items: items.map((p) => ({
       name: p.name ?? p.title ?? p.slug,
       url: canonical(`/product/${p.slug}`),
