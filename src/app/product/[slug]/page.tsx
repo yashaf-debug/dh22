@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     description,
     alternates: { canonical: url },
     openGraph: {
-      type: "product",
+      type: "website",
       url,
       siteName: SITE.name,
       title,
