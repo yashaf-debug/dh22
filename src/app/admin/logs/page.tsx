@@ -1,7 +1,17 @@
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+
+import { pageMetadata } from '@/lib/seo';
+
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-import { redirect } from 'next/navigation';
+export const metadata: Metadata = pageMetadata({
+  title: 'Логи — DH22',
+  description: 'Журнал событий DH22 (служебный доступ).',
+  path: '/admin/logs',
+  noIndex: true,
+});
 
 export default async function LogsPage({ searchParams }: { searchParams: { t?: string }}) {
   const t = searchParams?.t || '';
