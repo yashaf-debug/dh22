@@ -1,10 +1,11 @@
 import type { MetadataRoute } from 'next';
 
+import { SITE } from '@/lib/seo';
 import { getAllProductSlugs } from '@/lib/queries';
 
 export const runtime = 'edge';
 
-const BASE_URL = 'https://dh22.ru';
+const BASE_URL = SITE.url;
 
 const STATIC_ROUTES: Array<{
   path: string;
