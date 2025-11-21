@@ -196,7 +196,14 @@ export default function CheckoutPageClient() {
 
             <label className="block">
               <div className="mb-1 text-xs uppercase tracking-[0.1em] text-gray-500">Город*</div>
-              <CityAutocomplete value={city} onChange={(v) => setCity(v || "")} onSelect={(item) => setCityCode(item?.code || null)} />
+              <CityAutocomplete
+                value={city}
+                onInput={(v) => setCity(v || "")}
+                onSelect={(cityName, cityCode) => {
+                  setCity(cityName);
+                  setCityCode(cityCode ?? null);
+                }}
+              />
             </label>
 
             <div className="space-y-3 rounded-xl bg-gray-50 p-4 text-sm">
@@ -246,14 +253,14 @@ export default function CheckoutPageClient() {
                 <div className="mb-2 text-xs uppercase tracking-[0.1em] text-gray-500">Выберите пункт выдачи</div>
                 <CdekMapPicker
                   city={city}
+                  cityCode={cityCode || undefined}
+                  yandexApiKey={process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || ""}
                   onSelect={(pvz) => {
                     setDelivery((d) => ({ ...d, pvz }));
                     if (pvz) {
-                      evSelectPVZ({ code: pvz.code, city, address: pvz.address });
+                      evSelectPVZ(pvz.code, pvz.address);
                     }
                   }}
-                  onCityChange={(val) => setCity(val)}
-                  onCityCodeChange={(code) => setCityCode(code)}
                 />
               </div>
             )}
@@ -292,7 +299,7 @@ export default function CheckoutPageClient() {
               </label>
             </div>
 
-            <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITEKEY as string} onSuccess={(t) => setCfToken(t)} />
+            <TurnstileWidget onVerify={(t) => setCfToken(t)} />
           </div>
         </div>
 
