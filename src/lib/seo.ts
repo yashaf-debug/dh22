@@ -101,6 +101,53 @@ export const DEFAULT_METADATA: Metadata = {
   },
 };
 
+export function pageMetadata(options: {
+  title: string;
+  description?: string;
+  path?: string;
+  noIndex?: boolean;
+}): Metadata {
+  const title = options.title;
+  const description = options.description ?? SITE.description;
+  const url = canonical(options.path ?? "");
+
+  const metadata: Metadata = {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: SITE.name,
+      title,
+      description,
+      images: [
+        {
+          url: canonical(SITE.ogImage),
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [canonical(SITE.ogImage)],
+    },
+  };
+
+  if (options.noIndex) {
+    metadata.robots = {
+      index: false,
+      follow: false,
+    };
+  }
+
+  return metadata;
+}
+
 export function canonical(path: string | URL = ""): string {
   if (path instanceof URL) {
     return path.toString();
