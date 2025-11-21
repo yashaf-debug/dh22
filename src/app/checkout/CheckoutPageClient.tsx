@@ -127,7 +127,8 @@ export default function CheckoutPageClient() {
         else if (j2?.url) window.location.href = j2.url;
         else alert(j2?.error || "Неизвестная ошибка оплаты");
       } else {
-        alert("Успех! Заявка на заказ создана, оператор свяжется с тобой в ближайшее время");
+        useCart.getState().clear();
+        window.location.href = `/checkout/success?o=${encodeURIComponent(orderNumber)}`;
       }
     } catch (e) {
       alert((e as any).message || "Не удалось оформить заказ");
@@ -292,7 +293,7 @@ export default function CheckoutPageClient() {
               </label>
             </div>
 
-            <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITEKEY as string} onSuccess={(t) => setCfToken(t)} />
+            <TurnstileWidget onVerify={(token) => setCfToken(token)} />
           </div>
         </div>
 
