@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
 
+import { SITE } from '@/lib/seo';
+
 export const runtime = 'edge';
 
-const BASE_URL = 'https://dh22.ru';
-const HOST = new URL(BASE_URL).host;
+const BASE_URL = SITE.url;
+const HOST = SITE.domain;
 
 export default function robots(): MetadataRoute.Robots {
   return {
